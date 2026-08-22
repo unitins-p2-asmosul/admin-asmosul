@@ -1,8 +1,8 @@
-import {HttpErrorResponse, HttpInterceptorFn} from '@angular/common/http';
-import {inject} from '@angular/core';
-import {NotificacaoService} from '@features/shared/services/notificacao.service';
-import {catchError, throwError} from 'rxjs';
-import {ErroApi} from '@features/shared/models/erro-api.model';
+import { HttpErrorResponse, HttpInterceptorFn } from '@angular/common/http';
+import { inject } from '@angular/core';
+import { NotificacaoService } from '@features/shared/services/notificacao.service';
+import { catchError, throwError } from 'rxjs';
+import { ErroApi } from '@features/shared/models/erro-api.model';
 
 export const erroInterceptorFn: HttpInterceptorFn = (req, next) => {
   const notificacao = inject(NotificacaoService);
@@ -46,6 +46,6 @@ export const erroInterceptorFn: HttpInterceptorFn = (req, next) => {
 
       // Propaga o erro caso a página precise reagir (ex: destravar loading)
       return throwError(() => error);
-    })
+    }),
   );
 };

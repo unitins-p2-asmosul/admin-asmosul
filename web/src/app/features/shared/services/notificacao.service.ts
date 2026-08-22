@@ -1,5 +1,9 @@
-import {inject, Injectable} from '@angular/core';
-import {MatSnackBar, MatSnackBarHorizontalPosition, MatSnackBarVerticalPosition} from '@angular/material/snack-bar';
+import { inject, Injectable } from '@angular/core';
+import {
+  MatSnackBar,
+  MatSnackBarHorizontalPosition,
+  MatSnackBarVerticalPosition,
+} from '@angular/material/snack-bar';
 
 export interface NotificacaoOpcoes {
   duracao?: number;
@@ -8,9 +12,9 @@ export interface NotificacaoOpcoes {
 }
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
-export class NotificacaoService{
+export class NotificacaoService {
   private readonly snackbar = inject(MatSnackBar);
 
   sucesso(mensagem: string, opcoes?: NotificacaoOpcoes): void {
@@ -29,7 +33,7 @@ export class NotificacaoService{
     this.snackbar.open(mensagem, acao, {
       duration: opcoes?.duracao ?? 3500,
       verticalPosition: opcoes?.posicaoVertical ?? 'top',
-      horizontalPosition: opcoes?.posicaoHorizontal ?? 'center'
+      horizontalPosition: opcoes?.posicaoHorizontal ?? 'center',
     });
   }
 }
