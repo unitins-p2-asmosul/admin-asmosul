@@ -11,58 +11,59 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-  @ExceptionHandler(ValidationException.class)
-  public ProblemDetail tratarValidationException(ValidationException ex) {
-    ProblemDetail problemDetail =
-        ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
+    @ExceptionHandler(ValidationException.class)
+    public ProblemDetail tratarValidationException(ValidationException ex) {
+        ProblemDetail problemDetail =
+                ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
 
-    problemDetail.setTitle("Erro de Validação");
-    problemDetail.setType(URI.create("https://api.asmosul.org.br/erros/validacao"));
+        problemDetail.setTitle("Erro de Validação");
+        problemDetail.setType(URI.create("https://api.asmosul.org.br/erros/validacao"));
 
-    Map<String, String> errosMapeados =
-        ex.getErros().stream()
-            .collect(
-                Collectors.toMap(
-                    ValidationException.CampoErro::campo,
-                    ValidationException.CampoErro::mensagem,
-                    (mensagemExistente, novaMensagem) -> mensagemExistente));
+        Map<String, String> errosMapeados =
+                ex.getErros().stream()
+                        .collect(
+                                Collectors.toMap(
+                                        ValidationException.CampoErro::campo,
+                                        ValidationException.CampoErro::mensagem,
+                                        (mensagemExistente, novaMensagem) -> mensagemExistente));
 
-    problemDetail.setProperty("invalidFields", errosMapeados);
+        problemDetail.setProperty("invalidFields", errosMapeados);
 
-    return problemDetail;
-  }
+        return problemDetail;
+    }
 
-  @ExceptionHandler(ConflitoDadosException.class)
-  public ProblemDetail tratarConflitoDadosException(ConflitoDadosException ex) {
-    ProblemDetail problemDetail =
-        ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
+    @ExceptionHandler(ConflitoDadosException.class)
+    public ProblemDetail tratarConflitoDadosException(ConflitoDadosException ex) {
+        ProblemDetail problemDetail =
+                ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
 
-    problemDetail.setTitle("Conflito de Dados");
-    problemDetail.setType(URI.create("https://api.asmosul.org.br/erros/conflito"));
+        problemDetail.setTitle("Conflito de Dados");
+        problemDetail.setType(URI.create("https://api.asmosul.org.br/erros/conflito"));
 
-    return problemDetail;
-  }
+        return problemDetail;
+    }
 
-  @ExceptionHandler(EntidadeNaoEncontradaException.class)
-  public ProblemDetail tratarEntidadeNaoEncontradaException(EntidadeNaoEncontradaException ex) {
-    ProblemDetail problemDetail =
-        ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
+    @ExceptionHandler(EntidadeNaoEncontradaException.class)
+    public ProblemDetail tratarEntidadeNaoEncontradaException(EntidadeNaoEncontradaException ex) {
+        ProblemDetail problemDetail =
+                ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
 
-    problemDetail.setTitle("Recurso Não Encontrado");
-    problemDetail.setType(URI.create("https://api.asmosul.org.br/erros/recurso-nao-encontrado"));
+        problemDetail.setTitle("Recurso Não Encontrado");
+        problemDetail.setType(
+                URI.create("https://api.asmosul.org.br/erros/recurso-nao-encontrado"));
 
-    return problemDetail;
-  }
+        return problemDetail;
+    }
 
-  @ExceptionHandler(Exception.class)
-  public ProblemDetail tratarErroAplicacao(Exception ex) {
+    @ExceptionHandler(Exception.class)
+    public ProblemDetail tratarErroAplicacao(Exception ex) {
 
-    ProblemDetail problemDetail =
-        ProblemDetail.forStatusAndDetail(
-            HttpStatus.INTERNAL_SERVER_ERROR,
-            "Ocorreu um erro interno inesperado. Por favor, tente novamente mais tarde.");
-    problemDetail.setTitle("Erro Interno do Servidor");
-    problemDetail.setType(URI.create("https://api.asmosul.org.br/erros/erro-interno"));
-    return problemDetail;
-  }
+        ProblemDetail problemDetail =
+                ProblemDetail.forStatusAndDetail(
+                        HttpStatus.INTERNAL_SERVER_ERROR,
+                        "Ocorreu um erro interno inesperado. Por favor, tente novamente mais tarde.");
+        problemDetail.setTitle("Erro Interno do Servidor");
+        problemDetail.setType(URI.create("https://api.asmosul.org.br/erros/erro-interno"));
+        return problemDetail;
+    }
 }

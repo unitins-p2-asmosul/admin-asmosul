@@ -14,10 +14,10 @@ import org.testcontainers.mysql.MySQLContainer;
 @Transactional
 public abstract class BaseAPITest {
 
-  @Container @ServiceConnection
-  static MySQLContainer mysql =
-      new MySQLContainer("mysql:8.0")
-          .withDatabaseName("asmosul_db_test")
-          .withUsername("test")
-          .withPassword("test");
+    @Container @ServiceConnection
+    static MySQLContainer mysql =
+            new MySQLContainer("mysql:8.0")
+                    .withDatabaseName("asmosul_db_test")
+                    .withUsername("test")
+                    .withPassword("test");
 }

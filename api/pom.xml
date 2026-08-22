@@ -126,7 +126,7 @@
                     <java>
                         <googleJavaFormat>
                             <version>1.35.0</version>
-                            <style>GOOGLE</style>
+                            <style>AOSP</style>
                         </googleJavaFormat>
                         <removeUnusedImports />
                         <trimTrailingWhitespace />
