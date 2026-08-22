@@ -2,6 +2,10 @@
 
 Versão: 1.0
 
+# Importate!
+
+Realize adições e modificações no backend conforme os contratos de API e os diagramas de classe e de entidade relacionamento na pasta docs/!!
+
 # Pom.xml
 
 ## Sprint 1
