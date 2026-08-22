@@ -8,17 +8,23 @@
 - **Método HTTP: `POST | GET | PUT | DELETE`**
 - **Status de retornos possíveis:**  `201 Created`, `400 Bad Request`, `404 Not Found`, `409 Conflict`
 
+### Padrão de Contrato para Enums de Domínio
+Os campos tipados como Enum adotam formato diferenciado para entrada e saída:
+- **Na Requisição (POST / PUT):** Enviar apenas a String com o código do enum (ex.: "MASCULINO").
+- **Na Resposta (GET / 201 Created):** A API retorna o objeto estruturado com codigo e descricao.
 ### Parâmetros de Entrada
 
 | Campo | Tipo | Obrigatório | Validações / Observações |
 | --- | --- | --- | --- |
 | `nome` | String | Sim | Não pode ser vazio, máx. 150 caracteres |
+ | `sexo` | String | Sim | valores aceitos: FEMININO, MASCULINO, PREFIRO_NAO_INFORMAR |
 
 ### Exemplo de Requisição
 
 ```json
 {
   "nome": "Maria Silva",
+  "sexo": "FEMININO",
   ...
 }
 ```
@@ -31,6 +37,10 @@
 {
   "id": 42,
   "nome": "Maria Silva",
+  "sexo": {
+    "codigo": "FEMININO",
+    "descricao": "Feminino"
+  },
   ...
 }
 ```
