@@ -1,0 +1,10 @@
+version: '3.8'
+services:
+  mysql-dev:
+    image: mysql:8.0
+    container_name: mysql-dev
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: asmosul_db
+    ports:
+      - "3306:3306"

@@ -1,0 +1,80 @@
+# ==========================================
+# 1. Configurações Globais / Padrão Base
+# ==========================================
+server:
+  port: ${SERVER_PORT:8080}
+  servlet:
+    context-path: /api
+
+spring:
+  application:
+    name: api
+
+  # Define o profile padrão como 'dev' caso nenhum seja passado
+  profiles:
+    active: dev
+
+  # JPA & Hibernate
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        format_sql: true
+    show-sql: false
+
+  # Flyway
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    locations: classpath:db/migration
+
+  # RFC 7807 (Problem Details)
+  mvc:
+    problemdetails:
+      enabled: true
+
+# OpenAPI / Swagger
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: method
+    tags-sorter: alpha
+
+---
+# ==========================================
+# 2. Profile: DEV (Desenvolvimento Local / Compose)
+# ==========================================
+spring:
+  config:
+    activate:
+      on-profile: dev
+
+  datasource:
+    url: jdbc:mysql://localhost:3306/asmosul_db
+    username: root
+    password: root
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+---
+# ==========================================
+# 3. Profile: PROD (Produção)
+# ==========================================
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+  datasource:
+    url: jdbc:mysql://${DB_HOST}:${DB_PORT:3306}/${DB_NAME}?useSSL=true&allowPublicKeyRetrieval=false&serverTimezone=UTC
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  # Em produção, desabilita a interface visual do Swagger por segurança
+  springdoc:
+    swagger-ui:
+      enabled: false
