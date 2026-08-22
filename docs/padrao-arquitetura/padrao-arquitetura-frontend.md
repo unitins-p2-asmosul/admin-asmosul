@@ -1,5 +1,9 @@
 # Padrão de Arquitetura do Frontend
 
+# Importate!
+
+Realize adições e modificações no frontend conforme os contratos de API na pasta docs/.
+
 # Visão Geral
 
 Este projeto utiliza **Angular (v17+),** então deve-se priorizar adotar práticas a partir dessa versão.
