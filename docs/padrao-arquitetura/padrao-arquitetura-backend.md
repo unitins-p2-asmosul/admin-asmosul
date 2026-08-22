@@ -622,11 +622,52 @@ As entidades mapeiam as tabelas do banco de dados relacional e concentram o esta
         ```
 
 - Por padrão, utilize `fetch = FetchType.LAZY` em relacionamentos `@ManyToOne` e `@OneToOne` para evitar carregar muitos dados na memória.
-
-  ![image.png](Padr%C3%A3o%20API/image.png)
-
 - Em coleções (`@ManyToMany`, `@OneToMany`), inicialize o atributo diretamente na declaração com `new ArrayList<>()`
 - Mapeie explicitamente nomes de tabelas e colunas conforme as migrações do banco: em `snake_case` em plural, com as anotações `@Table(name = "...")` e `@Column(name = "...")`.
+- Enums
+  - Os Enums de domínio (como Sexo, Escolaridade, RendaFamiliar) devem fornecer formato duplo para a camada de visualização e transporte
+  - Serialização de Saída (GET): Retorna um objeto estruturado contendo `{ "codigo": "...", "descricao": "..." }` utilizando a anotação `@JsonFormat(shape = JsonFormat.Shape.OBJECT)`.
+  - Desserialização de Entrada (`POST / PUT`): Aceita diretamente a String simples do código (ex.: "FEMININO") por meio do método estático anotado com @JsonCreator. Se o valor recebido for nulo ou inválido, lança uma ValidationException (HTTP 400).
+
+### Exemplo de Implementação de Enum (Sexo.java)
+```java
+@JsonFormat(shape = JsonFormat.Shape.OBJECT)
+public enum Sexo {
+FEMININO("FEMININO", "Feminino"),
+MASCULINO("MASCULINO", "Masculino"),
+PREFIRO_NAO_INFORMAR("PREFIRO_NAO_INFORMAR", "Prefiro não informar");
+
+    private final String codigo;
+    private final String descricao;
+
+    Sexo(String codigo, String descricao) {
+        this.codigo = codigo;
+        this.descricao = descricao;
+    }
+
+    @JsonProperty("codigo")
+    public String getCodigo() {
+        return codigo;
+    }
+
+    @JsonProperty("descricao")
+    public String getDescricao() {
+        return descricao;
+    }
+
+    @JsonCreator
+    public static Sexo deCodigo(String valor) {
+        if (valor == null || valor.isBlank()) {
+            return null;
+        }
+
+        return Arrays.stream(Sexo.values())
+                .filter(s -> s.getCodigo().equalsIgnoreCase(valor.trim()))
+                .findFirst()
+                .orElseThrow(() -> ValidationException.of("sexo", "Opção de sexo informada é inválida"));
+    }
+}
+```
 
 ### Estrutura das Classes Base
 
