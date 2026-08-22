@@ -35,13 +35,18 @@ docs/contratos/modelo.md
 
 Define o padrão dos contratos da API, incluindo rotas, métodos HTTP, parâmetros, validações, enums, respostas e erros.
 
+### Diagramas
+
+Os diagramas de Classe e DER(Diagrama Entidade Relacionamento), encontram-se na pasta no caminho:admin-asmosul/docs/diagramas.
+
+O diagrama de classe é uma imagem .pnj e o DER é um link que levara para  DrawSQL.
 ---
 
 ## Como iniciar os projetos
 
 ### Backend
 
-Suba a infraestrutura:
+Suba o banco de dados na porta 3306, porta padrão do MySQL:
 
 ```bash
 docker compose up -d
