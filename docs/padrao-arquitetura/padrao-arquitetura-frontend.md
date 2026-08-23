@@ -401,14 +401,14 @@ export class PessoaService {
     - Disparar chamadas HTTP (buscar dados, salvar, deletar).
     - Repassar dados aos componentes filhos e escutar seus eventos de saída (`output()`).
     - Para eventos recebidos, utilizar o padrão de nomenclatura de ação direta no infinitivo + elemento modificado (`salvarPessoa()`, `excluirPessoa()`, `mudarPagina()`).
-    - Para padrão de nomenclatura de nomes dos arquivos, use `elemento-page.component`
+    - Para padrão de nomenclatura de nomes dos arquivos, use `elemento-cadastro/listagem/informacao-page.component`
 - Components
     - Receber dados exclusivamente via `input()` ou `input.required()`.
     - Emitir intenções do usuário exclusivamente via `output()` (ex.: `aoSalvar`, `aoExcluir`).
     - Não injetam serviços de API (`HttpClient` ou serviços de negócio).
     - Podem injetar apenas utilitários puros de interface (ex.: classes de formatação ou helpers locais).
     - Para output, utilizar o padrão de nomenclatura "ao" + ação no infinitivo (`aoSalvar`, `aoExcluir`, `aoMudarPagina`).
-    - Para os nomes, siga a convenção de `elemento-form/table/info/filtro/select.component`
+    - Para os nomes, siga a convenção de elemento-ação `elemento-formulario/tabela/informacao/filtro/select.component`
 
 # Dados Simulados (Mocks de API)
 
@@ -568,6 +568,8 @@ Quando os endpoints do backend forem disponibilizados:
 3. Caso os mocks não sejam mais necessários para testes unitários locais, os arquivos dentro da pasta `mocks/` podem ser mantidos para fins de testes rápidos ou removidos conforme a cobertura de testes do módulo.
 
 # Formulários
+
+Para simplicidade, crie a lógica dos formulários na propria page, aí não irá precisar de outputs ou tantas conversas entre componentes. Use-os tanto para cadastro quanto atualização.
 
 Siga os exemplos a seguir para formulários
 
