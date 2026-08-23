@@ -410,7 +410,164 @@ export class PessoaService {
     - Para output, utilizar o padrão de nomenclatura "ao" + ação no infinitivo (`aoSalvar`, `aoExcluir`, `aoMudarPagina`).
     - Para os nomes, siga a convenção de `elemento-form/table/info/filtro/select.component`
 
-## Formulários
+# Dados Simulados (Mocks de API)
+
+Durante o desenvolvimento inicial de telas e fluxos em que o backend ainda não disponibilizou os endpoints, utilize dados falsos tipados de forma isolada. O padrão adotado é o **retorno direto via RxJS nos Services**, simulando a assincronicidade com `of()` e `delay()`, permitindo fácil transição para a API real sem alterar a assinatura dos métodos ou o código das páginas.
+
+---
+
+## Diretrizes de Implementação
+
+* **Localização dos arquivos de mock:** Crie uma pasta `mocks/` dentro da respectiva feature (ex.: `src/app/features/pessoas/mocks/pessoa.mock.ts`).
+* **Tipagem estrita:** Os mocks devem implementar rigorosamente as mesmas interfaces de DTO (`Resumo`, `Detalhe`, `RespostaPaginada<T>`), incluindo o formato estruturado de Enums para leitura (`{ codigo, descricao }`).
+* **Simulação de latência de rede:** Sempre utilize o operador `.pipe(delay(300))` em conjunto com `of(...)`. Isso garante a correta validação dos estados de carregamento (`carregando.set(true)`) nas páginas.
+* **Flag de controle de mock:** Centralize a alternância entre dados locais e a API através do `environment.mockApi` ou de uma propriedade booleana de controle no próprio Service.
+
+---
+
+## Estrutura de Diretórios da Feature com Mocks
+
+```json
+src/app/features/pessoas/
+├── components/
+├── mocks/
+│   └── pessoa.mock.ts
+├── models/
+│   └── pessoa.model.ts
+├── pages/
+├── services/
+│   └── pessoa.service.ts
+└── pessoas.routes.ts
+
+```
+
+---
+
+## Exemplo de Arquivo de Mock (`pessoa.mock.ts`)
+
+```tsx
+import { RespostaPaginada } from '../../../shared/models/paginacao.model';
+import { PessoaDetalhe, PessoaResumo, SexoCodigo } from '../models/pessoa.model';
+
+export const MOCK_PESSOAS_LISTA: RespostaPaginada<PessoaResumo> = {
+  dados: [
+    {
+      id: 1,
+      nome: 'Ana Silva',
+      cpf: '123.456.789-00',
+      sexo: { codigo: SexoCodigo.FEMININO, descricao: 'Feminino' },
+      ativo: true
+    },
+    {
+      id: 2,
+      nome: 'Carlos Souza',
+      cpf: '987.654.321-11',
+      sexo: { codigo: SexoCodigo.MASCULINO, descricao: 'Masculino' },
+      ativo: true
+    }
+  ],
+  paginaAtual: 0,
+  tamanhoPagina: 10,
+  totalElementos: 2,
+  totalPaginas: 1
+};
+
+export const MOCK_PESSOA_DETALHE: PessoaDetalhe = {
+  id: 1,
+  nome: 'Ana Silva',
+  cpf: '123.456.789-00',
+  categoria: { id: 10, nome: 'Estudante' },
+  sexo: { codigo: SexoCodigo.FEMININO, descricao: 'Feminino' }
+};
+
+```
+
+---
+
+## Estrutura do Service com Alternância para Endpoint Real (`pessoa.service.ts`)
+
+O Service mantém a implementação HTTP pronta. Para ativar a API real, basta alterar o valor da flag de controle:
+
+```tsx
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { inject, Injectable } from '@angular/core';
+import { Observable, of } from 'rxjs';
+import { delay } from 'rxjs/operators';
+import { RespostaPaginada } from '../../../shared/models/paginacao.model';
+import { MOCK_PESSOA_DETALHE, MOCK_PESSOAS_LISTA } from '../mocks/pessoa.mock';
+import { PessoaDetalhe, PessoaRequisicao, PessoaResumo } from '../models/pessoa.model';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class PessoaService {
+  private readonly http = inject(HttpClient);
+  private readonly endpoint = 'pessoas';
+
+  // Alterne para false quando o backend estiver disponível
+  private readonly useMock = true;
+
+  cadastrar(requisicao: PessoaRequisicao): Observable<PessoaDetalhe> {
+    if (this.useMock) {
+      const mockCriado: PessoaDetalhe = {
+        ...MOCK_PESSOA_DETALHE,
+        nome: requisicao.nome,
+        id: Math.floor(Math.random() * 1000) + 1
+      };
+      return of(mockCriado).pipe(delay(400));
+    }
+    return this.http.post<PessoaDetalhe>(this.endpoint, requisicao);
+  }
+
+  listar(params?: HttpParams): Observable<RespostaPaginada<PessoaResumo>> {
+    if (this.useMock) {
+      return of(MOCK_PESSOAS_LISTA).pipe(delay(300));
+    }
+    return this.http.get<RespostaPaginada<PessoaResumo>>(this.endpoint, { params });
+  }
+
+  buscarPorId(id: number): Observable<PessoaDetalhe> {
+    if (this.useMock) {
+      return of({ ...MOCK_PESSOA_DETALHE, id }).pipe(delay(300));
+    }
+    return this.http.get<PessoaDetalhe>(`${this.endpoint}/${id}`);
+  }
+
+  atualizar(id: number, requisicao: PessoaRequisicao): Observable<PessoaDetalhe> {
+    if (this.useMock) {
+      return of({ ...MOCK_PESSOA_DETALHE, ...requisicao, id }).pipe(delay(400));
+    }
+    return this.http.put<PessoaDetalhe>(`${this.endpoint}/${id}`, requisicao);
+  }
+
+  desativar(id: number): Observable<void> {
+    if (this.useMock) {
+      return of(void 0).pipe(delay(300));
+    }
+    return this.http.patch<void>(`${this.endpoint}/${id}/desativar`, null);
+  }
+
+  reativar(id: number): Observable<void> {
+    if (this.useMock) {
+      return of(void 0).pipe(delay(300));
+    }
+    return this.http.patch<void>(`${this.endpoint}/${id}/reativar`, null);
+  }
+}
+
+```
+
+---
+
+## Processo de Transição para Produção / API Real
+
+Quando os endpoints do backend forem disponibilizados:
+
+1. Alterne a flag `useMock` para `false` no Service correspondente (ou aponte para `environment.mockApi`).
+2. Valide as chamadas reais contra o `apiInterceptor` e o `erroInterceptor`.
+3. Caso os mocks não sejam mais necessários para testes unitários locais, os arquivos dentro da pasta `mocks/` podem ser mantidos para fins de testes rápidos ou removidos conforme a cobertura de testes do módulo.
+
+# Formulários
 
 Siga os exemplos a seguir para formulários
 
@@ -596,7 +753,7 @@ export class PessoaCadastroPageComponent {
 
 Para evitar duplicação de lógica visual e comportamental, os recursos de feedback visual (notificações), modais de confirmação e prefixação de requisições HTTP ficam centralizados em utilitários reutilizáveis.
 
-### Serviço de Notificação / Toast (`src/app/core/services/notificacao.service.ts`)
+## Serviço de Notificação / Toast (`src/app/core/services/notificacao.service.ts`)
 
 Centraliza o uso do `MatSnackBar`, padronizando o tempo de exibição e posicionamento das mensagens rápidas de feedback.
 
@@ -636,11 +793,11 @@ export class NotificacaoService{
 }
 ```
 
-### Modal Genérico de Confirmação (`shared/components/dialogo-confirmacao/`)
+## Modal Genérico de Confirmação (`shared/components/dialogo-confirmacao/`)
 
 Evita recriar caixas de diálogo repetitivas para ações críticas (ex.: inativar ou reativar registros).
 
-#### Componente de Confirmação (`dialogo-confirmacao.component.ts`)
+### Componente de Confirmação (`dialogo-confirmacao.component.ts`)
 
 ```tsx
 
@@ -686,7 +843,7 @@ Template do Modal (dialogo-confirmacao.component.html)
 </mat-dialog-actions>
 ```
 
-#### Serviço Utilitário para Abertura do Modal (`dialogo-confirmacao.service.ts`)
+### Serviço Utilitário para Abertura do Modal (`dialogo-confirmacao.service.ts`)
 
 Permite chamar a confirmação de forma assíncrona usando `async/await` direto nos componentes:
 
@@ -713,7 +870,7 @@ export class DialogoConfirmacaoService{
 }
 ```
 
-#### Exemplo de Uso na Page:
+### Exemplo de Uso na Page:
 
 ```tsx
 async inativarRegistro(id: number): Promise<void> {
@@ -728,7 +885,7 @@ async inativarRegistro(id: number): Promise<void> {
 }
 ```
 
-### Interceptor de URL Base da API (`src/app/core/http/api.interceptor.ts`)
+## Interceptor de URL Base da API (`src/app/core/http/api.interceptor.ts`)
 
 Centraliza o prefixo base da API, dispensando a necessidade de concatenar `environment.apiUrl` manualmente em cada chamada dos services quando utilizarem rotas relativas.
 
@@ -752,13 +909,13 @@ export const apiInterceptor: HttpInterceptorFn = (req, next) => {
 
 O tratamento de erros é centralizado através de um **Interceptor HTTP Funcional** (`HttpInterceptorFn`). Ele captura as respostas de erro da API Spring Boot padronizadas sob a especificação **RFC 7807 (Problem Details)** e aciona os métodos semânticos do `NotificacaoService` (`alerta()`, `erro()`), dispensando blocos manuais de exibição de avisos dentro dos Services e Pages.
 
-### Fluxo de Responsabilidades
+## Fluxo de Responsabilidades
 
 1. **Backend (Spring Boot):** Intercepta exceções e devolve um JSON padronizado com `title`, `status`, `detail` e opcionalmente o array `erros` (para falhas de validação de formulário).
 2. **`erroInterceptor`:** Captura a falha HTTP, decide o nível de feedback visual via `NotificacaoService` e repassa o erro adiante com `throwError`.
 3. **Página / Componente:** Não precisa abrir `MatSnackBar` manualmente para erros genéricos; apenas escuta o erro se precisar marcar controles locais inválidos via `setErrors()`.
 
-### Mapeamento por Código de Status HTTP
+## Mapeamento por Código de Status HTTP
 
 - **`Status 0` (Sem Conexão / Backend Fora):** Aciona `notificacaoService.erro(...)` informando falha de comunicação com o servidor.
 - **`400 Bad Request`:**
@@ -769,7 +926,7 @@ O tratamento de erros é centralizado através de um **Interceptor HTTP Funciona
 - **`404 Not Found` / `409 Conflict`:** Disparam `notificacaoService.alerta(...)` com a mensagem descritiva de `detail`.
 - **`500 Internal Server Error`:** Dispara `notificacaoService.erro(...)` com a mensagem de falha interna.
 
-### Implementação do Interceptor (`src/app/core/http/erro.interceptor.ts`)
+## Implementação do Interceptor (`src/app/core/http/erro.interceptor.ts`)
 
 ```tsx
 export const erroInterceptor: HttpInterceptorFn = (req, next) => {
