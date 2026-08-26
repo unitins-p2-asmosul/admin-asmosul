@@ -12,6 +12,11 @@ export const routes: Routes = [
 			import('./features/categorias/categorias.routes').then((modulo) => modulo.CATEGORIAS_ROUTES),
 	},
 	{
+		path: 'pessoas',
+		loadChildren: () =>
+			import('./features/pessoas/pessoas.routes').then((modulo) => modulo.PESSOAS_ROUTES),
+	},
+	{
 		path: '**',
 		redirectTo: 'categorias/novo',
 	},
