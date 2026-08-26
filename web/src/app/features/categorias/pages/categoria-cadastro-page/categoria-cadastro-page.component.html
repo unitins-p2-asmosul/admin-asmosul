@@ -1,0 +1,52 @@
+<section class="mx-auto max-w-2xl">
+  <div class="mb-8">
+    <h1 class="text-2xl font-bold text-gray-900">Dados da Categoria</h1>
+  </div>
+
+  <form
+    [formGroup]="form"
+    (ngSubmit)="salvar()"
+    class="space-y-6 rounded-lg border border-gray-200 bg-white p-6 shadow-sm"
+  >
+    <div class="w-full">
+      <label for="nome" class="mb-2 block text-sm font-semibold text-gray-700">Nome *</label>
+      <mat-form-field appearance="outline" class="w-full">
+        <input
+          id="nome"
+          matInput
+          formControlName="nome"
+          placeholder="Digite o nome da categoria"
+        />
+      @if (form.controls.nome.hasError('required') || form.controls.nome.hasError('pattern')) {
+        <mat-error>O nome é obrigatório.</mat-error>
+      } @else if (form.controls.nome.hasError('backend')) {
+        <mat-error>{{ form.controls.nome.getError('backend') }}</mat-error>
+      }
+      </mat-form-field>
+    </div>
+
+    <div class="w-full">
+      <label for="descricao" class="mb-2 block text-sm font-semibold text-gray-700">Descrição</label>
+      <mat-form-field appearance="outline" class="w-full">
+        <textarea
+          id="descricao"
+          matInput
+          formControlName="descricao"
+          rows="4"
+          placeholder="Digite a descrição da categoria"
+        ></textarea>
+      </mat-form-field>
+    </div>
+
+    <div class="flex flex-col-reverse justify-center gap-3 border-t border-gray-100 pt-5 sm:flex-row">
+      <button mat-button type="button" (click)="cancelar()">Cancelar</button>
+      <button mat-flat-button color="primary" type="submit" [disabled]="carregando()">
+        @if (carregando()) {
+          Salvando...
+        } @else {
+          Salvar
+        }
+      </button>
+    </div>
+  </form>
+</section>
