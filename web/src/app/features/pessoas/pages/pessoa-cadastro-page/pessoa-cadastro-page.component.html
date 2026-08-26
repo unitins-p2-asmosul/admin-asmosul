@@ -1,0 +1,286 @@
+<section class="mx-auto max-w-4xl">
+  <div class="mb-8">
+    <h1 class="text-[2rem] font-bold">Cadastro de Pessoa</h1>
+    <p class="mt-2 text-base font-medium text-slate-500">
+      Preencha os dados abaixo para cadastrar uma nova pessoa.
+    </p>
+  </div>
+
+  <form
+    [formGroup]="form"
+    (ngSubmit)="salvar()"
+    class="rounded-xl border border-gray-200 bg-white p-8 shadow-sm"
+  >
+    <h2 class="mb-5 text-lg font-semibold">Dados Pessoais</h2>
+
+    <div class="grid grid-cols-1 gap-x-8 md:grid-cols-2">
+      <div class="md:col-span-2">
+        <label for="nome" class="mb-2 block text-sm font-semibold text-gray-700">
+          Nome completo *
+        </label>
+        <mat-form-field appearance="outline" class="w-full">
+          <input id="nome" matInput formControlName="nome" placeholder="Digite o nome completo" />
+          @if (form.controls.nome.hasError('required') || form.controls.nome.hasError('pattern')) {
+            <mat-error>O nome é obrigatório.</mat-error>
+          } @else if (form.controls.nome.hasError('backend')) {
+            <mat-error>{{ form.controls.nome.getError('backend') }}</mat-error>
+          }
+        </mat-form-field>
+      </div>
+
+      <div>
+        <label for="cpf" class="mb-2 block text-sm font-semibold text-gray-700">CPF *</label>
+        <mat-form-field appearance="outline" class="w-full">
+          <input
+            id="cpf"
+            matInput
+            formControlName="cpf"
+            (input)="aplicarMascaraCpf()"
+            placeholder="000.000.000-00"
+            inputmode="numeric"
+            maxlength="14"
+          />
+          @if (form.controls.cpf.hasError('required')) {
+            <mat-error>O CPF é obrigatório.</mat-error>
+          } @else if (form.controls.cpf.hasError('cpfIncompleto')) {
+            <mat-error>O CPF deve conter 11 números.</mat-error>
+          } @else if (form.controls.cpf.hasError('cpfInvalido')) {
+            <mat-error>CPF inválido. Confira os números digitados.</mat-error>
+          } @else if (form.controls.cpf.hasError('backend')) {
+            <mat-error>{{ form.controls.cpf.getError('backend') }}</mat-error>
+          }
+        </mat-form-field>
+      </div>
+
+      <div>
+        <label for="dataNascimento" class="mb-2 block text-sm font-semibold text-gray-700">
+          Data de nascimento *
+        </label>
+        <mat-form-field appearance="outline" class="w-full">
+          <input
+            id="dataNascimento"
+            matInput
+            formControlName="dataNascimento"
+            (input)="aplicarMascaraData()"
+            placeholder="dd/mm/aaaa"
+            inputmode="numeric"
+            maxlength="10"
+          />
+          @if (form.controls.dataNascimento.hasError('required')) {
+            <mat-error>A data de nascimento é obrigatória.</mat-error>
+          } @else if (form.controls.dataNascimento.hasError('dataFormato')) {
+            <mat-error>Informe a data no formato dd/mm/aaaa.</mat-error>
+          } @else if (form.controls.dataNascimento.hasError('dataInvalida')) {
+            <mat-error>Esta data não existe no calendário.</mat-error>
+          } @else if (form.controls.dataNascimento.hasError('dataFutura')) {
+            <mat-error>A data de nascimento não pode ser futura.</mat-error>
+          } @else if (form.controls.dataNascimento.hasError('backend')) {
+            <mat-error>{{ form.controls.dataNascimento.getError('backend') }}</mat-error>
+          }
+        </mat-form-field>
+      </div>
+
+      <div>
+        <label for="sexo" class="mb-2 block text-sm font-semibold text-gray-700">Sexo</label>
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-select id="sexo" formControlName="sexo" placeholder="Selecione o sexo">
+            @for (opcao of sexoOpcoes; track opcao.codigo) {
+              <mat-option [value]="opcao.codigo">{{ opcao.descricao }}</mat-option>
+            } @empty {
+              <mat-option [disabled]="true">Nenhuma opção disponível</mat-option>
+            }
+          </mat-select>
+          @if (form.controls.sexo.hasError('backend')) {
+            <mat-error>{{ form.controls.sexo.getError('backend') }}</mat-error>
+          }
+        </mat-form-field>
+      </div>
+
+      <div>
+        <label for="telefone" class="mb-2 block text-sm font-semibold text-gray-700">
+          Telefone *
+        </label>
+        <mat-form-field appearance="outline" class="w-full">
+          <input
+            id="telefone"
+            matInput
+            formControlName="telefone"
+            (input)="aplicarMascaraTelefone()"
+            placeholder="(00) 00000-0000"
+            inputmode="tel"
+            maxlength="15"
+          />
+          @if (form.controls.telefone.hasError('required')) {
+            <mat-error>O telefone é obrigatório.</mat-error>
+          } @else if (form.controls.telefone.hasError('telefoneInvalido')) {
+            <mat-error>O telefone deve ter 10 ou 11 números, com DDD.</mat-error>
+          } @else if (form.controls.telefone.hasError('backend')) {
+            <mat-error>{{ form.controls.telefone.getError('backend') }}</mat-error>
+          }
+        </mat-form-field>
+      </div>
+
+      <div>
+        <label for="email" class="mb-2 block text-sm font-semibold text-gray-700">E-mail</label>
+        <mat-form-field appearance="outline" class="w-full">
+          <input
+            id="email"
+            matInput
+            formControlName="email"
+            type="email"
+            placeholder="Digite o e-mail"
+          />
+          @if (form.controls.email.hasError('email')) {
+            <mat-error>Informe um e-mail válido.</mat-error>
+          } @else if (form.controls.email.hasError('backend')) {
+            <mat-error>{{ form.controls.email.getError('backend') }}</mat-error>
+          }
+        </mat-form-field>
+      </div>
+
+      <div>
+        <label for="escolaridade" class="mb-2 block text-sm font-semibold text-gray-700">
+          Escolaridade
+        </label>
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-select
+            id="escolaridade"
+            formControlName="escolaridade"
+            placeholder="Selecione a escolaridade"
+          >
+            @for (opcao of escolaridadeOpcoes; track opcao.codigo) {
+              <mat-option [value]="opcao.codigo">{{ opcao.descricao }}</mat-option>
+            } @empty {
+              <mat-option [disabled]="true">Nenhuma opção disponível</mat-option>
+            }
+          </mat-select>
+          @if (form.controls.escolaridade.hasError('backend')) {
+            <mat-error>{{ form.controls.escolaridade.getError('backend') }}</mat-error>
+          }
+        </mat-form-field>
+      </div>
+
+      <div class="md:col-span-2">
+        <label for="profissao" class="mb-2 block text-sm font-semibold text-gray-700">
+          Profissão
+        </label>
+        <mat-form-field appearance="outline" class="w-full">
+          <input
+            id="profissao"
+            matInput
+            formControlName="profissao"
+            placeholder="Digite a profissão"
+          />
+          @if (form.controls.profissao.hasError('backend')) {
+            <mat-error>{{ form.controls.profissao.getError('backend') }}</mat-error>
+          }
+        </mat-form-field>
+      </div>
+    </div>
+
+    <h2 class="mt-6 mb-5 text-lg font-semibold">Informações Adicionais</h2>
+
+    <div class="grid grid-cols-1 gap-x-8 md:grid-cols-2">
+      <div class="md:col-span-2">
+        <label for="rendaFamiliar" class="mb-2 block text-sm font-semibold text-gray-700">
+          Renda Familiar
+        </label>
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-select
+            id="rendaFamiliar"
+            formControlName="rendaFamiliar"
+            placeholder="Selecione a faixa de renda"
+          >
+            @for (opcao of rendaFamiliarOpcoes; track opcao.codigo) {
+              <mat-option [value]="opcao.codigo">{{ opcao.descricao }}</mat-option>
+            } @empty {
+              <mat-option [disabled]="true">Nenhuma opção disponível</mat-option>
+            }
+          </mat-select>
+          @if (form.controls.rendaFamiliar.hasError('backend')) {
+            <mat-error>{{ form.controls.rendaFamiliar.getError('backend') }}</mat-error>
+          }
+        </mat-form-field>
+      </div>
+
+      <div>
+        <label for="comorbidades" class="mb-2 block text-sm font-semibold text-gray-700">
+          Comorbidades
+        </label>
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-select
+            id="comorbidades"
+            formControlName="comorbidades"
+            multiple
+            placeholder="Selecione as comorbidades"
+          >
+            @for (item of comorbidades(); track item.id) {
+              <mat-option [value]="item.id">{{ item.nome }}</mat-option>
+            } @empty {
+              <mat-option [disabled]="true">Nenhuma comorbidade disponível</mat-option>
+            }
+          </mat-select>
+          @if (form.controls.comorbidades.hasError('backend')) {
+            <mat-error>{{ form.controls.comorbidades.getError('backend') }}</mat-error>
+          }
+        </mat-form-field>
+      </div>
+
+      <div>
+        <label for="categorias" class="mb-2 block text-sm font-semibold text-gray-700">
+          Categorias
+        </label>
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-select
+            id="categorias"
+            formControlName="categorias"
+            multiple
+            placeholder="Selecione as categorias"
+          >
+            @for (item of categorias(); track item.id) {
+              <mat-option [value]="item.id">{{ item.nome }}</mat-option>
+            } @empty {
+              <mat-option [disabled]="true">Nenhuma categoria disponível</mat-option>
+            }
+          </mat-select>
+          @if (form.controls.categorias.hasError('backend')) {
+            <mat-error>{{ form.controls.categorias.getError('backend') }}</mat-error>
+          }
+        </mat-form-field>
+      </div>
+
+      <div class="md:col-span-2">
+        <label for="descricao" class="mb-2 block text-sm font-semibold text-gray-700">
+          Descrição
+        </label>
+        <mat-form-field appearance="outline" class="w-full">
+          <textarea
+            id="descricao"
+            matInput
+            formControlName="descricao"
+            rows="3"
+            placeholder="Digite informações adicionais..."
+          ></textarea>
+          @if (form.controls.descricao.hasError('backend')) {
+            <mat-error>{{ form.controls.descricao.getError('backend') }}</mat-error>
+          }
+        </mat-form-field>
+      </div>
+    </div>
+
+    <div
+      class="mt-2 flex flex-col-reverse justify-center gap-3 border-t border-gray-100 pt-7 sm:flex-row sm:gap-10"
+    >
+      <button mat-flat-button type="button" (click)="cancelar()" [disabled]="carregando()">
+        Cancelar
+      </button>
+      <button mat-flat-button color="primary" type="submit" [disabled]="carregando()">
+        @if (carregando()) {
+          Cadastrando...
+        } @else {
+          Cadastrar Pessoa
+        }
+      </button>
+    </div>
+  </form>
+</section>
