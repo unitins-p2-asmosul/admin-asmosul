@@ -8,15 +8,22 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import java.net.URI;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import java.net.URI;
-
-@Tag(name = "Pessoas", description = "Endpoints para gerenciamento de pessoas")
+@Tag(name = "Pessoas", description = "Endpoints para gerenciamento de pessoas/associados")
 @RestController
 @RequestMapping("/pessoas")
 public class PessoaController {
@@ -27,70 +34,107 @@ public class PessoaController {
         this.pessoaService = pessoaService;
     }
 
-    @Operation(summary = "Cadastrar uma nova pessoa")
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "201", description = "Pessoa cadastrada com sucesso"),
-        @ApiResponse(responseCode = "400", description = "Dados de entrada inválidos"),
-        @ApiResponse(responseCode = "404", description = "Categoria ou comorbidade não encontrada"),
-        @ApiResponse(responseCode = "409", description = "CPF já cadastrado")
-    })
+    @Operation(
+            summary = "Cadastrar uma nova pessoa",
+            description = "Cria um novo registro de pessoa no sistema vinculando comorbidades e categorias caso informadas")
+    @ApiResponses(
+            value = {
+                @ApiResponse(responseCode = "201", description = "Pessoa criada com sucesso"),
+                @ApiResponse(responseCode = "400", description = "Dados de entrada inválidos"),
+                @ApiResponse(
+                        responseCode = "409",
+                        description = "CPF ou e-mail já cadastrado no sistema")
+            })
     @PostMapping
     public ResponseEntity<PessoaDTO.Detalhe> cadastrar(
-        @RequestBody @Valid PessoaDTO.Requisicao requisicao,
-        UriComponentsBuilder uriBuilder
-    ) {
+            @RequestBody @Valid PessoaDTO.Requisicao requisicao,
+            UriComponentsBuilder uriBuilder) {
         PessoaDTO.Detalhe detalhe = pessoaService.cadastrar(requisicao);
         URI uri = uriBuilder.path("/pessoas/{id}").buildAndExpand(detalhe.id()).toUri();
         return ResponseEntity.created(uri).body(detalhe);
     }
 
-    @Operation(summary = "Listar pessoas", description = "Retorna uma listagem paginada de pessoas")
+    @Operation(
+            summary = "Listar pessoas",
+            description = "Retorna uma listagem paginada de pessoas")
+    @ApiResponses(
+            value = {
+                @ApiResponse(responseCode = "200", description = "Listagem retornada com sucesso")
+            })
     @GetMapping
     public ResponseEntity<RespostaPaginada<PessoaDTO.Resumo>> listar(
-        @PageableDefault(size = 10, sort = "nome") Pageable paginacao,
-        @RequestParam(defaultValue = "false") boolean incluirInativos
-    ) {
-        return ResponseEntity.ok(pessoaService.listar(paginacao, incluirInativos));
+            @org.springdoc.core.annotations.ParameterObject
+                    @PageableDefault(size = 10, sort = "nome")
+                    Pageable paginacao,
+            @RequestParam(defaultValue = "false") boolean incluirInativos) {
+        RespostaPaginada<PessoaDTO.Resumo> resposta =
+                pessoaService.listar(paginacao, incluirInativos);
+        return ResponseEntity.ok(resposta);
     }
 
-    @Operation(summary = "Buscar pessoa por ID")
+    @Operation(
+            summary = "Buscar pessoa por ID",
+            description = "Retorna os detalhes completos de uma pessoa ativa, incluindo suas comorbidades e categorias")
+    @ApiResponses(
+            value = {
+                @ApiResponse(responseCode = "200", description = "Pessoa encontrada"),
+                @ApiResponse(
+                        responseCode = "404",
+                        description = "Pessoa não encontrada ou inativa")
+            })
     @GetMapping("/{id}")
     public ResponseEntity<PessoaDTO.Detalhe> buscarPorId(@PathVariable Long id) {
-        return ResponseEntity.ok(pessoaService.buscarPorId(id));
+        PessoaDTO.Detalhe detalhe = pessoaService.buscarPorId(id);
+        return ResponseEntity.ok(detalhe);
     }
 
-    @Operation(summary = "Buscar pessoa por CPF")
-    @GetMapping("/cpf/{cpf}")
-    public ResponseEntity<PessoaDTO.Detalhe> buscarPorCpf(@PathVariable String cpf) {
-        return ResponseEntity.ok(pessoaService.buscarPorCpf(cpf));
-    }
-
-    @Operation(summary = "Buscar pessoas por nome parcial")
-    @GetMapping("/buscar")
-    public ResponseEntity<RespostaPaginada<PessoaDTO.Resumo>> buscarPorNome(
-        @RequestParam String nome,
-        @PageableDefault(size = 10, sort = "nome") Pageable paginacao
-    ) {
-        return ResponseEntity.ok(pessoaService.buscarPorNome(nome, paginacao));
-    }
-
-    @Operation(summary = "Atualizar dados de uma pessoa")
+    @Operation(
+            summary = "Atualizar dados da pessoa",
+            description = "Atualiza as informações de uma pessoa cadastrada")
+    @ApiResponses(
+            value = {
+                @ApiResponse(responseCode = "200", description = "Dados atualizados com sucesso"),
+                @ApiResponse(responseCode = "400", description = "Dados inválidos"),
+                @ApiResponse(
+                        responseCode = "404",
+                        description = "Pessoa não encontrada ou inativa"),
+                @ApiResponse(
+                        responseCode = "409",
+                        description = "CPF ou e-mail já cadastrado por outra pessoa")
+            })
     @PutMapping("/{id}")
     public ResponseEntity<PessoaDTO.Detalhe> atualizar(
-        @PathVariable Long id,
-        @RequestBody @Valid PessoaDTO.Atualizacao requisicao
-    ) {
-        return ResponseEntity.ok(pessoaService.atualizar(id, requisicao));
+            @PathVariable Long id, @RequestBody @Valid PessoaDTO.Atualizacao requisicao) {
+        PessoaDTO.Detalhe detalhe = pessoaService.atualizar(id, requisicao);
+        return ResponseEntity.ok(detalhe);
     }
 
-    @Operation(summary = "Desativar (excluir logicamente) uma pessoa")
-    @DeleteMapping("/{id}")
+    @Operation(
+            summary = "Desativar pessoa",
+            description = "Realiza a desativação lógica (soft delete) da pessoa")
+    @ApiResponses(
+            value = {
+                @ApiResponse(
+                        responseCode = "204",
+                        description = "Pessoa desativada com sucesso"),
+                @ApiResponse(
+                        responseCode = "404",
+                        description = "Pessoa não encontrada ou já inativa")
+            })
+    @PatchMapping("/{id}/desativar")
     public ResponseEntity<Void> desativar(@PathVariable Long id) {
         pessoaService.desativar(id);
         return ResponseEntity.noContent().build();
     }
 
-    @Operation(summary = "Reativar uma pessoa previamente desativada")
+    @Operation(
+            summary = "Reativar pessoa",
+            description = "Reativa o registro de uma pessoa previamente desativada")
+    @ApiResponses(
+            value = {
+                @ApiResponse(responseCode = "204", description = "Pessoa reativada com sucesso"),
+                @ApiResponse(responseCode = "404", description = "Pessoa não encontrada")
+            })
     @PatchMapping("/{id}/reativar")
     public ResponseEntity<Void> reativar(@PathVariable Long id) {
         pessoaService.reativar(id);
