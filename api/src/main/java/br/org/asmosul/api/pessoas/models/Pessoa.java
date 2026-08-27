@@ -4,8 +4,10 @@ import br.org.asmosul.api.comum.models.EntidadeInativavel;
 import jakarta.persistence.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
 
 @Entity
 @Table(name = "pessoa")
@@ -18,6 +20,7 @@ public class Pessoa extends EntidadeInativavel {
     private String cpf;
 
     @Column(name = "data_nascimento", nullable = false)
+    @JsonFormat(pattern = "dd-MM-yyyy")
     private LocalDate dataNascimento;
 
     @Enumerated(EnumType.STRING)
@@ -48,7 +51,7 @@ public class Pessoa extends EntidadeInativavel {
         joinColumns = @JoinColumn(name = "id_pessoa"),
         inverseJoinColumns = @JoinColumn(name = "id_comorbidade")
     )
-    private List<Comorbidade> comorbidades = new ArrayList<>();
+    private Set<Comorbidade> comorbidades = new HashSet<>();
 
     @ManyToMany
     @JoinTable(
@@ -56,7 +59,7 @@ public class Pessoa extends EntidadeInativavel {
         joinColumns = @JoinColumn(name = "id_pessoa"),
         inverseJoinColumns = @JoinColumn(name = "id_categoria")
     )
-    private List<Categoria> categorias = new ArrayList<>();
+    private Set<Categoria> categorias = new HashSet<>();
 
     protected Pessoa() {}
 
@@ -98,19 +101,44 @@ public class Pessoa extends EntidadeInativavel {
         this.setDataInativo(null);
     }
 
+    // Getters e Setters
     public String getNome() { return nome; }
-    public String getCpf() { return cpf; }
-    public LocalDate getDataNascimento() { return dataNascimento; }
-    public Sexo getSexo() { return sexo; }
-    public String getTelefone() { return telefone; }
-    public String getEmail() { return email; }
-    public Escolaridade getEscolaridade() { return escolaridade; }
-    public String getProfissao() { return profissao; }
-    public RendaFamiliar getRendaFamiliar() { return rendaFamiliar; }
-    public String getDescricao() { return descricao; }
-    public List<Comorbidade> getComorbidades() { return comorbidades; }
-    public List<Categoria> getCategorias() { return categorias; }
+    public void setNome(String nome) { this.nome = nome; }
 
-    public void setComorbidades(List<Comorbidade> comorbidades) { this.comorbidades = comorbidades; }
-    public void setCategorias(List<Categoria> categorias) { this.categorias = categorias; }
+    public String getCpf() { return cpf; }
+    public void setCpf(String cpf) { this.cpf = cpf; }
+
+    public LocalDate getDataNascimento() { return dataNascimento; }
+    public void setDataNascimento(LocalDate dataNascimento) { this.dataNascimento = dataNascimento; }
+
+    public Sexo getSexo() { return sexo; }
+    public void setSexo(Sexo sexo) { this.sexo = sexo; }
+
+    public String getTelefone() { return telefone; }
+    public void setTelefone(String telefone) { this.telefone = telefone; }
+
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
+
+    public Escolaridade getEscolaridade() { return escolaridade; }
+    public void setEscolaridade(Escolaridade escolaridade) { this.escolaridade = escolaridade; }
+
+    public String getProfissao() { return profissao; }
+    public void setProfissao(String profissao) { this.profissao = profissao; }
+
+    public RendaFamiliar getRendaFamiliar() { return rendaFamiliar; }
+    public void setRendaFamiliar(RendaFamiliar rendaFamiliar) { this.rendaFamiliar = rendaFamiliar; }
+
+    public String getDescricao() { return descricao; }
+    public void setDescricao(String descricao) { this.descricao = descricao; }
+
+    public Set<Comorbidade> getComorbidades() { return comorbidades; }
+    public void setComorbidades(Set<Comorbidade> comorbidades) { 
+        this.comorbidades = (comorbidades != null) ? comorbidades : new HashSet<>(); 
+    }
+
+    public Set<Categoria> getCategorias() { return categorias; }
+    public void setCategorias(Set<Categoria> categorias) { 
+        this.categorias = (categorias != null) ? categorias : new HashSet<>(); 
+    }
 }
