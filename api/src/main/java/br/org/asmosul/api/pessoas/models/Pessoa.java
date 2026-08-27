@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "pessoas")
+@Table(name = "pessoa")
 public class Pessoa extends EntidadeInativavel {
 
     @Column(nullable = false)
