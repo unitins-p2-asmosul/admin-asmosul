@@ -4,7 +4,7 @@ export interface Comorbidade {
   descricao?: string;
 }
 
-export interface ComorbidadePayload {
+export interface ComorbidadeRequisicao {
   nome: string;
   descricao?: string;
 }
