@@ -54,10 +54,20 @@ public class ComorbidadeService {
     }
 
     @Transactional(readOnly = true)
-    public java.util.List<ComorbidadeDTO.Resumo> listarTodas() {
-        return comorbidadeRepository.findAllByDataInativoIsNull().stream()
+    public java.util.List<ComorbidadeDTO.Resumo> listarTodas(boolean incluirInativos) {
+        java.util.List<Comorbidade> comorbidades =
+                incluirInativos
+                        ? comorbidadeRepository.findAll()
+                        : comorbidadeRepository.findAllByDataInativoIsNull();
+
+        return comorbidades.stream()
                 .map(ComorbidadeDTO.Resumo::deEntidade)
                 .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public java.util.List<ComorbidadeDTO.Resumo> listarTodas() {
+        return listarTodas(false);
     }
 
     @Transactional(readOnly = true)
@@ -121,5 +131,19 @@ public class ComorbidadeService {
                                                         + id));
 
         comorbidade.setDataInativo(null);
+    }
+
+    @Transactional
+    public void excluir(Long id) {
+        Comorbidade comorbidade =
+                comorbidadeRepository
+                        .findById(id)
+                        .orElseThrow(
+                                () ->
+                                        new EntidadeNaoEncontradaException(
+                                                "Comorbidade não encontrada com o ID informado: "
+                                                        + id));
+
+        comorbidadeRepository.delete(comorbidade);
     }
 }
