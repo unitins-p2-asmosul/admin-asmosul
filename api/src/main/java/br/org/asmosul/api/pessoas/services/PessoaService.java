@@ -45,8 +45,7 @@ public class PessoaService {
 
         Pessoa pessoa = requisicao.paraEntidade();
 
-        atribuirComorbidadesECategorias(
-                pessoa, requisicao.comorbidades(), requisicao.categorias());
+        atribuirComorbidadesECategorias(pessoa, requisicao.comorbidades(), requisicao.categorias());
 
         Pessoa pessoaSalva = pessoaRepository.save(pessoa);
 
@@ -54,11 +53,9 @@ public class PessoaService {
     }
 
     @Transactional(readOnly = true)
-    public RespostaPaginada<PessoaDTO.Resumo> listar(
-            Pageable paginacao, boolean incluirInativos) {
+    public RespostaPaginada<PessoaDTO.Resumo> listar(Pageable paginacao, boolean incluirInativos) {
         Pageable paginacaoSanitizada =
-                PaginacaoUtils.sanitizarPaginacao(
-                        paginacao, CAMPOS_ORDENACAO_VALIDOS, "nome");
+                PaginacaoUtils.sanitizarPaginacao(paginacao, CAMPOS_ORDENACAO_VALIDOS, "nome");
 
         Page<Pessoa> pagina =
                 incluirInativos
@@ -76,9 +73,7 @@ public class PessoaService {
                         ? pessoaRepository.findAll()
                         : pessoaRepository.findAllByDataInativoIsNull();
 
-        return pessoas.stream()
-                .map(PessoaDTO.Resumo::deEntidade)
-                .toList();
+        return pessoas.stream().map(PessoaDTO.Resumo::deEntidade).toList();
     }
 
     @Transactional(readOnly = true)
@@ -124,8 +119,7 @@ public class PessoaService {
         pessoa.setRendaFamiliar(requisicao.rendaFamiliar());
         pessoa.setDescricao(requisicao.descricao());
 
-        atribuirComorbidadesECategorias(
-                pessoa, requisicao.comorbidades(), requisicao.categorias());
+        atribuirComorbidadesECategorias(pessoa, requisicao.comorbidades(), requisicao.categorias());
 
         return PessoaDTO.Detalhe.deEntidade(pessoa);
     }
@@ -152,8 +146,7 @@ public class PessoaService {
                         .orElseThrow(
                                 () ->
                                         new EntidadeNaoEncontradaException(
-                                                "Pessoa não encontrada com o ID informado: "
-                                                        + id));
+                                                "Pessoa não encontrada com o ID informado: " + id));
 
         pessoa.setDataInativo(null);
     }
@@ -166,8 +159,7 @@ public class PessoaService {
                         .orElseThrow(
                                 () ->
                                         new EntidadeNaoEncontradaException(
-                                                "Pessoa não encontrada com o ID informado: "
-                                                        + id));
+                                                "Pessoa não encontrada com o ID informado: " + id));
 
         pessoaRepository.delete(pessoa);
     }
@@ -178,7 +170,8 @@ public class PessoaService {
                 throw new ConflitoDadosException("Já existe uma pessoa cadastrada com este CPF.");
             }
             if (email != null && !email.isBlank() && pessoaRepository.existsByEmail(email)) {
-                throw new ConflitoDadosException("Já existe uma pessoa cadastrada com este e-mail.");
+                throw new ConflitoDadosException(
+                        "Já existe uma pessoa cadastrada com este e-mail.");
             }
         } else {
             if (pessoaRepository.existsByCpfAndIdNot(cpf, idAtual)) {
@@ -187,40 +180,43 @@ public class PessoaService {
             if (email != null
                     && !email.isBlank()
                     && pessoaRepository.existsByEmailAndIdNot(email, idAtual)) {
-                throw new ConflitoDadosException("Já existe uma pessoa cadastrada com este e-mail.");
+                throw new ConflitoDadosException(
+                        "Já existe uma pessoa cadastrada com este e-mail.");
             }
         }
     }
 
     private void atribuirComorbidadesECategorias(
             Pessoa pessoa, List<Long> idsComorbidades, List<Long> idsCategorias) {
-            
+
         // Tratamento para Comorbidades
         if (idsComorbidades != null && !idsComorbidades.isEmpty()) {
             List<Comorbidade> comorbidades = comorbidadeRepository.findAllById(idsComorbidades);
-            
+
             if (comorbidades.size() != idsComorbidades.size()) {
                 throw new EntidadeNaoEncontradaException(
                         "Uma ou mais comorbidades informadas não foram encontradas.");
             }
-            
+
             pessoa.setComorbidades(new HashSet<>(comorbidades));
         } else {
-            pessoa.setComorbidades(new HashSet<>()); // Inicializa com Set vazio em vez de repassar null
+            pessoa.setComorbidades(
+                    new HashSet<>()); // Inicializa com Set vazio em vez de repassar null
         }
 
         // Tratamento para Categorias
         if (idsCategorias != null && !idsCategorias.isEmpty()) {
             List<Categoria> categorias = categoriaRepository.findAllById(idsCategorias);
-        
+
             if (categorias.size() != idsCategorias.size()) {
                 throw new EntidadeNaoEncontradaException(
                         "Uma ou mais categorias informadas não foram encontradas.");
             }
-        
+
             pessoa.setCategorias(new HashSet<>(categorias));
         } else {
-            pessoa.setCategorias(new HashSet<>()); // Inicializa com Set vazio em vez de repassar null
+            pessoa.setCategorias(
+                    new HashSet<>()); // Inicializa com Set vazio em vez de repassar null
         }
     }
 }

@@ -75,7 +75,8 @@ public class CategoriaController {
 
     @Operation(
             summary = "Listar todas as categorias",
-            description = "Retorna uma lista simples não paginada com todas as categorias (podendo incluir inativas)")
+            description =
+                    "Retorna uma lista simples não paginada com todas as categorias (podendo incluir inativas)")
     @ApiResponses(
             value = {
                 @ApiResponse(responseCode = "200", description = "Lista retornada com sucesso")
@@ -160,12 +161,8 @@ public class CategoriaController {
             description = "Realiza a exclusão física definitiva da categoria no sistema")
     @ApiResponses(
             value = {
-                @ApiResponse(
-                        responseCode = "204",
-                        description = "Categoria excluída com sucesso"),
-                @ApiResponse(
-                        responseCode = "404",
-                        description = "Categoria não encontrada")
+                @ApiResponse(responseCode = "204", description = "Categoria excluída com sucesso"),
+                @ApiResponse(responseCode = "404", description = "Categoria não encontrada")
             })
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> excluir(@PathVariable Long id) {

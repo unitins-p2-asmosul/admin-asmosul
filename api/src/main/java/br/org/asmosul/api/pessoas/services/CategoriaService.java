@@ -7,7 +7,6 @@ import br.org.asmosul.api.pessoas.dtos.CategoriaDTO;
 import br.org.asmosul.api.pessoas.models.Categoria;
 import br.org.asmosul.api.pessoas.repositories.CategoriaRepository;
 import java.time.LocalDateTime;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -60,9 +59,7 @@ public class CategoriaService {
                         ? categoriaRepository.findAll()
                         : categoriaRepository.findAllByDataInativoIsNull();
 
-        return categorias.stream()
-                .map(CategoriaDTO.Resumo::deEntidade)
-                .toList();
+        return categorias.stream().map(CategoriaDTO.Resumo::deEntidade).toList();
     }
 
     @Transactional(readOnly = true)
