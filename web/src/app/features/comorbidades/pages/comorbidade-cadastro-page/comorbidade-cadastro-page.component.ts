@@ -51,7 +51,7 @@ export class ComorbidadeCadastroPageComponent {
     this.form.reset();
   }
 
-  private montarRequisicao(): ComorbidadePayload {
+  private montarRequisicao(): ComorbidadeRequisicao {
     const valores = this.form.getRawValue();
     return {
       nome: valores.nome.trim(),
