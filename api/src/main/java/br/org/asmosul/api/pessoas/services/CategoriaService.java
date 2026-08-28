@@ -54,10 +54,20 @@ public class CategoriaService {
     }
 
     @Transactional(readOnly = true)
-    public java.util.List<CategoriaDTO.Resumo> listarTodas() {
-        return categoriaRepository.findAllByDataInativoIsNull().stream()
+    public java.util.List<CategoriaDTO.Resumo> listarTodas(boolean incluirInativos) {
+        java.util.List<Categoria> categorias =
+                incluirInativos
+                        ? categoriaRepository.findAll()
+                        : categoriaRepository.findAllByDataInativoIsNull();
+
+        return categorias.stream()
                 .map(CategoriaDTO.Resumo::deEntidade)
                 .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public java.util.List<CategoriaDTO.Resumo> listarTodas() {
+        return listarTodas(false);
     }
 
     @Transactional(readOnly = true)
@@ -121,5 +131,19 @@ public class CategoriaService {
                                                         + id));
 
         categoria.setDataInativo(null);
+    }
+
+    @Transactional
+    public void excluir(Long id) {
+        Categoria categoria =
+                categoriaRepository
+                        .findById(id)
+                        .orElseThrow(
+                                () ->
+                                        new EntidadeNaoEncontradaException(
+                                                "Categoria não encontrada com o ID informado: "
+                                                        + id));
+
+        categoriaRepository.delete(categoria);
     }
 }
