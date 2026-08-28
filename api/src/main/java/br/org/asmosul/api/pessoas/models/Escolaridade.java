@@ -24,29 +24,18 @@ public enum Escolaridade {
     }
 
     @JsonProperty("codigo")
-    public String getCodigo() {
-        return codigo;
-    }
+    public String getCodigo() { return codigo; }
 
     @JsonProperty("descricao")
-    public String getDescricao() {
-        return descricao;
-    }
+    public String getDescricao() { return descricao; }
 
     @JsonCreator
     public static Escolaridade deCodigo(String valor) {
         if (valor == null || valor.isBlank()) return null;
 
         return Arrays.stream(Escolaridade.values())
-                .filter(
-                        e ->
-                                e.name().equalsIgnoreCase(valor.trim())
-                                        || e.getCodigo().equalsIgnoreCase(valor.trim()))
+                .filter(e -> e.name().equalsIgnoreCase(valor.trim()) || e.getCodigo().equalsIgnoreCase(valor.trim()))
                 .findFirst()
-                .orElseThrow(
-                        () ->
-                                ValidationException.of(
-                                        "escolaridade",
-                                        "Opção de escolaridade informada é inválida"));
+                .orElseThrow(() -> ValidationException.of("escolaridade", "Opção de escolaridade informada é inválida"));
     }
 }

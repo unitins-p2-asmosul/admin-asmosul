@@ -22,29 +22,18 @@ public enum RendaFamiliar {
     }
 
     @JsonProperty("codigo")
-    public String getCodigo() {
-        return codigo;
-    }
+    public String getCodigo() { return codigo; }
 
     @JsonProperty("descricao")
-    public String getDescricao() {
-        return descricao;
-    }
+    public String getDescricao() { return descricao; }
 
     @JsonCreator
     public static RendaFamiliar deCodigo(String valor) {
         if (valor == null || valor.isBlank()) return null;
 
         return Arrays.stream(RendaFamiliar.values())
-                .filter(
-                        r ->
-                                r.name().equalsIgnoreCase(valor.trim())
-                                        || r.getCodigo().equalsIgnoreCase(valor.trim()))
+                .filter(r -> r.name().equalsIgnoreCase(valor.trim()) || r.getCodigo().equalsIgnoreCase(valor.trim()))
                 .findFirst()
-                .orElseThrow(
-                        () ->
-                                ValidationException.of(
-                                        "rendaFamiliar",
-                                        "Opção de renda familiar informada é inválida"));
+                .orElseThrow(() -> ValidationException.of("rendaFamiliar", "Opção de renda familiar informada é inválida"));
     }
 }

@@ -37,8 +37,7 @@ public class PessoaController {
 
     @Operation(
             summary = "Cadastrar uma nova pessoa",
-            description =
-                    "Cria um novo registro de pessoa no sistema vinculando comorbidades e categorias caso informadas")
+            description = "Cria um novo registro de pessoa no sistema vinculando comorbidades e categorias caso informadas")
     @ApiResponses(
             value = {
                 @ApiResponse(responseCode = "201", description = "Pessoa criada com sucesso"),
@@ -49,13 +48,16 @@ public class PessoaController {
             })
     @PostMapping
     public ResponseEntity<PessoaDTO.Detalhe> cadastrar(
-            @RequestBody @Valid PessoaDTO.Requisicao requisicao, UriComponentsBuilder uriBuilder) {
+            @RequestBody @Valid PessoaDTO.Requisicao requisicao,
+            UriComponentsBuilder uriBuilder) {
         PessoaDTO.Detalhe detalhe = pessoaService.cadastrar(requisicao);
         URI uri = uriBuilder.path("/pessoas/{id}").buildAndExpand(detalhe.id()).toUri();
         return ResponseEntity.created(uri).body(detalhe);
     }
 
-    @Operation(summary = "Listar pessoas", description = "Retorna uma listagem paginada de pessoas")
+    @Operation(
+            summary = "Listar pessoas",
+            description = "Retorna uma listagem paginada de pessoas")
     @ApiResponses(
             value = {
                 @ApiResponse(responseCode = "200", description = "Listagem retornada com sucesso")
@@ -73,8 +75,7 @@ public class PessoaController {
 
     @Operation(
             summary = "Listar todas as pessoas",
-            description =
-                    "Retorna uma lista simples não paginada com todas as pessoas (podendo incluir inativas)")
+            description = "Retorna uma lista simples não paginada com todas as pessoas (podendo incluir inativas)")
     @ApiResponses(
             value = {
                 @ApiResponse(responseCode = "200", description = "Lista retornada com sucesso")
@@ -87,12 +88,13 @@ public class PessoaController {
 
     @Operation(
             summary = "Buscar pessoa por ID",
-            description =
-                    "Retorna os detalhes completos de uma pessoa ativa, incluindo suas comorbidades e categorias")
+            description = "Retorna os detalhes completos de uma pessoa ativa, incluindo suas comorbidades e categorias")
     @ApiResponses(
             value = {
                 @ApiResponse(responseCode = "200", description = "Pessoa encontrada"),
-                @ApiResponse(responseCode = "404", description = "Pessoa não encontrada ou inativa")
+                @ApiResponse(
+                        responseCode = "404",
+                        description = "Pessoa não encontrada ou inativa")
             })
     @GetMapping("/{id}")
     public ResponseEntity<PessoaDTO.Detalhe> buscarPorId(@PathVariable Long id) {
@@ -126,7 +128,9 @@ public class PessoaController {
             description = "Realiza a desativação lógica (soft delete) da pessoa")
     @ApiResponses(
             value = {
-                @ApiResponse(responseCode = "204", description = "Pessoa desativada com sucesso"),
+                @ApiResponse(
+                        responseCode = "204",
+                        description = "Pessoa desativada com sucesso"),
                 @ApiResponse(
                         responseCode = "404",
                         description = "Pessoa não encontrada ou já inativa")
@@ -156,8 +160,12 @@ public class PessoaController {
             description = "Realiza a exclusão física definitiva da pessoa no sistema")
     @ApiResponses(
             value = {
-                @ApiResponse(responseCode = "204", description = "Pessoa excluída com sucesso"),
-                @ApiResponse(responseCode = "404", description = "Pessoa não encontrada")
+                @ApiResponse(
+                        responseCode = "204",
+                        description = "Pessoa excluída com sucesso"),
+                @ApiResponse(
+                        responseCode = "404",
+                        description = "Pessoa não encontrada")
             })
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> excluir(@PathVariable Long id) {

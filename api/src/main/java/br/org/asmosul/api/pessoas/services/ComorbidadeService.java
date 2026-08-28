@@ -7,6 +7,7 @@ import br.org.asmosul.api.pessoas.dtos.ComorbidadeDTO;
 import br.org.asmosul.api.pessoas.models.Comorbidade;
 import br.org.asmosul.api.pessoas.repositories.ComorbidadeRepository;
 import java.time.LocalDateTime;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -59,7 +60,9 @@ public class ComorbidadeService {
                         ? comorbidadeRepository.findAll()
                         : comorbidadeRepository.findAllByDataInativoIsNull();
 
-        return comorbidades.stream().map(ComorbidadeDTO.Resumo::deEntidade).toList();
+        return comorbidades.stream()
+                .map(ComorbidadeDTO.Resumo::deEntidade)
+                .toList();
     }
 
     @Transactional(readOnly = true)

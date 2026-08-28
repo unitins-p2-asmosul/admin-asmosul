@@ -75,8 +75,7 @@ public class ComorbidadeController {
 
     @Operation(
             summary = "Listar todas as comorbidades",
-            description =
-                    "Retorna uma lista simples não paginada com todas as comorbidades (podendo incluir inativas)")
+            description = "Retorna uma lista simples não paginada com todas as comorbidades (podendo incluir inativas)")
     @ApiResponses(
             value = {
                 @ApiResponse(responseCode = "200", description = "Lista retornada com sucesso")
@@ -166,7 +165,9 @@ public class ComorbidadeController {
                 @ApiResponse(
                         responseCode = "204",
                         description = "Comorbidade excluída com sucesso"),
-                @ApiResponse(responseCode = "404", description = "Comorbidade não encontrada")
+                @ApiResponse(
+                        responseCode = "404",
+                        description = "Comorbidade não encontrada")
             })
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> excluir(@PathVariable Long id) {

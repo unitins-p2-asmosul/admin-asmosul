@@ -22,26 +22,18 @@ public enum Sexo {
     }
 
     @JsonProperty("codigo")
-    public String getCodigo() {
-        return codigo;
-    }
+    public String getCodigo() { return codigo; }
 
     @JsonProperty("descricao")
-    public String getDescricao() {
-        return descricao;
-    }
+    public String getDescricao() { return descricao; }
 
     @JsonCreator
     public static Sexo deCodigo(String valor) {
         if (valor == null || valor.isBlank()) return null;
 
         return Arrays.stream(Sexo.values())
-                .filter(
-                        s ->
-                                s.name().equalsIgnoreCase(valor.trim())
-                                        || s.getCodigo().equalsIgnoreCase(valor.trim()))
+                .filter(s -> s.name().equalsIgnoreCase(valor.trim()) || s.getCodigo().equalsIgnoreCase(valor.trim()))
                 .findFirst()
-                .orElseThrow(
-                        () -> ValidationException.of("sexo", "Opção de sexo informada é inválida"));
+                .orElseThrow(() -> ValidationException.of("sexo", "Opção de sexo informada é inválida"));
     }
 }
