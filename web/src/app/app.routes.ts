@@ -17,6 +17,11 @@ export const routes: Routes = [
 			import('./features/pessoas/pessoas.routes').then((modulo) => modulo.PESSOAS_ROUTES),
 	},
 	{
+		path: 'comorbidades',
+		loadChildren: () =>
+			import('./features/comorbidades/comorbidades.routes').then((modulo) => modulo.COMORBIDADES_ROUTES),
+	},
+	{
 		path: '**',
 		redirectTo: 'categorias/novo',
 	},
