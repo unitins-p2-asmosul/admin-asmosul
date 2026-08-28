@@ -1,0 +1,1 @@
+ALTER TABLE categoria ADD COLUMN data_inativo DATETIME DEFAULT NULL;

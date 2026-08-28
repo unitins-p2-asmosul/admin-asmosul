@@ -1,0 +1,1 @@
+ALTER TABLE comorbidade ADD COLUMN data_inativo DATETIME DEFAULT NULL;

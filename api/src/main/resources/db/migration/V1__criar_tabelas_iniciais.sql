@@ -16,7 +16,7 @@ CREATE TABLE pessoa (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     nome VARCHAR(255) NOT NULL,
     cpf VARCHAR(11) NOT NULL UNIQUE,
-    data_nascimentos DATE NOT NULL,
+    data_nascimento DATE NOT NULL,
     sexo ENUM('M', 'F', 'OUTRO', 'NAO_INFORMADO'),
     telefone VARCHAR(14),
     email VARCHAR(50) UNIQUE,
@@ -24,8 +24,8 @@ CREATE TABLE pessoa (
 
     escolaridade ENUM('FUNDAMENTAL_INCOMPLETO', 'FUNDAMENTAL_COMPLETO','MEDIO_INCOMPLETO', 'MEDIO_COMPLETO', 'SUPERIOR_INCOMPLETO', 'SUPERIOR_COMPLETO'),
     profissao VARCHAR(50),
-    decricao TEXT,
-    ativo DATE
+    descricao TEXT,
+    data_inativo DATETIME DEFAULT NULL
 );
 
 CREATE TABLE pessoa_comorbidade (
