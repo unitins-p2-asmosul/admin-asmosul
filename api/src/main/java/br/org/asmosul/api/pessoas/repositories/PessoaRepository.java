@@ -1,6 +1,7 @@
 package br.org.asmosul.api.pessoas.repositories;
 
 import br.org.asmosul.api.pessoas.models.Pessoa;
+import java.util.List;
 import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -17,6 +18,8 @@ public interface PessoaRepository extends JpaRepository<Pessoa, Long> {
 
     @EntityGraph(attributePaths = {"comorbidades", "categorias"})
     Page<Pessoa> findAll(Pageable pageable);
+
+    List<Pessoa> findAllByDataInativoIsNull();
 
     boolean existsByCpf(String cpf);
 

@@ -70,6 +70,23 @@ public class PessoaService {
     }
 
     @Transactional(readOnly = true)
+    public List<PessoaDTO.Resumo> listarTodas(boolean incluirInativos) {
+        List<Pessoa> pessoas =
+                incluirInativos
+                        ? pessoaRepository.findAll()
+                        : pessoaRepository.findAllByDataInativoIsNull();
+
+        return pessoas.stream()
+                .map(PessoaDTO.Resumo::deEntidade)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<PessoaDTO.Resumo> listarTodas() {
+        return listarTodas(false);
+    }
+
+    @Transactional(readOnly = true)
     public PessoaDTO.Detalhe buscarPorId(Long id) {
         Pessoa pessoa =
                 pessoaRepository
@@ -139,6 +156,20 @@ public class PessoaService {
                                                         + id));
 
         pessoa.setDataInativo(null);
+    }
+
+    @Transactional
+    public void excluir(Long id) {
+        Pessoa pessoa =
+                pessoaRepository
+                        .findById(id)
+                        .orElseThrow(
+                                () ->
+                                        new EntidadeNaoEncontradaException(
+                                                "Pessoa não encontrada com o ID informado: "
+                                                        + id));
+
+        pessoaRepository.delete(pessoa);
     }
 
     private void validarUnicidade(String cpf, String email, Long idAtual) {
