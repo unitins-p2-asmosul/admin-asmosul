@@ -16,6 +16,7 @@ jobs:
         with:
           node-version: '24'
           cache: 'npm'
+          cache-dependency-path: 'web/package-lock.json'
 
       - name: Instalar dependências
         run: npm ci
