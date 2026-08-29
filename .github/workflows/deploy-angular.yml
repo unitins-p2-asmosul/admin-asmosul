@@ -1,0 +1,35 @@
+name: Deploy Angular
+on:
+  push:
+    branches:
+      - dev
+jobs:
+  build-and-deploy:
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout do código
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'npm'
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Build do Angular
+        run: npm run build -- --configuration production
+
+      - name: Copiar arquivos para o Nginx
+        run: |
+          # Limpa o conteúdo anterior para evitar resíduos de builds antigos
+          sudo rm -rf /var/www/h-asmosul/*
+
+          sudo cp -r web/dist/web/browser/* /var/www/h-asmosul/
+
+          # Garante que o Nginx tenha permissão de leitura nos arquivos
+          sudo chmod -R 755 /var/www/h-asmosul/
+
