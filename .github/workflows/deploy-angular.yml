@@ -16,7 +16,7 @@ jobs:
         with:
           node-version: '24'
           cache: 'npm'
-          cache-dependency-path: 'admin-asmosul/package-lock.json'
+          cache-dependency-path: 'web/package-lock.json'
 
       - name: Instalar dependências
         run: npm ci
