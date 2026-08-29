@@ -7,6 +7,10 @@ jobs:
   build-and-deploy:
     runs-on: self-hosted
 
+    defaults:
+      run:
+        working-directory: ./web
+
     steps:
       - name: Checkout do código
         uses: actions/checkout@v4
@@ -16,7 +20,7 @@ jobs:
         with:
           node-version: '24'
           cache: 'npm'
-          cache-dependency-path: 'admin-asmosul/package-lock.json'
+          cache-dependency-path: 'web/package-lock.json'
 
       - name: Instalar dependências
         run: npm ci
@@ -29,7 +33,7 @@ jobs:
           # Limpa o conteúdo anterior para evitar resíduos de builds antigos
           sudo rm -rf /var/www/h-asmosul/*
 
-          sudo cp -r web/dist/web/browser/* /var/www/h-asmosul/
+          sudo cp -r dist/web/browser/* /var/www/h-asmosul/
 
           # Garante que o Nginx tenha permissão de leitura nos arquivos
           sudo chmod -R 755 /var/www/h-asmosul/
