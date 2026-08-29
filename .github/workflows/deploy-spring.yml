@@ -1,0 +1,36 @@
+name: Deploy Spring
+on:
+  push:
+    branches:
+      - dev
+    paths:
+      - 'api/**'
+jobs:
+  build-and-deploy:
+    runs-on: self-hosted
+
+    defaults:
+      run:
+        working-directory: ./api
+
+    steps:
+      - name: Checkout do código
+        uses: actions/checkout@v7
+
+      - name: Configurar JDK
+        uses: actions/setup-java@v6
+        with:
+          java-version: '25'
+          distribution: temurin
+          cache: maven
+          cache-dependency-path: 'api/pom.xml'
+
+      - name: Compilar aplicação
+        run: chmod +x mvnw && ./mvnw clean package -DskipTests
+
+      - name: Copiar arquivos para a pasta de api
+        run: sudo cp ./target/*.jar /srv/api-asmosul/api.jar
+
+      - name: Reiniciar serviço
+        run: sudo systemctl restart api-asmosul
+
