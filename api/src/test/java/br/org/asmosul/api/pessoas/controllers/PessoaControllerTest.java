@@ -58,7 +58,7 @@ class PessoaControllerTest {
                     "email": "maria.silva@exemplo.com",
                     "escolaridade": "SUPERIOR_COMPLETO",
                     "profissao": "Analista de Sistemas",
-                    "rendaFamiliar": "MAIS_DE_TRES",
+                    "rendaFamiliar": "MAIS_DE_TRES_MIL",
                     "comorbidades": [1],
                     "categorias": [2],
                     "descricao": "Observação sobre a associada"
@@ -77,7 +77,7 @@ class PessoaControllerTest {
                     "email": "maria.atualizada@exemplo.com",
                     "escolaridade": "SUPERIOR_COMPLETO",
                     "profissao": "Gerente de Projetos",
-                    "rendaFamiliar": "MAIS_DE_TRES",
+                    "rendaFamiliar": "MAIS_DE_TRES_MIL",
                     "comorbidades": [1],
                     "categorias": [2],
                     "descricao": "Nova descrição"
@@ -130,7 +130,7 @@ class PessoaControllerTest {
                     .andExpect(jsonPath("$.telefone").value("63987654321"))
                     .andExpect(jsonPath("$.email").value("maria.silva@exemplo.com"))
                     .andExpect(jsonPath("$.escolaridade.codigo").value("SUPERIOR_COMPLETO"))
-                    .andExpect(jsonPath("$.rendaFamiliar.codigo").value("MAIS_DE_TRES"))
+                    .andExpect(jsonPath("$.rendaFamiliar.codigo").value("MAIS_DE_TRES_MIL"))
                     .andExpect(jsonPath("$.comorbidades[0]").value(1L))
                     .andExpect(jsonPath("$.categorias[0]").value(2L))
                     .andExpect(jsonPath("$.ativo").value(true));
