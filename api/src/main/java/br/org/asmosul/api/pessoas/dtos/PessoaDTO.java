@@ -22,7 +22,7 @@ public final class PessoaDTO {
         String cpf,
 
         @NotNull(message = "A data de nascimento é obrigatória")
-        @JsonFormat(pattern = "yyyy-MM-dd")
+        @JsonFormat(pattern = "dd-MM-yyyy")
         LocalDate dataNascimento,
 
         Sexo sexo,
@@ -74,7 +74,7 @@ public final class PessoaDTO {
         String cpf,
 
         @NotNull(message = "A data de nascimento é obrigatória")
-        @JsonFormat(pattern = "yyyy-MM-dd")
+        @JsonFormat(pattern = "dd-MM-yyyy")
         LocalDate dataNascimento,
 
         Sexo sexo,
@@ -129,7 +129,7 @@ public final class PessoaDTO {
         Long id,
         String nome,
         String cpf,
-        @JsonFormat(pattern = "yyyy-MM-dd")
+        @JsonFormat(pattern = "dd-MM-yyyy")
         LocalDate dataNascimento,
         Sexo sexo,
         String telefone,
@@ -154,11 +154,11 @@ public final class PessoaDTO {
                 pessoa.getEscolaridade(),
                 pessoa.getProfissao(),
                 pessoa.getRendaFamiliar(),
-                pessoa.getComorbidades() != null 
-                    ? pessoa.getComorbidades().stream().map(Comorbidade::getId).toList() 
+                pessoa.getComorbidades() != null
+                    ? pessoa.getComorbidades().stream().map(Comorbidade::getId).toList()
                     : List.of(),
-                pessoa.getCategorias() != null 
-                    ? pessoa.getCategorias().stream().map(Categoria::getId).toList() 
+                pessoa.getCategorias() != null
+                    ? pessoa.getCategorias().stream().map(Categoria::getId).toList()
                     : List.of(),
                 pessoa.getDescricao(),
                 pessoa.isAtivo()
