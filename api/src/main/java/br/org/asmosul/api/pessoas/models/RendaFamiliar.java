@@ -9,9 +9,9 @@ import java.util.Arrays;
 @JsonFormat(shape = JsonFormat.Shape.OBJECT)
 public enum RendaFamiliar {
     MENOS_DE_MIL("MENOS_DE_MIL", "Menos de mil"),
-    MIL_DOIS("MIL_DOIS", "Entre mil e dois mil"),
-    DOIS_TRES("DOIS_TRES", "Entre dois mil e três mil"),
-    MAIS_DE_TRES("MAIS_DE_TRES", "Mais de três mil");
+    MIL_DOIS("ENTRE_MIL_E_DOIS_MIL", "Entre mil e dois mil"),
+    DOIS_TRES("ENTRE_DOIS_MIL_E_TRES_MIL", "Entre dois mil e três mil"),
+    MAIS_DE_TRES("MAIS_DE_TRES_MIL", "Mais de três mil");
 
     private final String codigo;
     private final String descricao;
