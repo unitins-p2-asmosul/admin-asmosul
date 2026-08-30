@@ -9,7 +9,7 @@ import { Router } from '@angular/router';
 import { ErroApi } from '@features/shared/models/erro-api.model';
 import { NotificacaoService } from '@features/shared/services/notificacao.service';
 import { ComorbidadeService } from '../../services/comorbidade.service';
-import { ComorbidadePayload } from '../../models/comorbidade.model';
+import { ComorbidadeRequisicao } from '../../models/comorbidade.model';
 
 @Component({
   selector: 'app-comorbidade-cadastro-page',

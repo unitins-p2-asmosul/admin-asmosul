@@ -4,7 +4,7 @@ import { Observable, of, throwError } from 'rxjs';
 import { delay } from 'rxjs/operators';
 import { environment } from '../../../../enviroments/enviroment';
 import { MOCK_COMORBIDADES } from '../mocks/comorbidade.mock';
-import { Comorbidade, ComorbidadePayload } from '../models/comorbidade.model';
+import { Comorbidade, ComorbidadeRequisicao } from '../models/comorbidade.model';
 
 @Injectable({
   providedIn: 'root',
@@ -32,7 +32,7 @@ export class ComorbidadeService {
     }
   }
 
-  cadastrar(requisicao: ComorbidadePayload): Observable<Comorbidade> {
+  cadastrar(requisicao: ComorbidadeRequisicao): Observable<Comorbidade> {
     if (environment.mockApi) {
       const nome = requisicao.nome.trim();
       const descricao = requisicao.descricao?.trim() || undefined;
