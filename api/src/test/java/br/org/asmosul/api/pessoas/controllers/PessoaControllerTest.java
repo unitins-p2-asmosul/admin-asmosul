@@ -96,7 +96,7 @@ class PessoaControllerTest {
                 "maria.silva@exemplo.com",
                 Escolaridade.SUPERIOR_COMPLETO,
                 "Analista de Sistemas",
-                RendaFamiliar.MAIS_DE_TRES,
+                RendaFamiliar.MAIS_DE_TRES_MIL,
                 List.of(1L),
                 List.of(2L),
                 "Observação sobre a associada",
@@ -151,7 +151,7 @@ class PessoaControllerTest {
                             "maria@exemplo.com",
                             Escolaridade.SUPERIOR_COMPLETO,
                             "Profissão",
-                            RendaFamiliar.MAIS_DE_TRES,
+                            RendaFamiliar.MAIS_DE_TRES_MIL,
                             List.of(),
                             List.of(),
                             null);
@@ -176,7 +176,7 @@ class PessoaControllerTest {
                             "maria@exemplo.com",
                             Escolaridade.SUPERIOR_COMPLETO,
                             "Profissão",
-                            RendaFamiliar.MAIS_DE_TRES,
+                            RendaFamiliar.MAIS_DE_TRES_MIL,
                             List.of(),
                             List.of(),
                             null);
@@ -201,7 +201,7 @@ class PessoaControllerTest {
                             "maria@exemplo.com",
                             Escolaridade.SUPERIOR_COMPLETO,
                             "Profissão",
-                            RendaFamiliar.MAIS_DE_TRES,
+                            RendaFamiliar.MAIS_DE_TRES_MIL,
                             List.of(),
                             List.of(),
                             null);
@@ -226,7 +226,7 @@ class PessoaControllerTest {
                             "email-invalido", // Formato de e-mail inválido
                             Escolaridade.SUPERIOR_COMPLETO,
                             "Profissão",
-                            RendaFamiliar.MAIS_DE_TRES,
+                            RendaFamiliar.MAIS_DE_TRES_MIL,
                             List.of(),
                             List.of(),
                             null);
@@ -251,7 +251,7 @@ class PessoaControllerTest {
                             "maria@exemplo.com",
                             Escolaridade.SUPERIOR_COMPLETO,
                             "Profissão",
-                            RendaFamiliar.MAIS_DE_TRES,
+                            RendaFamiliar.MAIS_DE_TRES_MIL,
                             List.of(),
                             List.of(),
                             null);
@@ -446,7 +446,7 @@ class PessoaControllerTest {
                             "maria.atualizada@exemplo.com",
                             Escolaridade.SUPERIOR_COMPLETO,
                             "Gerente de Projetos",
-                            RendaFamiliar.MAIS_DE_TRES,
+                            RendaFamiliar.MAIS_DE_TRES_MIL,
                             List.of(1L),
                             List.of(2L),
                             "Nova descrição",
@@ -480,7 +480,7 @@ class PessoaControllerTest {
                             "invalido", // email invalido
                             Escolaridade.SUPERIOR_COMPLETO,
                             "Profissao",
-                            RendaFamiliar.MAIS_DE_TRES,
+                            RendaFamiliar.MAIS_DE_TRES_MIL,
                             List.of(),
                             List.of(),
                             null);
