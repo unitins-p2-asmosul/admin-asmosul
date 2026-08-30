@@ -6,7 +6,7 @@ on:
     paths:
       - 'api/**'
 jobs:
-  build-and-deploy:
+  deploy-spring:
     runs-on: self-hosted
 
     defaults:

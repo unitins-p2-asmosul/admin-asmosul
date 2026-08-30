@@ -6,7 +6,7 @@ on:
     paths:
       - 'web/**'
 jobs:
-  build-and-deploy:
+  deploy-angular:
     runs-on: self-hosted
 
     defaults:
@@ -32,11 +32,9 @@ jobs:
 
       - name: Copiar arquivos para o Nginx
         run: |
-          # Limpa o conteúdo anterior para evitar resíduos de builds antigos
-          sudo rm -rf /var/www/h-asmosul/*
+          rm -rf /var/www/h-asmosul/*
 
-          sudo cp -r dist/web/browser/* /var/www/h-asmosul/
+          cp -r dist/web/browser/* /var/www/h-asmosul/
 
-          # Garante que o Nginx tenha permissão de leitura nos arquivos
-          sudo chmod -R 755 /var/www/h-asmosul/
+          chmod -R 755 /var/www/h-asmosul/
 
