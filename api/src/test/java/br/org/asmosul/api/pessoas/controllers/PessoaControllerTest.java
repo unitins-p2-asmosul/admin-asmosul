@@ -52,7 +52,7 @@ class PessoaControllerTest {
                 {
                     "nome": "Maria Silva",
                     "cpf": "12345678901",
-                    "dataNascimento": "1990-05-15",
+                    "dataNascimento": "15-05-1990",
                     "sexo": "F",
                     "telefone": "63987654321",
                     "email": "maria.silva@exemplo.com",
@@ -71,7 +71,7 @@ class PessoaControllerTest {
                 {
                     "nome": "Maria Silva Atualizada",
                     "cpf": "12345678901",
-                    "dataNascimento": "1990-05-15",
+                    "dataNascimento": "15-05-1990",
                     "sexo": "F",
                     "telefone": "63987654321",
                     "email": "maria.atualizada@exemplo.com",
@@ -125,7 +125,7 @@ class PessoaControllerTest {
                     .andExpect(jsonPath("$.id").value(1L))
                     .andExpect(jsonPath("$.nome").value("Maria Silva"))
                     .andExpect(jsonPath("$.cpf").value("12345678901"))
-                    .andExpect(jsonPath("$.dataNascimento").value("1990-05-15"))
+                    .andExpect(jsonPath("$.dataNascimento").value("15-05-1990"))
                     .andExpect(jsonPath("$.sexo.codigo").value("F"))
                     .andExpect(jsonPath("$.telefone").value("63987654321"))
                     .andExpect(jsonPath("$.email").value("maria.silva@exemplo.com"))
@@ -401,7 +401,7 @@ class PessoaControllerTest {
                     .andExpect(jsonPath("$.id").value(1L))
                     .andExpect(jsonPath("$.nome").value("Maria Silva"))
                     .andExpect(jsonPath("$.cpf").value("12345678901"))
-                    .andExpect(jsonPath("$.dataNascimento").value("1990-05-15"))
+                    .andExpect(jsonPath("$.dataNascimento").value("15-05-1990"))
                     .andExpect(jsonPath("$.comorbidades[0]").value(1L))
                     .andExpect(jsonPath("$.categorias[0]").value(2L))
                     .andExpect(jsonPath("$.ativo").value(true));
