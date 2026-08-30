@@ -53,7 +53,7 @@ class PessoaControllerTest {
                     "nome": "Maria Silva",
                     "cpf": "12345678901",
                     "dataNascimento": "15-05-1990",
-                    "sexo": "F",
+                    "sexo": "FEMININO",
                     "telefone": "63987654321",
                     "email": "maria.silva@exemplo.com",
                     "escolaridade": "SUPERIOR_COMPLETO",
@@ -72,7 +72,7 @@ class PessoaControllerTest {
                     "nome": "Maria Silva Atualizada",
                     "cpf": "12345678901",
                     "dataNascimento": "15-05-1990",
-                    "sexo": "F",
+                    "sexo": "FEMININO",
                     "telefone": "63987654321",
                     "email": "maria.atualizada@exemplo.com",
                     "escolaridade": "SUPERIOR_COMPLETO",
@@ -91,7 +91,7 @@ class PessoaControllerTest {
                 "Maria Silva",
                 "12345678901",
                 LocalDate.of(1990, 5, 15),
-                Sexo.F,
+                Sexo.FEMININO,
                 "63987654321",
                 "maria.silva@exemplo.com",
                 Escolaridade.SUPERIOR_COMPLETO,
@@ -126,7 +126,7 @@ class PessoaControllerTest {
                     .andExpect(jsonPath("$.nome").value("Maria Silva"))
                     .andExpect(jsonPath("$.cpf").value("12345678901"))
                     .andExpect(jsonPath("$.dataNascimento").value("15-05-1990"))
-                    .andExpect(jsonPath("$.sexo.codigo").value("F"))
+                    .andExpect(jsonPath("$.sexo.codigo").value("FEMININO"))
                     .andExpect(jsonPath("$.telefone").value("63987654321"))
                     .andExpect(jsonPath("$.email").value("maria.silva@exemplo.com"))
                     .andExpect(jsonPath("$.escolaridade.codigo").value("SUPERIOR_COMPLETO"))
@@ -146,7 +146,7 @@ class PessoaControllerTest {
                             "",
                             "12345678901",
                             LocalDate.of(1990, 5, 15),
-                            Sexo.F,
+                            Sexo.FEMININO,
                             "63987654321",
                             "maria@exemplo.com",
                             Escolaridade.SUPERIOR_COMPLETO,
@@ -171,7 +171,7 @@ class PessoaControllerTest {
                             "Maria Silva",
                             "12345", // CPF inválido
                             LocalDate.of(1990, 5, 15),
-                            Sexo.F,
+                            Sexo.FEMININO,
                             "63987654321",
                             "maria@exemplo.com",
                             Escolaridade.SUPERIOR_COMPLETO,
@@ -196,7 +196,7 @@ class PessoaControllerTest {
                             "Maria Silva",
                             "12345678901",
                             LocalDate.of(1990, 5, 15),
-                            Sexo.F,
+                            Sexo.FEMININO,
                             "123", // Telefone inválido (< 10 dígitos)
                             "maria@exemplo.com",
                             Escolaridade.SUPERIOR_COMPLETO,
@@ -221,7 +221,7 @@ class PessoaControllerTest {
                             "Maria Silva",
                             "12345678901",
                             LocalDate.of(1990, 5, 15),
-                            Sexo.F,
+                            Sexo.FEMININO,
                             "63987654321",
                             "email-invalido", // Formato de e-mail inválido
                             Escolaridade.SUPERIOR_COMPLETO,
@@ -246,7 +246,7 @@ class PessoaControllerTest {
                             "Maria Silva",
                             "12345678901",
                             null,
-                            Sexo.F,
+                            Sexo.FEMININO,
                             "63987654321",
                             "maria@exemplo.com",
                             Escolaridade.SUPERIOR_COMPLETO,
@@ -441,7 +441,7 @@ class PessoaControllerTest {
                             "Maria Silva Atualizada",
                             "12345678901",
                             LocalDate.of(1990, 5, 15),
-                            Sexo.F,
+                            Sexo.FEMININO,
                             "63987654321",
                             "maria.atualizada@exemplo.com",
                             Escolaridade.SUPERIOR_COMPLETO,
@@ -475,7 +475,7 @@ class PessoaControllerTest {
                             "", // nome vazio
                             "123", // cpf invalido
                             null, // data nula
-                            Sexo.F,
+                            Sexo.FEMININO,
                             "123", // telefone invalido
                             "invalido", // email invalido
                             Escolaridade.SUPERIOR_COMPLETO,
