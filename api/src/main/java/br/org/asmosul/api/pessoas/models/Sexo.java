@@ -8,8 +8,8 @@ import java.util.Arrays;
 
 @JsonFormat(shape = JsonFormat.Shape.OBJECT)
 public enum Sexo {
-    F("F", "Feminino"),
-    M("M", "Masculino"),
+    FEMININO("FEMININO", "Feminino"),
+    MASCULINO("MASCULINO", "Masculino"),
     OUTRO("OUTRO", "Outro"),
     NAO_INFORMADO("NAO_INFORMADO", "Prefiro não informar");
 
