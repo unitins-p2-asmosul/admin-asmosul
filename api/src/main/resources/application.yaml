@@ -74,7 +74,8 @@ spring:
     password: ${DB_PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
 
-  # Em produção, desabilita a interface visual do Swagger por segurança
-  springdoc:
-    swagger-ui:
-      enabled: false
+springdoc:
+  swagger-ui:
+    enabled: false
+  api-docs:
+    enabled: false
