@@ -73,9 +73,3 @@ spring:
     username: ${DB_USER}
     password: ${DB_PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
-
-springdoc:
-  swagger-ui:
-    enabled: false
-  api-docs:
-    enabled: false
