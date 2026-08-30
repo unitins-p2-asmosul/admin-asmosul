@@ -37,6 +37,7 @@ spring:
 
 # OpenAPI / Swagger
 springdoc:
+  use-fqn: true
   api-docs:
     path: /v3/api-docs
   swagger-ui:
