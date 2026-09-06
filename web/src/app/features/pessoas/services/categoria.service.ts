@@ -3,8 +3,8 @@ import { inject, Injectable } from '@angular/core';
 import { Observable, of, throwError } from 'rxjs';
 import { delay } from 'rxjs/operators';
 import { environment } from '../../../../enviroments/enviroment';
-import { MOCK_CATEGORIAS } from '../mocks/categoria.mock';
-import { CategoriaDetalhe, CategoriaRequisicao } from '../models/categoria.model';
+import { MOCK_CATEGORIAS } from '@features/pessoas/mocks/categoria.mock';
+import { CategoriaDetalhe, CategoriaRequisicao } from '@features/pessoas/models/categoria.model';
 
 @Injectable({
   providedIn: 'root',
