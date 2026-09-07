@@ -4,7 +4,7 @@ Versão: 1.0
 
 # Importate!
 
-Realize adições e modificações no backend conforme os contratos de API e os diagramas de classe e de entidade relacionamento na pasta docs/!!
+Realize adições e modificações no backend mantendo a documentação do OpenAPI/Swagger rigorosamente atualizada via anotações nos Controllers, além de seguir os diagramas de classe e DER na pasta docs/. O Swagger oficial do ambiente de homologação pode ser consultado em: [https://h.asmosul.site/api/swagger-ui.html](https://h.asmosul.site/api/swagger-ui.html).
 
 # Pom.xml
 
@@ -300,126 +300,176 @@ public record RespostaPaginada<T>(
 ## Controllers
 
 A camada de Controller é responsável unicamente pela interface HTTP da aplicação. Ela recebe as requisições, aciona a validação dos DTOs, delega a execução para a camada de Service e traduz o resultado no código de status HTTP correspondente.
+### Diretrizes de Implementação
 
-### Diretrizes de implementação
+- **Sem blocos `try-catch`:** O tratamento de erros é responsabilidade exclusiva do tratador global (`GlobalExceptionHandler`).
+- **Injeção de dependência via construtor:** Proibido o uso de `@Autowired` em atributos de classe.
+- **Validação de payload com `@Valid`:** Todo body de requisição (`@RequestBody`) que represente DTO de entrada deve conter a anotação `@Valid`.
+- **Documentação OpenAPI / Swagger:**
+    - Anote a classe do Controller com `@Tag(name = "...", description = "...")`.
+    - Anote cada método com `@Operation(summary = "...", description = "...")` e `@ApiResponses`.
+    - **Parâmetros de paginação no Swagger:** Em endpoints com `Pageable`, utilize **obrigatoriamente** `@ParameterObject` do SpringDoc junto com `@PageableDefault`. Isso instrui o Swagger a exibir os campos de `page`, `size` e `sort` de forma clara na interface.
+- **Respostas com `ResponseEntity<T>`:**
+    - **Criação (`201 Created`):** Monte a URI do recurso criado com `UriComponentsBuilder` e retorne via `ResponseEntity.created(uri).body(detalhe)`. O cabeçalho `Location` deve apontar para a rota de detalhamento (`/{id}`).
+    - **Consultas / Atualizações (`200 OK`):** Retorne `ResponseEntity.ok(resultado)`.
+    - **Ações sem corpo (`204 No Content`):** Inativações, reativações e exclusões devem retornar `ResponseEntity.noContent().build()`.
+- **Listagens:**
+    - **Paginada (Padrão):** Rota raiz (`GET /recursos`), recebendo `@ParameterObject @PageableDefault(...) Pageable paginacao` e `@RequestParam(defaultValue = "false") boolean incluirInativos`.
+    - **Completa/Não Paginada (Para Dropdowns):** Rota auxiliar (`GET /recursos/todas`), retornando `ResponseEntity<List<DTO.Resumo>>`.
+- **Restrição do `listarTodas` (`/todas`):** O método `listarTodas` é restrito a **tabelas de apoio/domínio de baixo volume** (ex.: `Categoria`, `Comorbidade`) para carregar `<select>` no frontend. Entidades principais de grande volume (ex.: `Pessoa`, `Doacao`) **não devem possuir endpoint `listarTodas`**, operando exclusivamente com paginação.
+### Tabela de Padronização de Endpoints
 
-- Não use `try catch` , pois isto é responsabilidade do tratador global de exceções
-- A Injeção de dependência deve ser via construtor
-    - Exemplo:
+| **Nome do Método** | **Rota**                     | **Verbo HTTP** | **Código HTTP**                       | **Retorno (ResponseEntity)**                   |
+| ------------------ | ---------------------------- | -------------- | ------------------------------------- | ---------------------------------------------- |
+| `cadastrar`        | `/{recursos}`                | `POST`         | `201 Created` _(com header Location)_ | `ResponseEntity<DTO.Detalhe>`                  |
+| `listar`           | `/{recursos}`                | `GET`          | `200 OK`                              | `ResponseEntity<RespostaPaginada<DTO.Resumo>>` |
+| `listarTodas`      | `/{recursos}/todas`          | `GET`          | `200 OK`                              | `ResponseEntity<List<DTO.Resumo>>`             |
+| `buscarPorId`      | `/{recursos}/{id}`           | `GET`          | `200 OK`                              | `ResponseEntity<DTO.Detalhe>`                  |
+| `atualizar`        | `/{recursos}/{id}`           | `PUT`          | `200 OK`                              | `ResponseEntity<DTO.Detalhe>`                  |
+| `desativar`        | `/{recursos}/{id}/desativar` | `PATCH`        | `204 No Content`                      | `ResponseEntity<Void>`                         |
+| `reativar`         | `/{recursos}/{id}/reativar`  | `PATCH`        | `204 No Content`                      | `ResponseEntity<Void>`                         |
+| `excluir`          | `/{recursos}/{id}`           | `DELETE`       | `204 No Content`                      | `ResponseEntity<Void>`                         |
 
-    ```java
-    public class PessoaController {
+### Exemplo de Estrutura de Controller Padronizado
 
-        private final PessoaService pessoaService;
+``` java
+package br.org.asmosul.api.pessoas.controllers;
 
-        public PessoaController(PessoaService pessoaService) {
-            this.pessoaService = pessoaService;
-        }
-    }
-    ```
+import br.org.asmosul.api.comum.dtos.RespostaPaginada;
+import br.org.asmosul.api.pessoas.dtos.CategoriaDTO;
+import br.org.asmosul.api.pessoas.services.CategoriaService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import java.net.URI;
+import java.util.List;
+import org.springdoc.core.annotations.ParameterObject;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.util.UriComponentsBuilder;
 
-- Todos os parâmetros necessários devem possuir notação `@valid`
-- Utilize anotações como `@ApiResponse`  e `@Operation` nos controllers e seguir o documento de contrato de API
-- Cubra todas as respostas na classe `ResponseEntity<T>` do Spring
-- No listar, utilize `Pageable paginacao`  e `boolean incluirInativos`  como parâmetros, ver interface `Pageable` do Spring em: https://docs.spring.io/spring-data/commons/docs/current/api/org/springframework/data/domain/Pageable.html
-
-### Exemplo de estrutura de classe Controller
-
-| **Nome do Método** | **Rota** | **Verbo HTTP** | **Código HTTP** | **Retorno (ResponseEntity<T>)** |
-| --- | --- | --- | --- | --- |
-| `cadastrar` | `/pessoas` | `POST` | `201 Created` | `ResponseEntity<PessoaDTO.Detalhe>`  |
-| `listar` | `/pessoas` | `GET` | `200 OK` | `ResponseEntity<RespostaPaginada<PessoaDTO.Resumo>>` |
-| `buscarPorId` | `/pessoas/{id}` | `GET` | `200 OK` | `ResponseEntity<PessoaDTO.Detalhe>` |
-| `atualizar` | `/pessoas/{id}` | `PUT` | `200 OK` | `ResponseEntity<PessoaDTO.Detalhe>` |
-| `desativar` | `/pessoas/{id}/desativar` | `PATCH` | `204 No Content` | `ResponseEntity<Void>` |
-| `reativar` | `/pessoas/{id}/reativar` | `PATCH` | `204 No Content` | `ResponseEntity<Void>` |
-
-### Exemplo de estrutura de classe Controller
-
-```java
-@Tag(name = "Pessoas", description = "Endpoints para gerenciamento de associados")
+@Tag(name = "Categorias", description = "Endpoints para gerenciamento de categorias")
 @RestController
-@RequestMapping("/pessoas")
-public class PessoaController {
+@RequestMapping("/categorias")
+public class CategoriaController {
 
-    private final PessoaService pessoaService;
+    private final CategoriaService categoriaService;
 
-    public PessoaController(PessoaService pessoaService) {
-        this.pessoaService = pessoaService;
+    public CategoriaController(CategoriaService categoriaService) {
+        this.categoriaService = categoriaService;
     }
 
-    @Operation(summary = "Cadastrar uma nova pessoa", description = "Cria um novo registro de associado no sistema")
+    @Operation(summary = "Cadastrar uma nova categoria", description = "Cria um novo registro de categoria no sistema")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "201", description = "Pessoa criada com sucesso"),
+        @ApiResponse(responseCode = "201", description = "Categoria criada com sucesso"),
         @ApiResponse(responseCode = "400", description = "Dados de entrada inválidos"),
-        @ApiResponse(responseCode = "409", description = "CPF já cadastrado")
+        @ApiResponse(responseCode = "409", description = "Categoria já cadastrada com este nome")
     })
     @PostMapping
-    public ResponseEntity<PessoaDTO.Detalhe> cadastrar(
-        @RequestBody @Valid PessoaDTO.Requisicao requisicao,
-        UriComponentsBuilder uriBuilder
+    public ResponseEntity<CategoriaDTO.Detalhe> cadastrar(
+            @RequestBody @Valid CategoriaDTO.Requisicao requisicao,
+            UriComponentsBuilder uriBuilder
     ) {
-        return null;
+        CategoriaDTO.Detalhe detalhe = categoriaService.cadastrar(requisicao);
+        URI uri = uriBuilder.path("/categorias/{id}").buildAndExpand(detalhe.id()).toUri();
+        return ResponseEntity.created(uri).body(detalhe);
     }
 
-    @Operation(summary = "Listar pessoas", description = "Retorna uma listagem paginada de associados")
+    @Operation(summary = "Listar categorias", description = "Retorna uma listagem paginada de categorias")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Listagem retornada com sucesso")
     })
     @GetMapping
-    public ResponseEntity<RespostaPaginada<PessoaDTO.Resumo>> listar(
-        @PageableDefault(size = 10, sort = "nome") Pageable paginacao,
-        @RequestParam(defaultValue = "false") boolean incluirInativos
+    public ResponseEntity<RespostaPaginada<CategoriaDTO.Resumo>> listar(
+            @ParameterObject @PageableDefault(size = 10, sort = "nome") Pageable paginacao,
+            @RequestParam(defaultValue = "false") boolean incluirInativos
     ) {
-        return null;
+        return ResponseEntity.ok(categoriaService.listar(paginacao, incluirInativos));
     }
 
-    @Operation(summary = "Buscar pessoa por ID", description = "Retorna os detalhes completos de uma pessoa ativa")
+    @Operation(summary = "Listar todas as categorias", description = "Retorna uma lista não paginada para seleção")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Pessoa encontrada"),
-        @ApiResponse(responseCode = "404", description = "Pessoa não encontrada ou inativa")
+        @ApiResponse(responseCode = "200", description = "Lista retornada com sucesso")
+    })
+    @GetMapping("/todas")
+    public ResponseEntity<List<CategoriaDTO.Resumo>> listarTodas(
+            @RequestParam(defaultValue = "false") boolean incluirInativos
+    ) {
+        return ResponseEntity.ok(categoriaService.listarTodas(incluirInativos));
+    }
+
+    @Operation(summary = "Buscar categoria por ID", description = "Retorna os detalhes de uma categoria ativa")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Categoria encontrada"),
+        @ApiResponse(responseCode = "404", description = "Categoria não encontrada ou inativa")
     })
     @GetMapping("/{id}")
-    public ResponseEntity<PessoaDTO.Detalhe> buscarPorId(@PathVariable Long id) {
-        return null;
+    public ResponseEntity<CategoriaDTO.Detalhe> buscarPorId(@PathVariable Long id) {
+        return ResponseEntity.ok(categoriaService.buscarPorId(id));
     }
 
-    @Operation(summary = "Atualizar dados da pessoa", description = "Atualiza as informações de uma pessoa cadastrada")
+    @Operation(summary = "Atualizar dados da categoria", description = "Atualiza as informações da categoria")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Dados atualizados com sucesso"),
         @ApiResponse(responseCode = "400", description = "Dados inválidos"),
-        @ApiResponse(responseCode = "404", description = "Pessoa não encontrada")
+        @ApiResponse(responseCode = "404", description = "Categoria não encontrada ou inativa"),
+        @ApiResponse(responseCode = "409", description = "Categoria já cadastrada com este nome")
     })
     @PutMapping("/{id}")
-    public ResponseEntity<PessoaDTO.Detalhe> atualizar(
-        @PathVariable Long id,
-        @RequestBody @Valid PessoaDTO.Atualizacao requisicao
+    public ResponseEntity<CategoriaDTO.Detalhe> atualizar(
+            @PathVariable Long id,
+            @RequestBody @Valid CategoriaDTO.Atualizacao requisicao
     ) {
-        return null;
+        return ResponseEntity.ok(categoriaService.atualizar(id, requisicao));
     }
 
-    @Operation(summary = "Desativar pessoa", description = "Realiza a desativação lógica (soft delete) da pessoa")
+    @Operation(summary = "Desativar categoria", description = "Realiza a desativação lógica (soft delete)")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "204", description = "Pessoa desativada com sucesso"),
-        @ApiResponse(responseCode = "404", description = "Pessoa não encontrada")
+        @ApiResponse(responseCode = "204", description = "Categoria desativada com sucesso"),
+        @ApiResponse(responseCode = "404", description = "Categoria não encontrada ou já inativa")
     })
     @PatchMapping("/{id}/desativar")
     public ResponseEntity<Void> desativar(@PathVariable Long id) {
-        return null;
+        categoriaService.desativar(id);
+        return ResponseEntity.noContent().build();
     }
 
-    @Operation(summary = "Reativar pessoa", description = "Reativa o registro de uma pessoa previamente desativada")
+    @Operation(summary = "Reativar categoria", description = "Reativa uma categoria previamente desativada")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "204", description = "Pessoa reativada com sucesso"),
-        @ApiResponse(responseCode = "404", description = "Pessoa não encontrada")
+        @ApiResponse(responseCode = "204", description = "Categoria reativada com sucesso"),
+        @ApiResponse(responseCode = "404", description = "Categoria não encontrada")
     })
     @PatchMapping("/{id}/reativar")
     public ResponseEntity<Void> reativar(@PathVariable Long id) {
-        return null;
+        categoriaService.reativar(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @Operation(summary = "Excluir categoria", description = "Realiza a exclusão física definitiva da categoria")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "204", description = "Categoria excluída com sucesso"),
+        @ApiResponse(responseCode = "404", description = "Categoria não encontrada")
+    })
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> excluir(@PathVariable Long id) {
+        categoriaService.excluir(id);
+        return ResponseEntity.noContent().build();
     }
 }
 ```
-
 ## Service
 
 A camada de Service encapsula todas as regras de negócio, validações lógicas, controle transacional e a coordenação entre repositórios, DTOs e entidades JPA.
@@ -446,66 +496,133 @@ A camada de Service encapsula todas as regras de negócio, validações lógicas
 - Services devem receber e retornar DTOs
 - Utilize os métodos de “para Entidade” em DTOs de cadastro/atualização, com IDs sendo recuperados pelos repositores com os devidos tratamentos
 - Utilize o método `.save()` do repositório para cadastros, **não utilize para operações exclusivamente de atualização!**
+- **Sanitização de Ordenação Obrigatória:** Em todo método `listar` que receba `Pageable`, utilize **obrigatoriamente** `PaginacaoUtils.sanitizarPaginacao(...)`.
+    - Defina uma constante privada na classe de Service contendo a _whitelist_ de campos permitidos para ordenação: `private static final Set<String> CAMPOS_ORDENACAO_VALIDOS = Set.of("id", "nome", ...);`
+    - Defina sempre um campo padrão de ordenação caso a requisição venha sem ordenação (`unsorted`) ou com campos inválidos.
+- **Listagem Completa para Componentes de Seleção (Dropdowns):** Para entidades de suporte/auxiliares (como Categorias, Comorbidades, etc.) consumidas por selects no frontend, forneça o método `listarTodas(boolean incluirInativos)` retornando `List<DTO.Resumo>` diretamente (sem paginação).
+- **Exclusão Física (`delete`):** Caso o módulo permita a remoção definitiva além do soft-delete (`desativar`), implemente o método `excluir(Long id)` anotado com `@Transactional`
+  - **Restrição do `listarTodas` (`/todas`):** O método `listarTodas` é restrito a **tabelas de apoio/domínio de baixo volume** (ex.: `Categoria`, `Comorbidade`) para carregar `<select>` no frontend. Entidades principais de grande volume (ex.: `Pessoa`, `Doacao`) **não devem possuir endpoint `listarTodas`**, operando exclusivamente com paginação.
 
 ### Tabela de padronização dos métodos
+| **Método**    | **Parâmetros de Entrada**                                           | **Retorno**                    | **Anotação Transacional**         |
+| ------------- | ------------------------------------------------------------------- | ------------------------------ | --------------------------------- |
+| `cadastrar`   | `DTO.Requisicao`                                                    | `DTO.Detalhe`                  | `@Transactional`                  |
+| `listar`      | `Pageable`, `boolean incluirInativos`                               | `RespostaPaginada<DTO.Resumo>` | `@Transactional(readOnly = true)` |
+| `listarTodas` | `boolean incluirInativos` _(opcional: sem args para default false)_ | `List<DTO.Resumo>`             | `@Transactional(readOnly = true)` |
+| `buscarPorId` | `Long id`                                                           | `DTO.Detalhe`                  | `@Transactional(readOnly = true)` |
+| `atualizar`   | `Long id`, `DTO.Atualizacao`                                        | `DTO.Detalhe`                  | `@Transactional`                  |
+| `desativar`   | `Long id`                                                           | `void`                         | `@Transactional`                  |
+| `reativar`    | `Long id`                                                           | `void`                         | `@Transactional`                  |
+| `excluir`     | `Long id`                                                           | `void`                         | `@Transactional`                  |
 
-| **Método** | **Parâmetros de Entrada** | **Retorno** | **Anotação Transacional** |
-| --- | --- | --- | --- |
-| `cadastrar` | `DTO.Requisicao` | `DTO.Detalhe` | `@Transactional` |
-| `listar` | `Pageable`, `boolean incluirInativos`  | `RespostaPaginada<DTO.Resumo>` | `@Transactional(readOnly = true)` |
-| `buscarPorId` | `Long id` | `DTO.Detalhe` | `@Transactional(readOnly = true)` |
-| `atualizar` | `Long id`, `DTO.Atualizacao` | `DTO.Detalhe` | `@Transactional` |
-| `desativar` | `Long id` | `void` | `@Transactional` |
-| `reativar` | `Long id` | `void` | `@Transactional` |
 
 ### Exemplo de estrutura de classe Service
 
 ```java
-
 @Service
-public class PessoaService {
+public class CategoriaService {
 
-    private final PessoaRepository pessoaRepository;
+    private static final Set<String> CAMPOS_ORDENACAO_VALIDOS =
+            Set.of("id", "nome", "descricao", "dataInativo");
+
     private final CategoriaRepository categoriaRepository;
-    private final ComorbidadeRepository comorbidadeRepository;
 
-    // Injeção de dependência via construtor
-    public PessoaService(
-        PessoaRepository pessoaRepository,
-        CategoriaRepository categoriaRepository,
-        ComorbidadeRepository comorbidadeRepository
-    ) {
-        this.pessoaRepository = pessoaRepository;
+    public CategoriaService(CategoriaRepository categoriaRepository) {
         this.categoriaRepository = categoriaRepository;
-        this.comorbidadeRepository = comorbidadeRepository;
     }
 
     @Transactional
-    public PessoaDTO.Detalhe cadastrar(PessoaDTO.Requisicao requisicao) {
-        return null;
+    public CategoriaDTO.Detalhe cadastrar(CategoriaDTO.Requisicao requisicao) {
+        if (categoriaRepository.existsByNome(requisicao.nome())) {
+            throw new ConflitoDadosException("Já existe uma categoria cadastrada com este nome.");
+        }
+
+        Categoria categoria = requisicao.paraEntidade();
+        Categoria categoriaSalva = categoriaRepository.save(categoria);
+
+        return CategoriaDTO.Detalhe.deEntidade(categoriaSalva);
     }
 
     @Transactional(readOnly = true)
-    public RespostaPaginada<PessoaDTO.Resumo> listar(Pageable paginacao, boolean incluirInativos) {
-        return null;
+    public RespostaPaginada<CategoriaDTO.Resumo> listar(Pageable paginacao, boolean incluirInativos) {
+        // Obrigatório: sanitiza propriedades de sort contra a whitelist para evitar 500
+        Pageable paginacaoSanitizada = PaginacaoUtils.sanitizarPaginacao(
+                paginacao, CAMPOS_ORDENACAO_VALIDOS, "nome");
+
+        Page<Categoria> pagina = incluirInativos
+                ? categoriaRepository.findAll(paginacaoSanitizada)
+                : categoriaRepository.findAllByDataInativoIsNull(paginacaoSanitizada);
+
+        Page<CategoriaDTO.Resumo> paginaDtos = pagina.map(CategoriaDTO.Resumo::deEntidade);
+        return RespostaPaginada.dePage(paginaDtos);
     }
 
     @Transactional(readOnly = true)
-    public PessoaDTO.Detalhe buscarPorId(Long id) {
-        return null;
+    public List<CategoriaDTO.Resumo> listarTodas(boolean incluirInativos) {
+        List<Categoria> categorias = incluirInativos
+                ? categoriaRepository.findAll()
+                : categoriaRepository.findAllByDataInativoIsNull();
+
+        return categorias.stream()
+                .map(CategoriaDTO.Resumo::deEntidade)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<CategoriaDTO.Resumo> listarTodas() {
+        return listarTodas(false);
+    }
+
+    @Transactional(readOnly = true)
+    public CategoriaDTO.Detalhe buscarPorId(Long id) {
+        Categoria categoria = categoriaRepository.findByIdAndDataInativoIsNull(id)
+                .orElseThrow(() -> new EntidadeNaoEncontradaException(
+                        "Categoria ativa não encontrada com o ID informado: " + id));
+
+        return CategoriaDTO.Detalhe.deEntidade(categoria);
     }
 
     @Transactional
-    public PessoaDTO.Detalhe atualizar(Long id, PessoaDTO.Atualizacao requisicao) {
-        return null;
+    public CategoriaDTO.Detalhe atualizar(Long id, CategoriaDTO.Atualizacao requisicao) {
+        Categoria categoria = categoriaRepository.findByIdAndDataInativoIsNull(id)
+                .orElseThrow(() -> new EntidadeNaoEncontradaException(
+                        "Categoria ativa não encontrada com o ID informado: " + id));
+
+        if (categoriaRepository.existsByNomeAndIdNot(requisicao.nome(), id)) {
+            throw new ConflitoDadosException("Já existe uma categoria cadastrada com este nome.");
+        }
+
+        categoria.setNome(requisicao.nome());
+        categoria.setDescricao(requisicao.descricao());
+
+        return CategoriaDTO.Detalhe.deEntidade(categoria);
     }
 
     @Transactional
     public void desativar(Long id) {
+        Categoria categoria = categoriaRepository.findByIdAndDataInativoIsNull(id)
+                .orElseThrow(() -> new EntidadeNaoEncontradaException(
+                        "Categoria ativa não encontrada com o ID informado: " + id));
+
+        categoria.setDataInativo(LocalDateTime.now());
     }
 
     @Transactional
     public void reativar(Long id) {
+        Categoria categoria = categoriaRepository.findById(id)
+                .orElseThrow(() -> new EntidadeNaoEncontradaException(
+                        "Categoria não encontrada com o ID informado: " + id));
+
+        categoria.setDataInativo(null);
+    }
+
+    @Transactional
+    public void excluir(Long id) {
+        Categoria categoria = categoriaRepository.findById(id)
+                .orElseThrow(() -> new EntidadeNaoEncontradaException(
+                        "Categoria não encontrada com o ID informado: " + id));
+
+        categoriaRepository.delete(categoria);
     }
 }
 ```
@@ -533,6 +650,9 @@ A camada de Repository é responsável exclusivamente pela persistência e recup
 - Toda listagem padrão sem inativos deve usar `findAllByDataInativoIsNull(Pageable pageable)`.
 - Para consultas que exijam apenas os registros desativados, utilize `findAllByDataInativoIsNotNull(Pageable pageable)`.
 - Utilize o método `.save()`  do repositório para cadastros.
+- É estritamente proibido utilizar `@EntityGraph` ou `JOIN FETCH` para coleções (`@OneToMany`, `@ManyToMany`) em métodos paginados (`Page<T>`).
+- O DTO `Resumo` deve conter apenas atributos da própria entidade raiz ou relacionamentos `@ManyToOne`/`@OneToOne` simples.
+- Relacionamentos N:N carregados devem existir **apenas na busca por ID (`buscarPorId`)**.
 
 ### Exemplo de estrutura e queries
 
@@ -542,6 +662,14 @@ public interface PessoaRepository extends JpaRepository<Pessoa, Long> {
     // ==========================================
     // Derived Queries
     // ==========================================
+    // Mantido apenas no buscarPorId para trazer os detalhes
+    @EntityGraph(attributePaths = {"comorbidades", "categorias"})
+    Optional<Pessoa> findByIdAndDataInativoIsNull(Long id);
+
+    // Sem EntityGraph para permitir paginação nativa (LIMIT / OFFSET) no MySQL
+    Page<Pessoa> findAllByDataInativoIsNull(Pageable pageable);
+
+    Page<Pessoa> findAll(Pageable pageable);
 
     // Busca por ID apenas se estiver ativo (dataInativo IS NULL)
     Optional<Pessoa> findByIdAndDataInativoIsNull(Long id);
@@ -901,59 +1029,89 @@ O Flyway é uma ferramenta de migração de banco de dados baseada em scripts SQ
 
 A arquitetura do projeto agrupa componentes por módulo e mantem componentes utilitários e transversais centralizados no pacote `comum`.
 
-Dessa forma, devemos apenas trabalhar nos diretórios necessários para a sprint (na sprint 1 por exemplo é somente em pessoas)
-
 ```
-src/main/java/br/org/asmosul/asmosul-api
-├── comum/
-│   ├── dtos/
-│   │   └── RespostaPaginada.java
-│   ├── exceptions/
-│   │   ├── EntidadeNaoEncontradaException.java
-│   │   ├── GlobalExceptionHandler.java
-│   │   └── ValidationException.java
-│   └── models/
-│       ├── EntidadeBase.java
-│       └── EntidadeInativavel.java
-│
-├── autenticacao/
-│   ├── controllers/
-│   ├── dtos/
-│   ├── models/
-│   ├── repositorys/
-│   └── services/
-│
-├── pessoas/
-│   ├── controllers/
-│   ├── dtos/
-│   ├── models/
-│   ├── repositories/
-│   └── services/
-│
-├── capacitacoes/
-│   ├── controllers/
-│   ├── dtos/
-│   ├── models/
-│   ├── repositories/
-│   └── services/
-│
-├── doacoes/
-│   ├── controllers/
-│   ├── dtos/
-│   ├── models/
-│   ├── repositories/
-│   └── services/
-│
-└── relatorios/
-    ├── controllers/
-    ├── dtos/
-    └── services/
-
-src/main/resources/
-├── db/
-│   └── migration/
-├── application.yml
-└── application-prod.yml
+.
+├── HELP.md
+├── mvnw
+├── mvnw.cmd
+├── pom.xml
+├── src
+│   ├── main
+│   │   ├── java
+│   │   │   └── br
+│   │   │       └── org
+│   │   │           └── asmosul
+│   │   │               └── api
+│   │   │                   ├── ApiApplication.java
+│   │   │                   ├── comum
+│   │   │                   │   ├── config
+│   │   │                   │   ├── dtos
+│   │   │                   │   │   └── RespostaPaginada.java
+│   │   │                   │   ├── exceptions
+│   │   │                   │   │   ├── ConflitoDadosException.java
+│   │   │                   │   │   ├── EntidadeNaoEncontradaException.java
+│   │   │                   │   │   ├── GlobalExceptionHandler.java
+│   │   │                   │   │   └── ValidationException.java
+│   │   │                   │   ├── models
+│   │   │                   │   │   ├── EntidadeBase.java
+│   │   │                   │   │   └── EntidadeInativavel.java
+│   │   │                   │   └── utils
+│   │   │                   │       └── PaginacaoUtils.java
+│   │   │                   └── pessoas
+│   │   │                       ├── controllers
+│   │   │                       │   ├── CategoriaController.java
+│   │   │                       │   ├── ComorbidadeController.java
+│   │   │                       │   └── PessoaController.java
+│   │   │                       ├── dtos
+│   │   │                       │   ├── CategoriaDTO.java
+│   │   │                       │   ├── ComorbidadeDTO.java
+│   │   │                       │   └── PessoaDTO.java
+│   │   │                       ├── models
+│   │   │                       │   ├── Categoria.java
+│   │   │                       │   ├── Comorbidade.java
+│   │   │                       │   ├── Escolaridade.java
+│   │   │                       │   ├── Pessoa.java
+│   │   │                       │   ├── RendaFamiliar.java
+│   │   │                       │   └── Sexo.java
+│   │   │                       ├── repositories
+│   │   │                       │   ├── CategoriaRepository.java
+│   │   │                       │   ├── ComorbidadeRepository.java
+│   │   │                       │   └── PessoaRepository.java
+│   │   │                       └── services
+│   │   │                           ├── CategoriaService.java
+│   │   │                           ├── ComorbidadeService.java
+│   │   │                           └── PessoaService.java
+│   │   └── resources
+│   │       ├── application.yaml
+│   │       ├── db
+│   │       │   └── migration
+│   │       │       ├── V1__criar_tabelas_iniciais.sql
+│   │       │       ├── V2__corrigir_faixa_de_renda.sql
+│   │       │       ├── V3__adicionar_data_inativo_categiria.sql
+│   │       │       ├── V4__adicionar_data_inativo_comorbidade.sql
+│   │       │       ├── V5__criar_tabelas_pessoas_e_relacionamentos.sql
+│   │       │       ├── V6__corrigir_faixa_de_renda_mais_de_tres_mil.sql
+│   │       │       ├── V7__corrigir_enum_sexo.sql
+│   │       │       ├── V8__adicionar_cnpj.sql
+│   │       │       └── V9__adicionar_endereco_pessoa.sql
+│   │       ├── static
+│   │       └── templates
+│   └── test
+│       └── java
+│           └── br
+│               └── org
+│                   └── asmosul
+│                       └── api
+│                           ├── comum
+│                           │   ├── config
+│                           │   │   └── BaseAPITest.java
+│                           │   └── exceptions
+│                           │       └── GlobalExceptionHandlerTest.java
+│                           └── pessoas
+│                               └── controllers
+│                                   ├── CategoriaControllerTest.java
+│                                   ├── ComorbidadeControllerTest.java
+│                                   └── PessoaControllerTest.java
 ```
 
 # Padrão de Testes Automatizados
@@ -1042,20 +1200,20 @@ class PessoaControllerTest extends BaseAPITest {
 
 ### Testes de Regra de Negócio (Services)
 
-Focados na execução direta de métodos Java da camada de `Service` para validação de fluxos intermediários, integridade cruzada e exceções de negócio. **Serão criados em menor quantidade.**
+Focados na execução direta de métodos Java da camada de `Service` para validação de fluxos intermediários, integridade cruzada e exceções de negócio. **Serão criados em menor quantidade. Apenas quando regra de negócio for complexa**
 
-### Matriz de Cobertura
+### Matriz de Cobertura dos testes de controller
 
-| **Camada / Contexto** | **Cenário Avaliado** | **Status HTTP / Exceção Esperada** | Quando criar |
-| --- | --- | --- | --- |
-| **Controller** | Sucesso no cadastro/atualização/busca | `200 OK` / `201 Created` | Todo endpoint |
-| **Controller** | Campos `@NotBlank`, `@NotNull`, etc.   | `400 Bad Request` (`ProblemDetail` com `erros`)   | Todo endpoint de cadastro ou atualização |
-| **Controller** | Busca por ID inexistente ou inativo   | `404 Not Found`
-| Todo endpoint de cadastro, atualização ou inativação que conter a exceção |
-| **Controller** | Tentativa de duplicidade (CPF, Nome único)   | `409 Conflict`
-| Todo endpoint de cadastro, atualização ou reativação que conter a exceção |
-| **Controller (Segurança)** | Acesso sem token ou token inválido   | `401 Unauthorized`
-| Endpoints do módulo de autenticação |
-| **Controller (Segurança)** | Acesso com perfil não autorizado (`@WithMockUser`)   | `403 Forbidden`
-| Somente um ou dois endpoints pra cada módulo |
-| **Service** | Regras de negócio mais avançadas | Lançamento de `ValidationException` no service | Para regras de negócio complexa |
+| **Camada / Contexto**                                                     | **Cenário Avaliado**                               | **Status HTTP / Exceção Esperada**              | Quando criar                             |
+| ------------------------------------------------------------------------- | -------------------------------------------------- | ----------------------------------------------- | ---------------------------------------- |
+| **Controller**                                                            | Sucesso no cadastro/atualização/busca              | `200 OK` / `201 Created`                        | Todo endpoint                            |
+| **Controller**                                                            | Campos `@NotBlank`, `@NotNull`, etc.               | `400 Bad Request` (`ProblemDetail` com `erros`) | Todo endpoint de cadastro ou atualização |
+| **Controller**                                                            | Busca por ID inexistente ou inativo                | `404 Not Found`                                 |                                          |
+| Todo endpoint de cadastro, atualização ou inativação que conter a exceção |                                                    |                                                 |                                          |
+| **Controller**                                                            | Tentativa de duplicidade (CPF, Nome único)         | `409 Conflict`                                  |                                          |
+| Todo endpoint de cadastro, atualização ou reativação que conter a exceção |                                                    |                                                 |                                          |
+| **Controller (Segurança)**                                                | Acesso sem token ou token inválido                 | `401 Unauthorized`                              |                                          |
+| Endpoints do módulo de autenticação                                       |                                                    |                                                 |                                          |
+| **Controller (Segurança)**                                                | Acesso com perfil não autorizado (`@WithMockUser`) | `403 Forbidden`                                 |                                          |
+| Somente um ou dois endpoints pra cada módulo                              |                                                    |                                                 |                                          |
+| **Service**                                                               | Regras de negócio mais avançadas                   | Lançamento de `ValidationException` no service  | Para regras de negócio complexa          |
