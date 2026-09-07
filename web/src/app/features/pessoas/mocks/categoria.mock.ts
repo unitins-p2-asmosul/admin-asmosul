@@ -1,4 +1,4 @@
-import { CategoriaDetalhe } from '../models/categoria.model';
+import { CategoriaDetalhe } from '@features/pessoas/models/categoria.model';
 
 export const MOCK_CATEGORIAS: CategoriaDetalhe[] = [
   {

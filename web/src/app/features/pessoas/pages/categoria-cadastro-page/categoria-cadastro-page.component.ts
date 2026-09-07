@@ -7,8 +7,8 @@ import { MatInputModule } from '@angular/material/input';
 import { Router } from '@angular/router';
 import { ErroApi } from '@features/shared/models/erro-api.model';
 import { NotificacaoService } from '@features/shared/services/notificacao.service';
-import { CategoriaService } from '../../services/categoria.service';
-import { CategoriaRequisicao } from '../../models/categoria.model';
+import { CategoriaService } from '@features/pessoas/services/categoria.service';
+import { CategoriaRequisicao } from '@features/pessoas/models/categoria.model';
 
 @Component({
   selector: 'app-categoria-cadastro-page',
