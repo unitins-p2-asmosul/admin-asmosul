@@ -1,0 +1,115 @@
+' Copiar e colar no PlantUML: https://www.planttext.com/
+' Referente a sprint 2
+
+@startuml
+
+enum Sexo {
+  + FEMININO
+  + MASCULINO
+  + PREFIRO_NAO_INFORMAR
+}
+
+enum Escolaridade {
+  + FUNDAMENTAL_INCOMPLETO
+  + FUNDAMENTAL_COMPLETO
+  + MEDIO_INCOMPLETO
+  + MEDIO_INCOMPLETO
+  + SUPERIOR_INCOMPLETO
+  + SUPERIOR_COMPLETO
+}
+
+enum RendaFamiliar {
++ MENOS_DE_MIL
++ ENTRE_MIL_E_DOIS_MIL
++ ENTRE_DOIS_MIL_E_TRES_MIL
++ MAIOR_QUE_TRES_MIL
+}
+
+class  Comorbidade {
+  - id: long
+  - nome: String
+  - cescricao : String
+  - ativo: DateTime
+}
+
+class  Categoria {
+  - id: long
+  - nome: String
+  - cescricao : String
+  - ativo: DateTime
+  - data_inativo: DateTime
+}
+
+
+class Pessoa {
+  - id: long
+  - nome: String
+  - cpf_cpnj: String
+  - data_nascimento: date
+  - telefone: String
+  - email: String
+  - profissao: String
+  - descricao: String
+  - data_inativo: DateTime
+  - cep: String
+  - uf: Uf
+  - cidade: String
+  - bairro: String
+  - logradouro: String
+  - complemento_endereco: String
+  - quant_coabitantes: int
+  - tipo_pessoa: TipoPessoa
+  - eh_doador: boolean
+  - eh_beneficiario: boolean
+
+}
+
+enum Uf {
+  +AC
+  +AL
+  +AM
+  +AP
+  +BA
+  +CE
+  +DF
+  +ES
+  +GO
+  +MA
+  +MG
+  +MS
+  +MT
+  +PA
+  +PB
+  +PE
+  +PI
+  +PR
+  +RJ
+  +RN
+  +RO
+  +RR
+  +RS
+  +SC
+  +SE
+  +SP
+  +TO
+}
+
+enum TipoPessoa{
+  + FISICA
+  + JURIDICA
+}
+
+' Relacionamentos
+Pessoa "*" --> "1" Sexo : é
+Pessoa "*" --> "1" Escolaridade : possui
+Pessoa "*" --> "1" RendaFamiliar : possui
+
+Pessoa "*" --> "*"Categoria : é
+Pessoa "*" --> "*"Comorbidade : possui
+
+Pessoa "*" --> "1"Uf : possui
+Pessoa "*" --> "1"TipoPessoa : é
+
+
+@enduml
+
