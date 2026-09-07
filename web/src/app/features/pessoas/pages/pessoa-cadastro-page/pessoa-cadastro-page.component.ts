@@ -38,48 +38,6 @@ import { PessoaService } from '../../services/pessoa.service';
     MatSelectModule,
   ],
   templateUrl: './pessoa-cadastro-page.component.html',
-  styles: `
-    /*
-     * Ajustes pontuais para aproximar do protótipo do Figma.
-     * Usa apenas os tokens públicos do Angular Material 21 (sem ::ng-deep),
-     * escopados no :host para não vazar para outras telas.
-     */
-    :host {
-      --asmosul-navy: #14395c;
-
-      --mat-form-field-container-height: 48px;
-      --mat-form-field-container-vertical-padding: 12px;
-      --mat-form-field-outlined-container-shape: 8px;
-      --mat-form-field-outlined-outline-color: #d9dee5;
-      --mat-form-field-outlined-hover-outline-color: var(--asmosul-navy);
-      --mat-form-field-outlined-focus-outline-color: var(--asmosul-navy);
-
-      --mat-button-filled-container-shape: 8px;
-      --mat-button-filled-container-height: 44px;
-    }
-
-    h1,
-    h2 {
-      color: var(--asmosul-navy);
-    }
-
-    button[type='submit'] {
-      --mat-button-filled-container-color: var(--asmosul-navy);
-      --mat-button-filled-label-text-color: #ffffff;
-    }
-
-    button[type='button'] {
-      --mat-button-filled-container-color: #e9eef4;
-      --mat-button-filled-label-text-color: var(--asmosul-navy);
-    }
-
-    /* O min-width do Material vence as classes do Tailwind, entao vai aqui. */
-    @media (min-width: 640px) {
-      button[mat-flat-button] {
-        min-width: 10rem;
-      }
-    }
-  `,
 })
 export class PessoaCadastroPageComponent {
   private readonly fb = inject(NonNullableFormBuilder);

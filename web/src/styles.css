@@ -1,3 +1,53 @@
 /* You can add global styles to this file, and also import other style files */
 
 @import 'tailwindcss';
+
+@theme {
+  --color-asmosul-navy: #14395c;
+  --color-asmosul-borda: #d9dee5;
+  --color-asmosul-acao-secundaria: #e9eef4;
+}
+
+/*
+ * Estilo compartilhado das paginas de formulario.
+ *
+ * Aplique a classe .pagina-formulario na <section> raiz da page para que o
+ * formulario siga o padrao visual definido no Figma.
+ *
+ * Usa apenas os tokens publicos do Angular Material 21 (sem ::ng-deep).
+ * O escopo pela classe evita que os estilos vazem para botoes e campos
+ * de outras telas do sistema.
+ */
+.pagina-formulario {
+  --mat-form-field-container-height: 48px;
+  --mat-form-field-container-vertical-padding: 12px;
+  --mat-form-field-outlined-container-shape: 8px;
+  --mat-form-field-outlined-outline-color: var(--color-asmosul-borda);
+  --mat-form-field-outlined-hover-outline-color: var(--color-asmosul-navy);
+  --mat-form-field-outlined-focus-outline-color: var(--color-asmosul-navy);
+
+  --mat-button-filled-container-shape: 8px;
+  --mat-button-filled-container-height: 44px;
+}
+
+.pagina-formulario h1,
+.pagina-formulario h2 {
+  color: var(--color-asmosul-navy);
+}
+
+.pagina-formulario button[type='submit'] {
+  --mat-button-filled-container-color: var(--color-asmosul-navy);
+  --mat-button-filled-label-text-color: #ffffff;
+}
+
+.pagina-formulario button[type='button'] {
+  --mat-button-filled-container-color: var(--color-asmosul-acao-secundaria);
+  --mat-button-filled-label-text-color: var(--color-asmosul-navy);
+}
+
+/* O min-width do Material vence as classes do Tailwind, entao vai aqui. */
+@media (min-width: 640px) {
+  .pagina-formulario button[mat-flat-button] {
+    min-width: 10rem;
+  }
+}
