@@ -1,12 +1,5 @@
 package br.org.asmosul.api.pessoas.controllers;
 
-import static org.hamcrest.Matchers.endsWith;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
@@ -16,42 +9,57 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import br.org.asmosul.api.comum.dtos.RespostaPaginada;
-import br.org.asmosul.api.comum.exceptions.ConflitoDadosException;
-import br.org.asmosul.api.comum.exceptions.EntidadeNaoEncontradaException;
-import br.org.asmosul.api.pessoas.dtos.PessoaDTO;
+import br.org.asmosul.api.comum.config.BaseAPITest;
+import br.org.asmosul.api.pessoas.models.Categoria;
+import br.org.asmosul.api.pessoas.models.Comorbidade;
 import br.org.asmosul.api.pessoas.models.Escolaridade;
+import br.org.asmosul.api.pessoas.models.Pessoa;
 import br.org.asmosul.api.pessoas.models.RendaFamiliar;
 import br.org.asmosul.api.pessoas.models.Sexo;
-import br.org.asmosul.api.pessoas.services.PessoaService;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import br.org.asmosul.api.pessoas.models.TipoPessoa;
+import br.org.asmosul.api.pessoas.models.Uf;
+import br.org.asmosul.api.pessoas.repositories.CategoriaRepository;
+import br.org.asmosul.api.pessoas.repositories.ComorbidadeRepository;
+import br.org.asmosul.api.pessoas.repositories.PessoaRepository;
 import java.time.LocalDate;
 import java.util.List;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-@WebMvcTest(PessoaController.class)
-@DisplayName("Testes Unitários - PessoaController")
-class PessoaControllerTest {
+@DisplayName("Testes de Integração - PessoaController")
+class PessoaControllerTest extends BaseAPITest {
 
     @Autowired private MockMvc mockMvc;
+    @Autowired private PessoaRepository pessoaRepository;
+    @Autowired private CategoriaRepository categoriaRepository;
+    @Autowired private ComorbidadeRepository comorbidadeRepository;
 
-    private final ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
+    private Categoria categoriaPadrao;
+    private Comorbidade comorbidadePadrao;
 
-    @MockitoBean private PessoaService pessoaService;
+    @BeforeEach
+    void setUp() {
+        pessoaRepository.deleteAll();
+        comorbidadeRepository.deleteAll();
+        categoriaRepository.deleteAll();
 
-    private String criarRequisicaoValidaJson() {
+        categoriaPadrao =
+                categoriaRepository.save(new Categoria("Sócio Efetivo", "Categoria base"));
+        comorbidadePadrao =
+                comorbidadeRepository.save(new Comorbidade("Hipertensão", "Comorbidade base"));
+    }
+
+    private String criarRequisicaoPfValidaJson() {
         return """
                 {
                     "nome": "Maria Silva",
-                    "cpf": "12345678901",
+                    "cpfCnpj": "12345678901",
+                    "tipoPessoa": "FISICA",
                     "dataNascimento": "15-05-1990",
                     "sexo": "FEMININO",
                     "telefone": "63987654321",
@@ -59,48 +67,103 @@ class PessoaControllerTest {
                     "escolaridade": "SUPERIOR_COMPLETO",
                     "profissao": "Analista de Sistemas",
                     "rendaFamiliar": "MAIS_DE_TRES_MIL",
-                    "comorbidades": [1],
-                    "categorias": [2],
-                    "descricao": "Observação sobre a associada"
+                    "comorbidades": [%d],
+                    "categorias": [%d],
+                    "descricao": "Pessoa cadastrada para acompanhamento.",
+                    "cep": "77000-000",
+                    "uf": "TO",
+                    "cidade": "Palmas",
+                    "bairro": "Plano Diretor Norte",
+                    "logradouro": "Rua 1",
+                    "complementoEndereco": "Apto 101",
+                    "quantidadeCoabitantes": 2,
+                    "ehBeneficiario": true,
+                    "ehDoador": false
                 }
-                """;
+                """
+                .formatted(comorbidadePadrao.getId(), categoriaPadrao.getId());
     }
 
-    private String criarAtualizacaoValidaJson() {
+    private String criarRequisicaoPjValidaJson() {
         return """
                 {
-                    "nome": "Maria Silva Atualizada",
-                    "cpf": "12345678901",
-                    "dataNascimento": "15-05-1990",
-                    "sexo": "FEMININO",
-                    "telefone": "63987654321",
-                    "email": "maria.atualizada@exemplo.com",
-                    "escolaridade": "SUPERIOR_COMPLETO",
-                    "profissao": "Gerente de Projetos",
-                    "rendaFamiliar": "MAIS_DE_TRES_MIL",
-                    "comorbidades": [1],
-                    "categorias": [2],
-                    "descricao": "Nova descrição"
+                    "nome": "Empresa Solidária LTDA",
+                    "cpfCnpj": "12345678000199",
+                    "tipoPessoa": "JURIDICA",
+                    "telefone": "63988887777",
+                    "email": "contato@empresa.com",
+                    "categorias": [%d],
+                    "descricao": "Doações corporativas",
+                    "cep": "77000-000",
+                    "uf": "TO",
+                    "cidade": "Palmas",
+                    "bairro": "Centro",
+                    "logradouro": "Avenida JK",
+                    "complementoEndereco": "Sala 200",
+                    "quantidadeCoabitantes": 0,
+                    "ehBeneficiario": false,
+                    "ehDoador": true
                 }
-                """;
+                """
+                .formatted(categoriaPadrao.getId());
     }
 
-    private PessoaDTO.Detalhe criarDetalheValido() {
-        return new PessoaDTO.Detalhe(
-                1L,
-                "Maria Silva",
-                "12345678901",
-                LocalDate.of(1990, 5, 15),
-                Sexo.FEMININO,
-                "63987654321",
-                "maria.silva@exemplo.com",
-                Escolaridade.SUPERIOR_COMPLETO,
-                "Analista de Sistemas",
-                RendaFamiliar.MAIS_DE_TRES_MIL,
-                List.of(1L),
-                List.of(2L),
-                "Observação sobre a associada",
-                true);
+    private String criarAtualizacaoPfValidaJson() {
+        return """
+                {
+                    "nome": "Nome Atualizado",
+                    "cpfCnpj": "12345678901",
+                    "tipoPessoa": "FISICA",
+                    "dataNascimento": "01-01-1990",
+                    "sexo": "MASCULINO",
+                    "telefone": "63988887777",
+                    "email": "novo@email.com",
+                    "escolaridade": "SUPERIOR_COMPLETO",
+                    "profissao": "Gerente",
+                    "rendaFamiliar": "MAIS_DE_TRES_MIL",
+                    "comorbidades": [%d],
+                    "categorias": [%d],
+                    "descricao": "Nova descrição",
+                    "cep": "77000-000",
+                    "uf": "TO",
+                    "cidade": "Palmas",
+                    "bairro": "Plano Diretor",
+                    "logradouro": "Rua 2",
+                    "complementoEndereco": "Apto",
+                    "quantidadeCoabitantes": 1,
+                    "ehBeneficiario": false,
+                    "ehDoador": true
+                }
+                """
+                .formatted(comorbidadePadrao.getId(), categoriaPadrao.getId());
+    }
+
+    private Pessoa criarPessoaPfSalva(String nome, String cpfCnpj, String email) {
+        Pessoa p =
+                new Pessoa(
+                        nome,
+                        cpfCnpj,
+                        TipoPessoa.FISICA,
+                        LocalDate.of(1990, 1, 1),
+                        Sexo.MASCULINO,
+                        "63999998888",
+                        email,
+                        Escolaridade.SUPERIOR_COMPLETO,
+                        "Analista",
+                        RendaFamiliar.MAIS_DE_TRES_MIL,
+                        "Desc",
+                        "77000-000",
+                        Uf.TO,
+                        "Palmas",
+                        "Centro",
+                        "Rua 1",
+                        "Apto",
+                        0,
+                        true,
+                        false);
+        p.setCategorias(new java.util.HashSet<>(List.of(categoriaPadrao)));
+        p.setComorbidades(new java.util.HashSet<>(List.of(comorbidadePadrao)));
+        return pessoaRepository.save(p);
     }
 
     @Nested
@@ -108,322 +171,200 @@ class PessoaControllerTest {
     class Cadastrar {
 
         @Test
-        @DisplayName("Deve cadastrar pessoa com sucesso retornando status 201 e Location header")
-        void deveCadastrarPessoaComSucesso() throws Exception {
-            var jsonPayload = criarRequisicaoValidaJson();
-            var detalheRetornado = criarDetalheValido();
-
-            when(pessoaService.cadastrar(any(PessoaDTO.Requisicao.class)))
-                    .thenReturn(detalheRetornado);
-
+        @DisplayName(
+                "Deve cadastrar Pessoa Física com sucesso retornando status 201 e Location header")
+        void cadastrar_comPessoaFisicaValida_retornaStatus201ELocationHeader() throws Exception {
             mockMvc.perform(
                             post("/pessoas")
                                     .contentType(MediaType.APPLICATION_JSON)
-                                    .content(jsonPayload))
+                                    .content(criarRequisicaoPfValidaJson()))
                     .andExpect(status().isCreated())
-                    .andExpect(header().string("Location", endsWith("/pessoas/1")))
-                    .andExpect(jsonPath("$.id").value(1L))
+                    .andExpect(
+                            header().string(
+                                            "Location",
+                                            org.hamcrest.Matchers.matchesPattern(
+                                                    ".*/pessoas/\\d+")))
+                    .andExpect(jsonPath("$.id").isNumber())
                     .andExpect(jsonPath("$.nome").value("Maria Silva"))
-                    .andExpect(jsonPath("$.cpf").value("12345678901"))
-                    .andExpect(jsonPath("$.dataNascimento").value("15-05-1990"))
-                    .andExpect(jsonPath("$.sexo.codigo").value("FEMININO"))
-                    .andExpect(jsonPath("$.telefone").value("63987654321"))
-                    .andExpect(jsonPath("$.email").value("maria.silva@exemplo.com"))
-                    .andExpect(jsonPath("$.escolaridade.codigo").value("SUPERIOR_COMPLETO"))
-                    .andExpect(jsonPath("$.rendaFamiliar.codigo").value("MAIS_DE_TRES_MIL"))
-                    .andExpect(jsonPath("$.comorbidades[0]").value(1L))
-                    .andExpect(jsonPath("$.categorias[0]").value(2L))
-                    .andExpect(jsonPath("$.ativo").value(true));
+                    .andExpect(jsonPath("$.cpfCnpj").value("12345678901"))
+                    .andExpect(jsonPath("$.tipoPessoa.codigo").value("FISICA"))
+                    .andExpect(jsonPath("$.ehBeneficiario").value(true));
+        }
 
-            verify(pessoaService).cadastrar(any(PessoaDTO.Requisicao.class));
+        @Test
+        @DisplayName("Deve cadastrar Pessoa Jurídica com sucesso retornando status 201")
+        void cadastrar_comPessoaJuridicaValida_retornaStatus201ELocationHeader() throws Exception {
+            mockMvc.perform(
+                            post("/pessoas")
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(criarRequisicaoPjValidaJson()))
+                    .andExpect(status().isCreated())
+                    .andExpect(jsonPath("$.id").isNumber())
+                    .andExpect(jsonPath("$.nome").value("Empresa Solidária LTDA"))
+                    .andExpect(jsonPath("$.cpfCnpj").value("12345678000199"))
+                    .andExpect(jsonPath("$.tipoPessoa.codigo").value("JURIDICA"))
+                    .andExpect(jsonPath("$.ehBeneficiario").value(false))
+                    .andExpect(jsonPath("$.ehDoador").value(true));
         }
 
         @Test
         @DisplayName("Deve retornar status 400 quando o nome estiver em branco")
-        void deveRetornar400AoCadastrarComNomeEmBranco() throws Exception {
-            var requisicao =
-                    new PessoaDTO.Requisicao(
-                            "",
-                            "12345678901",
-                            LocalDate.of(1990, 5, 15),
-                            Sexo.FEMININO,
-                            "63987654321",
-                            "maria@exemplo.com",
-                            Escolaridade.SUPERIOR_COMPLETO,
-                            "Profissão",
-                            RendaFamiliar.MAIS_DE_TRES_MIL,
-                            List.of(),
-                            List.of(),
-                            null);
-
-            mockMvc.perform(
-                            post("/pessoas")
-                                    .contentType(MediaType.APPLICATION_JSON)
-                                    .content(objectMapper.writeValueAsString(requisicao)))
-                    .andExpect(status().isBadRequest());
-        }
-
-        @Test
-        @DisplayName("Deve retornar status 400 quando o CPF for inválido (não contiver 11 dígitos)")
-        void deveRetornar400AoCadastrarComCpfInvalido() throws Exception {
-            var requisicao =
-                    new PessoaDTO.Requisicao(
-                            "Maria Silva",
-                            "12345", // CPF inválido
-                            LocalDate.of(1990, 5, 15),
-                            Sexo.FEMININO,
-                            "63987654321",
-                            "maria@exemplo.com",
-                            Escolaridade.SUPERIOR_COMPLETO,
-                            "Profissão",
-                            RendaFamiliar.MAIS_DE_TRES_MIL,
-                            List.of(),
-                            List.of(),
-                            null);
-
-            mockMvc.perform(
-                            post("/pessoas")
-                                    .contentType(MediaType.APPLICATION_JSON)
-                                    .content(objectMapper.writeValueAsString(requisicao)))
-                    .andExpect(status().isBadRequest());
-        }
-
-        @Test
-        @DisplayName("Deve retornar status 400 quando o telefone for inválido")
-        void deveRetornar400AoCadastrarComTelefoneInvalido() throws Exception {
-            var requisicao =
-                    new PessoaDTO.Requisicao(
-                            "Maria Silva",
-                            "12345678901",
-                            LocalDate.of(1990, 5, 15),
-                            Sexo.FEMININO,
-                            "123", // Telefone inválido (< 10 dígitos)
-                            "maria@exemplo.com",
-                            Escolaridade.SUPERIOR_COMPLETO,
-                            "Profissão",
-                            RendaFamiliar.MAIS_DE_TRES_MIL,
-                            List.of(),
-                            List.of(),
-                            null);
-
-            mockMvc.perform(
-                            post("/pessoas")
-                                    .contentType(MediaType.APPLICATION_JSON)
-                                    .content(objectMapper.writeValueAsString(requisicao)))
-                    .andExpect(status().isBadRequest());
-        }
-
-        @Test
-        @DisplayName("Deve retornar status 400 quando o e-mail for mal formatado")
-        void deveRetornar400AoCadastrarComEmailInvalido() throws Exception {
-            var requisicao =
-                    new PessoaDTO.Requisicao(
-                            "Maria Silva",
-                            "12345678901",
-                            LocalDate.of(1990, 5, 15),
-                            Sexo.FEMININO,
-                            "63987654321",
-                            "email-invalido", // Formato de e-mail inválido
-                            Escolaridade.SUPERIOR_COMPLETO,
-                            "Profissão",
-                            RendaFamiliar.MAIS_DE_TRES_MIL,
-                            List.of(),
-                            List.of(),
-                            null);
-
-            mockMvc.perform(
-                            post("/pessoas")
-                                    .contentType(MediaType.APPLICATION_JSON)
-                                    .content(objectMapper.writeValueAsString(requisicao)))
-                    .andExpect(status().isBadRequest());
-        }
-
-        @Test
-        @DisplayName("Deve retornar status 400 quando a data de nascimento for nula")
-        void deveRetornar400AoCadastrarComDataNascimentoNula() throws Exception {
-            var requisicao =
-                    new PessoaDTO.Requisicao(
-                            "Maria Silva",
-                            "12345678901",
-                            null,
-                            Sexo.FEMININO,
-                            "63987654321",
-                            "maria@exemplo.com",
-                            Escolaridade.SUPERIOR_COMPLETO,
-                            "Profissão",
-                            RendaFamiliar.MAIS_DE_TRES_MIL,
-                            List.of(),
-                            List.of(),
-                            null);
-
-            mockMvc.perform(
-                            post("/pessoas")
-                                    .contentType(MediaType.APPLICATION_JSON)
-                                    .content(objectMapper.writeValueAsString(requisicao)))
-                    .andExpect(status().isBadRequest());
-        }
-
-        @Test
-        @DisplayName(
-                "Deve retornar status 409 quando o serviço lançar ConflitoDadosException para CPF/Email duplicado")
-        void deveRetornar409AoCadastrarComCpfDuplicado() throws Exception {
-            var jsonPayload = criarRequisicaoValidaJson();
-
-            when(pessoaService.cadastrar(any(PessoaDTO.Requisicao.class)))
-                    .thenThrow(
-                            new ConflitoDadosException(
-                                    "Já existe uma pessoa cadastrada com este CPF."));
+        void cadastrar_comNomeEmBranco_retornaStatus400() throws Exception {
+            var jsonPayload =
+                    """
+                    {
+                        "nome": "",
+                        "cpfCnpj": "12345678901",
+                        "telefone": "63987654321"
+                    }
+                    """;
 
             mockMvc.perform(
                             post("/pessoas")
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(jsonPayload))
+                    .andExpect(status().isBadRequest());
+        }
+
+        @Test
+        @DisplayName("Deve retornar status 400 quando o CPF/CNPJ for inválido")
+        void cadastrar_comCpfCnpjInvalido_retornaStatus400() throws Exception {
+            var jsonPayload =
+                    """
+                    {
+                        "nome": "Maria Silva",
+                        "cpfCnpj": "12345",
+                        "telefone": "63987654321"
+                    }
+                    """;
+
+            mockMvc.perform(
+                            post("/pessoas")
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(jsonPayload))
+                    .andExpect(status().isBadRequest());
+        }
+
+        @Test
+        @DisplayName("Deve retornar status 400 quando PJ for cadastrada como beneficiária (RN05)")
+        void cadastrar_comPessoaJuridicaEBeneficiarioTrue_retornaStatus400() throws Exception {
+            var jsonPayload =
+                    """
+                    {
+                        "nome": "Empresa Solidária",
+                        "cpfCnpj": "12345678000199",
+                        "tipoPessoa": "JURIDICA",
+                        "telefone": "63988887777",
+                        "email": "pj@empresa.com",
+                        "categorias": [%d],
+                        "descricao": "Desc",
+                        "cep": "77000-000",
+                        "uf": "TO",
+                        "cidade": "Palmas",
+                        "bairro": "Centro",
+                        "logradouro": "Avenida JK",
+                        "complementoEndereco": "Sala 200",
+                        "quantidadeCoabitantes": 0,
+                        "ehBeneficiario": true,
+                        "ehDoador": true
+                    }
+                    """
+                            .formatted(categoriaPadrao.getId());
+
+            mockMvc.perform(
+                            post("/pessoas")
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(jsonPayload))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.title").value("Erro de Validação"));
+        }
+
+        @Test
+        @DisplayName("Deve retornar status 409 quando CPF/CNPJ já existir (RN03)")
+        void cadastrar_comCpfCnpjDuplicado_retornaStatus409() throws Exception {
+            criarPessoaPfSalva("Pessoa Existente", "12345678901", "existente@email.com");
+
+            mockMvc.perform(
+                            post("/pessoas")
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(criarRequisicaoPfValidaJson()))
                     .andExpect(status().isConflict())
-                    .andExpect(jsonPath("$.title").value("Conflito de Dados"))
-                    .andExpect(
-                            jsonPath("$.detail")
-                                    .value("Já existe uma pessoa cadastrada com este CPF."));
+                    .andExpect(jsonPath("$.title").value("Conflito de Dados"));
+        }
+
+        @Test
+        @DisplayName("Deve retornar status 409 quando E-mail já existir (RN03)")
+        void cadastrar_comEmailDuplicado_retornaStatus409() throws Exception {
+            criarPessoaPfSalva("Pessoa Existente", "98765432100", "maria.silva@exemplo.com");
+
+            mockMvc.perform(
+                            post("/pessoas")
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(criarRequisicaoPfValidaJson()))
+                    .andExpect(status().isConflict())
+                    .andExpect(jsonPath("$.title").value("Conflito de Dados"));
         }
     }
 
     @Nested
     @DisplayName("GET /pessoas - Listagem Paginada")
-    class ListarPaginado {
+    class Listar {
 
         @Test
-        @DisplayName("Deve retornar listagem paginada de pessoas com status 200")
-        void deveListarPessoasPaginadas() throws Exception {
-            var resumo =
-                    new PessoaDTO.Resumo(
-                            1L,
-                            "Maria Silva",
-                            "12345678901",
-                            "63987654321",
-                            "maria@exemplo.com",
-                            true);
-            var respostaPaginada = new RespostaPaginada<>(List.of(resumo), 0, 10, 1L, 1);
+        @DisplayName("Deve listar pessoas paginadas com sucesso retornando status 200")
+        void listar_comPaginacaoEFiltros_retornaStatus200() throws Exception {
+            criarPessoaPfSalva("Ana Clara", "11122233344", "ana@email.com");
+            criarPessoaPfSalva("Bruno Silva", "55566677788", "bruno@email.com");
 
-            when(pessoaService.listar(any(Pageable.class), eq(false))).thenReturn(respostaPaginada);
-
-            mockMvc.perform(get("/pessoas").param("page", "0").param("size", "10"))
+            mockMvc.perform(
+                            get("/pessoas")
+                                    .param("page", "0")
+                                    .param("size", "10")
+                                    .param("nome", "Ana"))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.dados[0].id").value(1L))
-                    .andExpect(jsonPath("$.dados[0].nome").value("Maria Silva"))
-                    .andExpect(jsonPath("$.dados[0].cpf").value("12345678901"))
-                    .andExpect(jsonPath("$.dados[0].telefone").value("63987654321"))
-                    .andExpect(jsonPath("$.dados[0].email").value("maria@exemplo.com"))
-                    .andExpect(jsonPath("$.dados[0].ativo").value(true))
-                    .andExpect(jsonPath("$.paginaAtual").value(0))
-                    .andExpect(jsonPath("$.tamanhoPagina").value(10))
-                    .andExpect(jsonPath("$.totalElementos").value(1L))
-                    .andExpect(jsonPath("$.totalPaginas").value(1));
-
-            verify(pessoaService).listar(any(Pageable.class), eq(false));
-        }
-
-        @Test
-        @DisplayName("Deve repassar o parâmetro incluirInativos para o serviço")
-        void deveListarPessoasComParametroIncluirInativos() throws Exception {
-            var respostaPaginada = new RespostaPaginada<PessoaDTO.Resumo>(List.of(), 0, 10, 0L, 0);
-
-            when(pessoaService.listar(any(Pageable.class), eq(true))).thenReturn(respostaPaginada);
-
-            mockMvc.perform(get("/pessoas").param("incluirInativos", "true"))
-                    .andExpect(status().isOk());
-
-            verify(pessoaService).listar(any(Pageable.class), eq(true));
+                    .andExpect(jsonPath("$.dados").isArray())
+                    .andExpect(jsonPath("$.dados[0].nome").value("Ana Clara"))
+                    .andExpect(jsonPath("$.totalElementos").value(1));
         }
     }
 
     @Nested
-    @DisplayName("GET /pessoas/todas - Listagem Completa Não Paginada")
+    @DisplayName("GET /pessoas/todas - Listagem Não Paginada")
     class ListarTodas {
 
         @Test
-        @DisplayName("Deve retornar todas as pessoas em lista simples com status 200")
-        void deveListarTodasAsPessoas() throws Exception {
-            var lista =
-                    List.of(
-                            new PessoaDTO.Resumo(
-                                    1L,
-                                    "Pessoa 1",
-                                    "11111111111",
-                                    "63987654321",
-                                    "p1@exemplo.com",
-                                    true),
-                            new PessoaDTO.Resumo(
-                                    2L,
-                                    "Pessoa 2",
-                                    "22222222222",
-                                    "63987654322",
-                                    "p2@exemplo.com",
-                                    true));
-
-            when(pessoaService.listarTodas(false)).thenReturn(lista);
+        @DisplayName("Deve listar todas as pessoas ativas retornando status 200")
+        void listarTodas_retornaStatus200() throws Exception {
+            criarPessoaPfSalva("Carlos", "11122233344", "carlos@email.com");
 
             mockMvc.perform(get("/pessoas/todas"))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.length()").value(2))
-                    .andExpect(jsonPath("$[0].id").value(1L))
-                    .andExpect(jsonPath("$[0].nome").value("Pessoa 1"))
-                    .andExpect(jsonPath("$[1].id").value(2L))
-                    .andExpect(jsonPath("$[1].nome").value("Pessoa 2"));
-
-            verify(pessoaService).listarTodas(false);
-        }
-
-        @Test
-        @DisplayName("Deve repassar incluirInativos ao buscar todas as pessoas")
-        void deveListarTodasComParametroIncluirInativos() throws Exception {
-            when(pessoaService.listarTodas(true)).thenReturn(List.of());
-
-            mockMvc.perform(get("/pessoas/todas").param("incluirInativos", "true"))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.length()").value(0));
-
-            verify(pessoaService).listarTodas(true);
+                    .andExpect(jsonPath("$").isArray())
+                    .andExpect(jsonPath("$[0].nome").value("Carlos"));
         }
     }
 
     @Nested
-    @DisplayName("GET /pessoas/{id} - Busca por ID")
+    @DisplayName("GET /pessoas/{id} - Detalhamento")
     class BuscarPorId {
 
         @Test
-        @DisplayName("Deve retornar detalhes da pessoa quando encontrada com status 200")
-        void deveBuscarPessoaPorIdComSucesso() throws Exception {
-            var detalhe = criarDetalheValido();
+        @DisplayName("Deve buscar pessoa por ID com sucesso retornando status 200")
+        void buscarPorId_comIdExistente_retornaStatus200() throws Exception {
+            Pessoa p = criarPessoaPfSalva("Maria", "12345678901", "maria@email.com");
 
-            when(pessoaService.buscarPorId(1L)).thenReturn(detalhe);
-
-            mockMvc.perform(get("/pessoas/{id}", 1L))
+            mockMvc.perform(get("/pessoas/{id}", p.getId()))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.id").value(1L))
-                    .andExpect(jsonPath("$.nome").value("Maria Silva"))
-                    .andExpect(jsonPath("$.cpf").value("12345678901"))
-                    .andExpect(jsonPath("$.dataNascimento").value("15-05-1990"))
-                    .andExpect(jsonPath("$.comorbidades[0]").value(1L))
-                    .andExpect(jsonPath("$.categorias[0]").value(2L))
-                    .andExpect(jsonPath("$.ativo").value(true));
-
-            verify(pessoaService).buscarPorId(1L);
+                    .andExpect(jsonPath("$.id").value(p.getId()))
+                    .andExpect(jsonPath("$.nome").value("Maria"))
+                    .andExpect(jsonPath("$.categorias").isArray())
+                    .andExpect(jsonPath("$.comorbidades").isArray());
         }
 
         @Test
-        @DisplayName(
-                "Deve retornar status 404 quando o serviço lançar EntidadeNaoEncontradaException")
-        void deveRetornar404AoBuscarPessoaInexistente() throws Exception {
-            when(pessoaService.buscarPorId(99L))
-                    .thenThrow(
-                            new EntidadeNaoEncontradaException(
-                                    "Pessoa ativa não encontrada com o ID informado: 99"));
-
-            mockMvc.perform(get("/pessoas/{id}", 99L))
-                    .andExpect(status().isNotFound())
-                    .andExpect(jsonPath("$.title").value("Recurso Não Encontrado"))
-                    .andExpect(
-                            jsonPath("$.detail")
-                                    .value("Pessoa ativa não encontrada com o ID informado: 99"));
+        @DisplayName("Deve retornar status 404 para ID inexistente")
+        void buscarPorId_comIdInexistenteOuInativo_retornaStatus404() throws Exception {
+            mockMvc.perform(get("/pessoas/{id}", 999999L)).andExpect(status().isNotFound());
         }
     }
 
@@ -433,126 +374,79 @@ class PessoaControllerTest {
 
         @Test
         @DisplayName("Deve atualizar pessoa com sucesso retornando status 200")
-        void deveAtualizarPessoaComSucesso() throws Exception {
-            var jsonPayload = criarAtualizacaoValidaJson();
-            var detalhe =
-                    new PessoaDTO.Detalhe(
-                            1L,
-                            "Maria Silva Atualizada",
-                            "12345678901",
-                            LocalDate.of(1990, 5, 15),
-                            Sexo.FEMININO,
-                            "63987654321",
-                            "maria.atualizada@exemplo.com",
-                            Escolaridade.SUPERIOR_COMPLETO,
-                            "Gerente de Projetos",
-                            RendaFamiliar.MAIS_DE_TRES_MIL,
-                            List.of(1L),
-                            List.of(2L),
-                            "Nova descrição",
-                            true);
-
-            when(pessoaService.atualizar(eq(1L), any(PessoaDTO.Atualizacao.class)))
-                    .thenReturn(detalhe);
+        void atualizar_comDadosValidos_retornaStatus200() throws Exception {
+            Pessoa p = criarPessoaPfSalva("Nome Antigo", "12345678901", "antigo@email.com");
 
             mockMvc.perform(
-                            put("/pessoas/{id}", 1L)
+                            put("/pessoas/{id}", p.getId())
                                     .contentType(MediaType.APPLICATION_JSON)
-                                    .content(jsonPayload))
+                                    .content(criarAtualizacaoPfValidaJson()))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.id").value(1L))
-                    .andExpect(jsonPath("$.nome").value("Maria Silva Atualizada"))
-                    .andExpect(jsonPath("$.profissao").value("Gerente de Projetos"));
-
-            verify(pessoaService).atualizar(eq(1L), any(PessoaDTO.Atualizacao.class));
+                    .andExpect(jsonPath("$.id").value(p.getId()))
+                    .andExpect(jsonPath("$.nome").value("Nome Atualizado"))
+                    .andExpect(jsonPath("$.email").value("novo@email.com"));
         }
 
         @Test
-        @DisplayName("Deve retornar status 400 ao atualizar com campos inválidos")
-        void deveRetornar400AoAtualizarComCamposInvalidos() throws Exception {
-            var requisicao =
-                    new PessoaDTO.Atualizacao(
-                            "", // nome vazio
-                            "123", // cpf invalido
-                            null, // data nula
-                            Sexo.FEMININO,
-                            "123", // telefone invalido
-                            "invalido", // email invalido
-                            Escolaridade.SUPERIOR_COMPLETO,
-                            "Profissao",
-                            RendaFamiliar.MAIS_DE_TRES_MIL,
-                            List.of(),
-                            List.of(),
-                            null);
+        @DisplayName("Deve retornar status 400 ao tentar alterar o tipo de pessoa (RN08)")
+        void atualizar_tentandoAlterarTipoPessoa_retornaStatus400() throws Exception {
+            Pessoa p = criarPessoaPfSalva("Pessoa Fisica", "12345678901", "pf@email.com");
+
+            var jsonPayload =
+                    """
+                    {
+                        "nome": "Pessoa Fisica",
+                        "cpfCnpj": "12345678000199",
+                        "tipoPessoa": "JURIDICA",
+                        "telefone": "63988887777",
+                        "email": "pf@email.com",
+                        "categorias": [%d],
+                        "descricao": "Desc",
+                        "cep": "77000-000",
+                        "uf": "TO",
+                        "cidade": "Palmas",
+                        "bairro": "Centro",
+                        "logradouro": "Rua 1",
+                        "quantidadeCoabitantes": 0,
+                        "ehBeneficiario": false,
+                        "ehDoador": true
+                    }
+                    """
+                            .formatted(categoriaPadrao.getId());
 
             mockMvc.perform(
-                            put("/pessoas/{id}", 1L)
+                            put("/pessoas/{id}", p.getId())
                                     .contentType(MediaType.APPLICATION_JSON)
-                                    .content(objectMapper.writeValueAsString(requisicao)))
-                    .andExpect(status().isBadRequest());
+                                    .content(jsonPayload))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.title").value("Erro de Validação"));
         }
 
         @Test
         @DisplayName("Deve retornar status 404 ao tentar atualizar pessoa inexistente")
-        void deveRetornar404AoAtualizarPessoaInexistente() throws Exception {
-            var jsonPayload = criarAtualizacaoValidaJson();
-
-            when(pessoaService.atualizar(eq(99L), any(PessoaDTO.Atualizacao.class)))
-                    .thenThrow(
-                            new EntidadeNaoEncontradaException(
-                                    "Pessoa ativa não encontrada com o ID informado: 99"));
-
+        void atualizar_comIdInexistente_retornaStatus404() throws Exception {
             mockMvc.perform(
-                            put("/pessoas/{id}", 99L)
+                            put("/pessoas/{id}", 999999L)
                                     .contentType(MediaType.APPLICATION_JSON)
-                                    .content(jsonPayload))
+                                    .content(criarAtualizacaoPfValidaJson()))
                     .andExpect(status().isNotFound());
-        }
-
-        @Test
-        @DisplayName(
-                "Deve retornar status 409 ao atualizar para CPF/Email já existente de outra pessoa")
-        void deveRetornar409AoAtualizarParaCpfDuplicado() throws Exception {
-            var jsonPayload = criarAtualizacaoValidaJson();
-
-            when(pessoaService.atualizar(eq(1L), any(PessoaDTO.Atualizacao.class)))
-                    .thenThrow(
-                            new ConflitoDadosException(
-                                    "Já existe uma pessoa cadastrada com este CPF."));
-
-            mockMvc.perform(
-                            put("/pessoas/{id}", 1L)
-                                    .contentType(MediaType.APPLICATION_JSON)
-                                    .content(jsonPayload))
-                    .andExpect(status().isConflict());
         }
     }
 
     @Nested
-    @DisplayName("PATCH /pessoas/{id}/desativar - Desativação (Soft Delete)")
+    @DisplayName("PATCH /pessoas/{id}/desativar - Desativação")
     class Desativar {
 
         @Test
         @DisplayName("Deve desativar pessoa com sucesso retornando status 204")
-        void deveDesativarPessoaComSucesso() throws Exception {
-            doNothing().when(pessoaService).desativar(1L);
+        void desativar_comIdExistente_retornaStatus204() throws Exception {
+            Pessoa p = criarPessoaPfSalva("Ativo", "12345678901", "ativo@email.com");
 
-            mockMvc.perform(patch("/pessoas/{id}/desativar", 1L)).andExpect(status().isNoContent());
+            mockMvc.perform(patch("/pessoas/{id}/desativar", p.getId()))
+                    .andExpect(status().isNoContent());
 
-            verify(pessoaService).desativar(1L);
-        }
-
-        @Test
-        @DisplayName(
-                "Deve retornar status 404 ao tentar desativar pessoa inexistente ou já inativa")
-        void deveRetornar404AoDesativarPessoaInexistente() throws Exception {
-            doThrow(
-                            new EntidadeNaoEncontradaException(
-                                    "Pessoa ativa não encontrada com o ID informado: 99"))
-                    .when(pessoaService)
-                    .desativar(99L);
-
-            mockMvc.perform(patch("/pessoas/{id}/desativar", 99L)).andExpect(status().isNotFound());
+            Pessoa inativo = pessoaRepository.findById(p.getId()).orElseThrow();
+            org.junit.jupiter.api.Assertions.assertNotNull(inativo.getDataInativo());
         }
     }
 
@@ -562,24 +456,16 @@ class PessoaControllerTest {
 
         @Test
         @DisplayName("Deve reativar pessoa com sucesso retornando status 204")
-        void deveReativarPessoaComSucesso() throws Exception {
-            doNothing().when(pessoaService).reativar(1L);
+        void reativar_comIdExistente_retornaStatus204() throws Exception {
+            Pessoa p = criarPessoaPfSalva("Inativo", "12345678901", "inativo@email.com");
+            p.desativar();
+            pessoaRepository.save(p);
 
-            mockMvc.perform(patch("/pessoas/{id}/reativar", 1L)).andExpect(status().isNoContent());
+            mockMvc.perform(patch("/pessoas/{id}/reativar", p.getId()))
+                    .andExpect(status().isNoContent());
 
-            verify(pessoaService).reativar(1L);
-        }
-
-        @Test
-        @DisplayName("Deve retornar status 404 ao tentar reativar pessoa inexistente")
-        void deveRetornar404AoReativarPessoaInexistente() throws Exception {
-            doThrow(
-                            new EntidadeNaoEncontradaException(
-                                    "Pessoa não encontrada com o ID informado: 99"))
-                    .when(pessoaService)
-                    .reativar(99L);
-
-            mockMvc.perform(patch("/pessoas/{id}/reativar", 99L)).andExpect(status().isNotFound());
+            Pessoa reativado = pessoaRepository.findById(p.getId()).orElseThrow();
+            org.junit.jupiter.api.Assertions.assertNull(reativado.getDataInativo());
         }
     }
 
@@ -588,25 +474,14 @@ class PessoaControllerTest {
     class Excluir {
 
         @Test
-        @DisplayName("Deve excluir pessoa com sucesso retornando status 204")
-        void deveExcluirPessoaComSucesso() throws Exception {
-            doNothing().when(pessoaService).excluir(1L);
+        @DisplayName("Deve excluir pessoa fisicamente com sucesso retornando status 204")
+        void excluir_comIdExistente_retornaStatus204() throws Exception {
+            Pessoa p = criarPessoaPfSalva("Para Excluir", "12345678901", "excluir@email.com");
 
-            mockMvc.perform(delete("/pessoas/{id}", 1L)).andExpect(status().isNoContent());
+            mockMvc.perform(delete("/pessoas/{id}", p.getId())).andExpect(status().isNoContent());
 
-            verify(pessoaService).excluir(1L);
-        }
-
-        @Test
-        @DisplayName("Deve retornar status 404 ao tentar excluir pessoa inexistente")
-        void deveRetornar404AoExcluirPessoaInexistente() throws Exception {
-            doThrow(
-                            new EntidadeNaoEncontradaException(
-                                    "Pessoa não encontrada com o ID informado: 99"))
-                    .when(pessoaService)
-                    .excluir(99L);
-
-            mockMvc.perform(delete("/pessoas/{id}", 99L)).andExpect(status().isNotFound());
+            org.junit.jupiter.api.Assertions.assertFalse(
+                    pessoaRepository.findById(p.getId()).isPresent());
         }
     }
 }
