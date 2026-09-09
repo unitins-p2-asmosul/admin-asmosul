@@ -1,10 +1,23 @@
 <header
-  class="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between shadow-sm"
+  class="flex items-center justify-between border-b border-gray-200 bg-white px-6 py-4 shadow-sm"
 >
   <div class="flex items-center gap-4">
-    <h1 class="text-xl font-bold text-gray-800">Asmosul</h1>
+    <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-asmosul-navy text-lg font-bold text-white">
+      A
+    </div>
+    <div>
+      <h1 class="text-xl font-bold text-asmosul-navy">Asmosul</h1>
+      <p class="text-xs text-gray-500">Painel administrativo</p>
+    </div>
   </div>
   <div class="flex items-center gap-3">
-    <span class="text-sm font-medium text-gray-600">Usuário</span>
+    <span class="hidden text-sm font-medium text-gray-600 sm:inline">Usuário</span>
+    <button
+      type="button"
+      class="flex h-10 w-10 items-center justify-center rounded-full bg-asmosul-acao-secundaria text-asmosul-navy"
+      aria-label="Abrir menu do usuário"
+    >
+      <span class="material-icons" aria-hidden="true">person</span>
+    </button>
   </div>
 </header>

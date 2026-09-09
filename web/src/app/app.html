@@ -1,9 +1,13 @@
 <div class="min-h-screen flex flex-col bg-gray-50 text-gray-900">
   <app-header />
 
-  <main class="flex-1 container mx-auto p-6">
-    <router-outlet />
-  </main>
+  <div class="flex flex-1 items-stretch">
+    <app-sidebar />
+
+    <main class="min-w-0 flex-1 p-6">
+      <router-outlet />
+    </main>
+  </div>
 
   <app-footer />
 </div>

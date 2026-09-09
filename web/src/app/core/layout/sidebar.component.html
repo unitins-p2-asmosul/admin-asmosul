@@ -1,0 +1,22 @@
+<aside class="hidden h-full w-64 shrink-0 border-r border-gray-200 bg-white md:block">
+	<nav class="flex flex-col gap-2 p-4" aria-label="Navegação principal">
+		<a
+			routerLink="/"
+			routerLinkActive="bg-asmosul-navy text-white shadow-sm"
+			[routerLinkActiveOptions]="{ exact: true }"
+			class="flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-semibold text-gray-600 transition-colors hover:bg-gray-100"
+		>
+			<span class="material-icons text-xl" aria-hidden="true">home</span>
+			Início
+		</a>
+
+		<a
+			routerLink="/pessoas"
+			routerLinkActive="bg-asmosul-navy text-white shadow-sm"
+			class="flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-semibold text-gray-600 transition-colors hover:bg-gray-100"
+		>
+			<span class="material-icons text-xl" aria-hidden="true">groups</span>
+			Pessoas
+		</a>
+	</nav>
+</aside>
