@@ -3,15 +3,15 @@ package br.org.asmosul.api.pessoas.services;
 import br.org.asmosul.api.comum.dtos.RespostaPaginada;
 import br.org.asmosul.api.comum.exceptions.ConflitoDadosException;
 import br.org.asmosul.api.comum.exceptions.EntidadeNaoEncontradaException;
+import br.org.asmosul.api.comum.exceptions.ValidationException;
 import br.org.asmosul.api.comum.utils.PaginacaoUtils;
 import br.org.asmosul.api.pessoas.dtos.PessoaDTO;
-import br.org.asmosul.api.pessoas.models.Categoria;
-import br.org.asmosul.api.pessoas.models.Comorbidade;
-import br.org.asmosul.api.pessoas.models.Pessoa;
+import br.org.asmosul.api.pessoas.dtos.PessoaFiltroDTO;
+import br.org.asmosul.api.pessoas.models.*;
 import br.org.asmosul.api.pessoas.repositories.CategoriaRepository;
 import br.org.asmosul.api.pessoas.repositories.ComorbidadeRepository;
 import br.org.asmosul.api.pessoas.repositories.PessoaRepository;
-import java.time.LocalDateTime;
+import br.org.asmosul.api.pessoas.repositories.PessoaSpecification;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -24,7 +24,17 @@ import org.springframework.transaction.annotation.Transactional;
 public class PessoaService {
 
     private static final Set<String> CAMPOS_ORDENACAO_VALIDOS =
-            Set.of("id", "nome", "cpf", "email", "telefone", "dataNascimento", "dataInativo");
+            Set.of(
+                    "id",
+                    "nome",
+                    "cpfCnpj",
+                    "telefone",
+                    "email",
+                    "dataNascimento",
+                    "profissao",
+                    "cidade",
+                    "bairro",
+                    "tipoPessoa");
 
     private final PessoaRepository pessoaRepository;
     private final ComorbidadeRepository comorbidadeRepository;
@@ -41,12 +51,33 @@ public class PessoaService {
 
     @Transactional
     public PessoaDTO.Detalhe cadastrar(PessoaDTO.Requisicao requisicao) {
-        validarUnicidade(requisicao.cpf(), requisicao.email(), null);
+        TipoPessoa tipo =
+                requisicao.tipoPessoa() != null ? requisicao.tipoPessoa() : TipoPessoa.FISICA;
+        validarRegrasNegocio(
+                tipo,
+                requisicao.cpfCnpj(),
+                requisicao.email(),
+                requisicao.dataNascimento(),
+                requisicao.sexo(),
+                requisicao.escolaridade(),
+                requisicao.rendaFamiliar(),
+                requisicao.comorbidades(),
+                requisicao.categorias(),
+                requisicao.cep(),
+                requisicao.uf(),
+                requisicao.cidade(),
+                requisicao.bairro(),
+                requisicao.logradouro(),
+                requisicao.quantidadeCoabitantes(),
+                requisicao.ehBeneficiario(),
+                requisicao.ehDoador(),
+                null, requisicao.profissao());
+
+        validarUnicidade(requisicao.cpfCnpj(), requisicao.email(), null);
 
         Pessoa pessoa = requisicao.paraEntidade();
 
-        atribuirComorbidadesECategorias(
-                pessoa, requisicao.comorbidades(), requisicao.categorias());
+        atribuirComorbidadesECategorias(pessoa, requisicao.comorbidades(), requisicao.categorias());
 
         Pessoa pessoaSalva = pessoaRepository.save(pessoa);
 
@@ -55,18 +86,22 @@ public class PessoaService {
 
     @Transactional(readOnly = true)
     public RespostaPaginada<PessoaDTO.Resumo> listar(
-            Pageable paginacao, boolean incluirInativos) {
+            PessoaFiltroDTO filtro, Pageable paginacao, boolean incluirInativos) {
         Pageable paginacaoSanitizada =
-                PaginacaoUtils.sanitizarPaginacao(
-                        paginacao, CAMPOS_ORDENACAO_VALIDOS, "nome");
+                PaginacaoUtils.sanitizarPaginacao(paginacao, CAMPOS_ORDENACAO_VALIDOS, "nome");
 
         Page<Pessoa> pagina =
-                incluirInativos
-                        ? pessoaRepository.findAll(paginacaoSanitizada)
-                        : pessoaRepository.findAllByDataInativoIsNull(paginacaoSanitizada);
+                pessoaRepository.findAll(
+                        PessoaSpecification.comFiltro(filtro, incluirInativos),
+                        paginacaoSanitizada);
 
         Page<PessoaDTO.Resumo> paginaDtos = pagina.map(PessoaDTO.Resumo::deEntidade);
         return RespostaPaginada.dePage(paginaDtos);
+    }
+
+    @Transactional(readOnly = true)
+    public RespostaPaginada<PessoaDTO.Resumo> listar(Pageable paginacao, boolean incluirInativos) {
+        return listar(null, paginacao, incluirInativos);
     }
 
     @Transactional(readOnly = true)
@@ -76,9 +111,7 @@ public class PessoaService {
                         ? pessoaRepository.findAll()
                         : pessoaRepository.findAllByDataInativoIsNull();
 
-        return pessoas.stream()
-                .map(PessoaDTO.Resumo::deEntidade)
-                .toList();
+        return pessoas.stream().map(PessoaDTO.Resumo::deEntidade).toList();
     }
 
     @Transactional(readOnly = true)
@@ -111,21 +144,56 @@ public class PessoaService {
                                                 "Pessoa ativa não encontrada com o ID informado: "
                                                         + id));
 
-        validarUnicidade(requisicao.cpf(), requisicao.email(), id);
+        // RN08 - Alteração de tipo de pessoa é estritamente proibida
+        if (requisicao.tipoPessoa() != null && requisicao.tipoPessoa() != pessoa.getTipoPessoa()) {
+            throw ValidationException.of("tipoPessoa", "O tipo de pessoa não pode ser alterado");
+        }
 
-        pessoa.setNome(requisicao.nome());
-        pessoa.setCpf(requisicao.cpf());
-        pessoa.setDataNascimento(requisicao.dataNascimento());
-        pessoa.setSexo(requisicao.sexo());
-        pessoa.setTelefone(requisicao.telefone());
-        pessoa.setEmail(requisicao.email());
-        pessoa.setEscolaridade(requisicao.escolaridade());
-        pessoa.setProfissao(requisicao.profissao());
-        pessoa.setRendaFamiliar(requisicao.rendaFamiliar());
-        pessoa.setDescricao(requisicao.descricao());
+        TipoPessoa tipo = pessoa.getTipoPessoa();
+        validarRegrasNegocio(
+                tipo,
+                requisicao.cpfCnpj(),
+                requisicao.email(),
+                requisicao.dataNascimento(),
+                requisicao.sexo(),
+                requisicao.escolaridade(),
+                requisicao.rendaFamiliar(),
+                requisicao.comorbidades(),
+                requisicao.categorias(),
+                requisicao.cep(),
+                requisicao.uf(),
+                requisicao.cidade(),
+                requisicao.bairro(),
+                requisicao.logradouro(),
+                requisicao.quantidadeCoabitantes(),
+                requisicao.ehBeneficiario(),
+                requisicao.ehDoador(),
+                id, requisicao.profissao());
 
-        atribuirComorbidadesECategorias(
-                pessoa, requisicao.comorbidades(), requisicao.categorias());
+        validarUnicidade(requisicao.cpfCnpj(), requisicao.email(), id);
+
+        pessoa.atualizarDados(
+                requisicao.nome(),
+                requisicao.cpfCnpj(),
+                requisicao.dataNascimento(),
+                requisicao.sexo(),
+                requisicao.telefone(),
+                requisicao.email(),
+                requisicao.escolaridade(),
+                requisicao.profissao(),
+                requisicao.rendaFamiliar(),
+                requisicao.descricao(),
+                requisicao.cep(),
+                requisicao.uf(),
+                requisicao.cidade(),
+                requisicao.bairro(),
+                requisicao.logradouro(),
+                requisicao.complementoEndereco(),
+                requisicao.quantidadeCoabitantes(),
+                Boolean.TRUE.equals(requisicao.ehBeneficiario()),
+                Boolean.TRUE.equals(requisicao.ehDoador()));
+
+        atribuirComorbidadesECategorias(pessoa, requisicao.comorbidades(), requisicao.categorias());
 
         return PessoaDTO.Detalhe.deEntidade(pessoa);
     }
@@ -141,7 +209,7 @@ public class PessoaService {
                                                 "Pessoa ativa não encontrada com o ID informado: "
                                                         + id));
 
-        pessoa.setDataInativo(LocalDateTime.now());
+        pessoa.desativar();
     }
 
     @Transactional
@@ -152,10 +220,9 @@ public class PessoaService {
                         .orElseThrow(
                                 () ->
                                         new EntidadeNaoEncontradaException(
-                                                "Pessoa não encontrada com o ID informado: "
-                                                        + id));
+                                                "Pessoa não encontrada com o ID informado: " + id));
 
-        pessoa.setDataInativo(null);
+        pessoa.reativar();
     }
 
     @Transactional
@@ -166,61 +233,152 @@ public class PessoaService {
                         .orElseThrow(
                                 () ->
                                         new EntidadeNaoEncontradaException(
-                                                "Pessoa não encontrada com o ID informado: "
-                                                        + id));
+                                                "Pessoa não encontrada com o ID informado: " + id));
 
         pessoaRepository.delete(pessoa);
     }
 
-    private void validarUnicidade(String cpf, String email, Long idAtual) {
+    private void validarRegrasNegocio(
+            TipoPessoa tipo,
+            String cpfCnpj,
+            String email,
+            java.time.LocalDate dataNascimento,
+            Sexo sexo,
+            Escolaridade escolaridade,
+            RendaFamiliar rendaFamiliar,
+            List<Long> comorbidades,
+            List<Long> categorias,
+            String cep,
+            Uf uf,
+            String cidade,
+            String bairro,
+            String logradouro,
+            Integer quantidadeCoabitantes,
+            Boolean ehBeneficiario,
+            Boolean ehDoador,
+            Long idAtual,
+            String profissao) {
+
+        if (tipo == TipoPessoa.JURIDICA) {
+            // RN05 - Restrição de Papel para Pessoa Jurídica (proibido ser beneficiária)
+            if (Boolean.TRUE.equals(ehBeneficiario)) {
+                throw ValidationException.of(
+                        "ehBeneficiario",
+                        "Pessoa Jurídica não pode ser cadastrada como beneficiária");
+            }
+
+            // RN06 - Dados Obrigatórios de Pessoa Jurídica
+            if (cpfCnpj == null || cpfCnpj.length() != 14) {
+                throw ValidationException.of(
+                        "cpfCnpj", "CNPJ deve conter exatamente 14 dígitos numéricos");
+            }
+
+            // PJ não pode possuir atributos específicos de PF
+            if (comorbidades != null && !comorbidades.isEmpty()) {
+                throw ValidationException.of(
+                        "comorbidades", "Pessoa Jurídica não pode possuir comorbidades");
+            }
+
+            if (dataNascimento != null) {
+                throw ValidationException.of(
+                        "dataNascimento", "Pessoa Jurídica não deve possuir data de nascimento");
+            }
+
+            if (sexo != null) {
+                throw ValidationException.of("sexo", "Pessoa Jurídica não deve possuir sexo");
+            }
+
+            if (escolaridade != null) {
+                throw ValidationException.of(
+                        "escolaridade", "Pessoa Jurídica não deve possuir escolaridade");
+            }
+
+            if (rendaFamiliar != null) {
+                throw ValidationException.of(
+                        "rendaFamiliar", "Pessoa Jurídica não deve possuir renda familiar");
+            }
+
+            if (quantidadeCoabitantes != null && quantidadeCoabitantes > 0) {
+                throw ValidationException.of(
+                        "quantidadeCoabitantes",
+                        "Pessoa Jurídica não deve possuir quantidade de coabitantes");
+            }
+
+            if (profissao != null) {
+                throw ValidationException.of("profissao",
+                    "Pessoa Jurídica não deve possuir profissão");
+            }
+
+        } else {
+            // RN07 - Dados Obrigatórios de Pessoa Física
+            if (cpfCnpj == null || cpfCnpj.length() != 11) {
+                throw ValidationException.of(
+                        "cpfCnpj", "CPF deve conter exatamente 11 dígitos numéricos");
+            }
+
+            if (dataNascimento == null) {
+                throw ValidationException.of(
+                        "dataNascimento", "A data de nascimento é obrigatória para Pessoa Física");
+            }
+
+            // nome e telefone são validados no DTO
+
+        }
+    }
+
+    private void validarUnicidade(String cpfCnpj, String email, Long idAtual) {
         if (idAtual == null) {
-            if (pessoaRepository.existsByCpf(cpf)) {
-                throw new ConflitoDadosException("Já existe uma pessoa cadastrada com este CPF.");
+            if (pessoaRepository.existsByCpfCnpj(cpfCnpj)) {
+                throw new ConflitoDadosException(
+                        "Já existe uma pessoa cadastrada com este CPF/CNPJ.");
             }
             if (email != null && !email.isBlank() && pessoaRepository.existsByEmail(email)) {
-                throw new ConflitoDadosException("Já existe uma pessoa cadastrada com este e-mail.");
+                throw new ConflitoDadosException(
+                        "Já existe uma pessoa cadastrada com este e-mail.");
             }
         } else {
-            if (pessoaRepository.existsByCpfAndIdNot(cpf, idAtual)) {
-                throw new ConflitoDadosException("Já existe uma pessoa cadastrada com este CPF.");
+            if (pessoaRepository.existsByCpfCnpjAndIdNot(cpfCnpj, idAtual)) {
+                throw new ConflitoDadosException(
+                        "Já existe uma pessoa cadastrada com este CPF/CNPJ.");
             }
             if (email != null
                     && !email.isBlank()
                     && pessoaRepository.existsByEmailAndIdNot(email, idAtual)) {
-                throw new ConflitoDadosException("Já existe uma pessoa cadastrada com este e-mail.");
+                throw new ConflitoDadosException(
+                        "Já existe uma pessoa cadastrada com este e-mail.");
             }
         }
     }
 
     private void atribuirComorbidadesECategorias(
             Pessoa pessoa, List<Long> idsComorbidades, List<Long> idsCategorias) {
-            
+
         // Tratamento para Comorbidades
         if (idsComorbidades != null && !idsComorbidades.isEmpty()) {
             List<Comorbidade> comorbidades = comorbidadeRepository.findAllById(idsComorbidades);
-            
+
             if (comorbidades.size() != idsComorbidades.size()) {
                 throw new EntidadeNaoEncontradaException(
                         "Uma ou mais comorbidades informadas não foram encontradas.");
             }
-            
+
             pessoa.setComorbidades(new HashSet<>(comorbidades));
         } else {
-            pessoa.setComorbidades(new HashSet<>()); // Inicializa com Set vazio em vez de repassar null
+            pessoa.setComorbidades(new HashSet<>());
         }
 
         // Tratamento para Categorias
         if (idsCategorias != null && !idsCategorias.isEmpty()) {
             List<Categoria> categorias = categoriaRepository.findAllById(idsCategorias);
-        
+
             if (categorias.size() != idsCategorias.size()) {
                 throw new EntidadeNaoEncontradaException(
                         "Uma ou mais categorias informadas não foram encontradas.");
             }
-        
+
             pessoa.setCategorias(new HashSet<>(categorias));
         } else {
-            pessoa.setCategorias(new HashSet<>()); // Inicializa com Set vazio em vez de repassar null
+            pessoa.setCategorias(new HashSet<>());
         }
     }
 }

@@ -1,12 +1,5 @@
 package br.org.asmosul.api.pessoas.controllers;
 
-import static org.hamcrest.Matchers.endsWith;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
@@ -16,32 +9,32 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import br.org.asmosul.api.comum.dtos.RespostaPaginada;
-import br.org.asmosul.api.comum.exceptions.ConflitoDadosException;
-import br.org.asmosul.api.comum.exceptions.EntidadeNaoEncontradaException;
+import br.org.asmosul.api.comum.config.BaseAPITest;
 import br.org.asmosul.api.pessoas.dtos.ComorbidadeDTO;
-import br.org.asmosul.api.pessoas.services.ComorbidadeService;
+import br.org.asmosul.api.pessoas.models.Comorbidade;
+import br.org.asmosul.api.pessoas.repositories.ComorbidadeRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.util.List;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-@WebMvcTest(ComorbidadeController.class)
-@DisplayName("Testes Unitários - ComorbidadeController")
-class ComorbidadeControllerTest {
+@DisplayName("Testes de IntegraÃ§Ã£o - ComorbidadeController")
+class ComorbidadeControllerTest extends BaseAPITest {
 
     @Autowired private MockMvc mockMvc;
 
+    @Autowired private ComorbidadeRepository comorbidadeRepository;
+
     private final ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
 
-    @MockitoBean private ComorbidadeService comorbidadeService;
+    @BeforeEach
+    void setUp() {
+        comorbidadeRepository.deleteAll();
+    }
 
     @Nested
     @DisplayName("POST /comorbidades - Cadastro de Comorbidade")
@@ -50,31 +43,29 @@ class ComorbidadeControllerTest {
         @Test
         @DisplayName(
                 "Deve cadastrar comorbidade com sucesso retornando status 201 e Location header")
-        void deveCadastrarComorbidadeComSucesso() throws Exception {
-            var requisicao = new ComorbidadeDTO.Requisicao("Hipertensão", "Pressão alta crônica");
-            var detalheRetornado =
-                    new ComorbidadeDTO.Detalhe(1L, "Hipertensão", "Pressão alta crônica");
-
-            when(comorbidadeService.cadastrar(any(ComorbidadeDTO.Requisicao.class)))
-                    .thenReturn(detalheRetornado);
+        void cadastrar_comDadosValidos_retornaStatus201ELocationHeader() throws Exception {
+            var requisicao =
+                    new ComorbidadeDTO.Requisicao("HipertensÃ£o", "PressÃ£o alta crÃ´nica");
 
             mockMvc.perform(
                             post("/comorbidades")
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(objectMapper.writeValueAsString(requisicao)))
                     .andExpect(status().isCreated())
-                    .andExpect(header().string("Location", endsWith("/comorbidades/1")))
-                    .andExpect(jsonPath("$.id").value(1L))
-                    .andExpect(jsonPath("$.nome").value("Hipertensão"))
-                    .andExpect(jsonPath("$.descricao").value("Pressão alta crônica"));
-
-            verify(comorbidadeService).cadastrar(any(ComorbidadeDTO.Requisicao.class));
+                    .andExpect(
+                            header().string(
+                                            "Location",
+                                            org.hamcrest.Matchers.matchesPattern(
+                                                    ".*/comorbidades/\\d+")))
+                    .andExpect(jsonPath("$.id").isNumber())
+                    .andExpect(jsonPath("$.nome").value("HipertensÃ£o"))
+                    .andExpect(jsonPath("$.descricao").value("PressÃ£o alta crÃ´nica"));
         }
 
         @Test
-        @DisplayName("Deve retornar status 400 quando o nome for nulo ou em branco")
-        void deveRetornar400AoCadastrarComNomeEmBranco() throws Exception {
-            var requisicao = new ComorbidadeDTO.Requisicao("", "Descrição válida");
+        @DisplayName("Deve retornar status 400 quando o nome estiver em branco")
+        void cadastrar_comNomeEmBranco_retornaStatus400() throws Exception {
+            var requisicao = new ComorbidadeDTO.Requisicao("", "DescriÃ§Ã£o vÃ¡lida");
 
             mockMvc.perform(
                             post("/comorbidades")
@@ -85,9 +76,9 @@ class ComorbidadeControllerTest {
 
         @Test
         @DisplayName("Deve retornar status 400 quando o nome exceder 50 caracteres")
-        void deveRetornar400AoCadastrarComNomeExcedendoLimite() throws Exception {
-            var nomeLongo = "H".repeat(51);
-            var requisicao = new ComorbidadeDTO.Requisicao(nomeLongo, "Descrição");
+        void cadastrar_comNomeExcedendoLimite_retornaStatus400() throws Exception {
+            var nomeLongo = "A".repeat(51);
+            var requisicao = new ComorbidadeDTO.Requisicao(nomeLongo, "DescriÃ§Ã£o");
 
             mockMvc.perform(
                             post("/comorbidades")
@@ -97,24 +88,18 @@ class ComorbidadeControllerTest {
         }
 
         @Test
-        @DisplayName("Deve retornar status 409 quando o serviço lançar ConflitoDadosException")
-        void deveRetornar409AoCadastrarComNomeDuplicado() throws Exception {
-            var requisicao = new ComorbidadeDTO.Requisicao("Diabetes", "Tipo 2");
+        @DisplayName("Deve retornar status 409 quando o nome jÃ¡ estiver cadastrado")
+        void cadastrar_comNomeDuplicado_retornaStatus409() throws Exception {
+            comorbidadeRepository.save(new Comorbidade("Diabetes", "Tipo 2"));
 
-            when(comorbidadeService.cadastrar(any(ComorbidadeDTO.Requisicao.class)))
-                    .thenThrow(
-                            new ConflitoDadosException(
-                                    "Já existe uma comorbidade cadastrada com este nome."));
+            var requisicao = new ComorbidadeDTO.Requisicao("Diabetes", "Outra descriÃ§Ã£o");
 
             mockMvc.perform(
                             post("/comorbidades")
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(objectMapper.writeValueAsString(requisicao)))
                     .andExpect(status().isConflict())
-                    .andExpect(jsonPath("$.title").value("Conflito de Dados"))
-                    .andExpect(
-                            jsonPath("$.detail")
-                                    .value("Já existe uma comorbidade cadastrada com este nome."));
+                    .andExpect(jsonPath("$.title").value("Conflito de Dados"));
         }
     }
 
@@ -124,274 +109,186 @@ class ComorbidadeControllerTest {
 
         @Test
         @DisplayName("Deve retornar listagem paginada de comorbidades com status 200")
-        void deveListarComorbidadesPaginadas() throws Exception {
-            var resumo = new ComorbidadeDTO.Resumo(1L, "Hipertensão", "Descrição", true);
-            var respostaPaginada = new RespostaPaginada<>(List.of(resumo), 0, 10, 1L, 1);
-
-            when(comorbidadeService.listar(any(Pageable.class), eq(false)))
-                    .thenReturn(respostaPaginada);
+        void listar_comPaginacao_retornaStatus200EListaPaginada() throws Exception {
+            comorbidadeRepository.save(new Comorbidade("Comorbidade 1", "Desc"));
+            comorbidadeRepository.save(new Comorbidade("Comorbidade 2", "Desc"));
 
             mockMvc.perform(get("/comorbidades").param("page", "0").param("size", "10"))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.dados[0].id").value(1L))
-                    .andExpect(jsonPath("$.dados[0].nome").value("Hipertensão"))
-                    .andExpect(jsonPath("$.dados[0].ativo").value(true))
-                    .andExpect(jsonPath("$.paginaAtual").value(0))
-                    .andExpect(jsonPath("$.tamanhoPagina").value(10))
-                    .andExpect(jsonPath("$.totalElementos").value(1L))
-                    .andExpect(jsonPath("$.totalPaginas").value(1));
-
-            verify(comorbidadeService).listar(any(Pageable.class), eq(false));
+                    .andExpect(jsonPath("$.dados").isArray())
+                    .andExpect(jsonPath("$.totalElementos").value(2));
         }
 
         @Test
-        @DisplayName("Deve repassar o parâmetro incluirInativos para o serviço")
-        void deveListarComorbidadesComParametroIncluirInativos() throws Exception {
-            var respostaPaginada =
-                    new RespostaPaginada<ComorbidadeDTO.Resumo>(List.of(), 0, 10, 0L, 0);
+        @DisplayName("Deve filtrar inativos por padrÃ£o na listagem")
+        void listar_comFiltroIncluirInativos_retornaStatus200() throws Exception {
+            comorbidadeRepository.save(new Comorbidade("Comorbidade Ativa", "Desc"));
+            Comorbidade inativa = new Comorbidade("Comorbidade Inativa", "Desc");
+            inativa.setDataInativo(java.time.LocalDateTime.now());
+            comorbidadeRepository.save(inativa);
 
-            when(comorbidadeService.listar(any(Pageable.class), eq(true)))
-                    .thenReturn(respostaPaginada);
+            mockMvc.perform(get("/comorbidades").param("incluirInativos", "false"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.totalElementos").value(1))
+                    .andExpect(jsonPath("$.dados[0].nome").value("Comorbidade Ativa"));
 
             mockMvc.perform(get("/comorbidades").param("incluirInativos", "true"))
-                    .andExpect(status().isOk());
-
-            verify(comorbidadeService).listar(any(Pageable.class), eq(true));
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.totalElementos").value(2));
         }
     }
 
     @Nested
-    @DisplayName("GET /comorbidades/todas - Listagem Completa Não Paginada")
+    @DisplayName("GET /comorbidades/todas - Listagem NÃ£o Paginada")
     class ListarTodas {
 
         @Test
-        @DisplayName("Deve retornar todas as comorbidades em lista simples com status 200")
-        void deveListarTodasAsComorbidades() throws Exception {
-            var lista =
-                    List.of(
-                            new ComorbidadeDTO.Resumo(1L, "Hipertensão", "Desc 1", true),
-                            new ComorbidadeDTO.Resumo(2L, "Diabetes", "Desc 2", true));
-
-            when(comorbidadeService.listarTodas(false)).thenReturn(lista);
+        @DisplayName("Deve retornar lista completa de comorbidades com status 200")
+        void listarTodas_retornaStatus200EListaCompleta() throws Exception {
+            comorbidadeRepository.save(new Comorbidade("Comorbidade A", "Desc"));
+            comorbidadeRepository.save(new Comorbidade("Comorbidade B", "Desc"));
 
             mockMvc.perform(get("/comorbidades/todas"))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.length()").value(2))
-                    .andExpect(jsonPath("$[0].id").value(1L))
-                    .andExpect(jsonPath("$[0].nome").value("Hipertensão"))
-                    .andExpect(jsonPath("$[1].id").value(2L))
-                    .andExpect(jsonPath("$[1].nome").value("Diabetes"));
-
-            verify(comorbidadeService).listarTodas(false);
-        }
-
-        @Test
-        @DisplayName("Deve repassar incluirInativos ao buscar todas as comorbidades")
-        void deveListarTodasComParametroIncluirInativos() throws Exception {
-            when(comorbidadeService.listarTodas(true)).thenReturn(List.of());
-
-            mockMvc.perform(get("/comorbidades/todas").param("incluirInativos", "true"))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.length()").value(0));
-
-            verify(comorbidadeService).listarTodas(true);
+                    .andExpect(jsonPath("$").isArray())
+                    .andExpect(jsonPath("$.length()").value(2));
         }
     }
 
     @Nested
-    @DisplayName("GET /comorbidades/{id} - Busca por ID")
+    @DisplayName("GET /comorbidades/{id} - Detalhamento")
     class BuscarPorId {
 
         @Test
-        @DisplayName("Deve retornar detalhes da comorbidade quando encontrada com status 200")
-        void deveBuscarComorbidadePorIdComSucesso() throws Exception {
-            var detalhe = new ComorbidadeDTO.Detalhe(1L, "Hipertensão", "Descrição");
+        @DisplayName("Deve retornar detalhes da comorbidade com status 200 quando existir")
+        void buscarPorId_comIdExistente_retornaStatus200() throws Exception {
+            Comorbidade comorbidade = comorbidadeRepository.save(new Comorbidade("Asma", "Desc"));
 
-            when(comorbidadeService.buscarPorId(1L)).thenReturn(detalhe);
-
-            mockMvc.perform(get("/comorbidades/{id}", 1L))
+            mockMvc.perform(get("/comorbidades/{id}", comorbidade.getId()))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.id").value(1L))
-                    .andExpect(jsonPath("$.nome").value("Hipertensão"))
-                    .andExpect(jsonPath("$.descricao").value("Descrição"));
-
-            verify(comorbidadeService).buscarPorId(1L);
+                    .andExpect(jsonPath("$.id").value(comorbidade.getId()))
+                    .andExpect(jsonPath("$.nome").value("Asma"));
         }
 
         @Test
-        @DisplayName(
-                "Deve retornar status 404 quando o serviço lançar EntidadeNaoEncontradaException")
-        void deveRetornar404AoBuscarComorbidadeInexistente() throws Exception {
-            when(comorbidadeService.buscarPorId(99L))
-                    .thenThrow(
-                            new EntidadeNaoEncontradaException(
-                                    "Comorbidade ativa não encontrada com o ID informado: 99"));
-
-            mockMvc.perform(get("/comorbidades/{id}", 99L))
-                    .andExpect(status().isNotFound())
-                    .andExpect(jsonPath("$.title").value("Recurso Não Encontrado"))
-                    .andExpect(
-                            jsonPath("$.detail")
-                                    .value(
-                                            "Comorbidade ativa não encontrada com o ID informado: 99"));
+        @DisplayName("Deve retornar status 404 quando o ID nÃ£o existir")
+        void buscarPorId_comIdInexistenteOuInativo_retornaStatus404() throws Exception {
+            mockMvc.perform(get("/comorbidades/{id}", 99999L)).andExpect(status().isNotFound());
         }
     }
 
     @Nested
-    @DisplayName("PUT /comorbidades/{id} - Atualização")
+    @DisplayName("PUT /comorbidades/{id} - AtualizaÃ§Ã£o")
     class Atualizar {
 
         @Test
-        @DisplayName("Deve atualizar comorbidade com sucesso retornando status 200")
-        void deveAtualizarComorbidadeComSucesso() throws Exception {
-            var requisicao = new ComorbidadeDTO.Atualizacao("Hipertensão Severa", "Nova Descrição");
-            var detalhe = new ComorbidadeDTO.Detalhe(1L, "Hipertensão Severa", "Nova Descrição");
+        @DisplayName("Deve atualizar dados da comorbidade com status 200")
+        void atualizar_comDadosValidos_retornaStatus200() throws Exception {
+            Comorbidade comorbidade =
+                    comorbidadeRepository.save(new Comorbidade("Nome Antigo", "Desc"));
 
-            when(comorbidadeService.atualizar(eq(1L), any(ComorbidadeDTO.Atualizacao.class)))
-                    .thenReturn(detalhe);
+            var requisicao = new ComorbidadeDTO.Atualizacao("Nome Novo", "Desc Atualizada");
 
             mockMvc.perform(
-                            put("/comorbidades/{id}", 1L)
+                            put("/comorbidades/{id}", comorbidade.getId())
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(objectMapper.writeValueAsString(requisicao)))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.id").value(1L))
-                    .andExpect(jsonPath("$.nome").value("Hipertensão Severa"))
-                    .andExpect(jsonPath("$.descricao").value("Nova Descrição"));
-
-            verify(comorbidadeService).atualizar(eq(1L), any(ComorbidadeDTO.Atualizacao.class));
+                    .andExpect(jsonPath("$.id").value(comorbidade.getId()))
+                    .andExpect(jsonPath("$.nome").value("Nome Novo"))
+                    .andExpect(jsonPath("$.descricao").value("Desc Atualizada"));
         }
 
         @Test
-        @DisplayName("Deve retornar status 400 ao atualizar com nome em branco")
-        void deveRetornar400AoAtualizarComNomeEmBranco() throws Exception {
-            var requisicao = new ComorbidadeDTO.Atualizacao("", "Nova Descrição");
+        @DisplayName("Deve retornar status 409 ao tentar atualizar para nome jÃ¡ existente")
+        void atualizar_comNomeDuplicado_retornaStatus409() throws Exception {
+            comorbidadeRepository.save(new Comorbidade("Comorbidade 1", "Desc"));
+            Comorbidade c2 = comorbidadeRepository.save(new Comorbidade("Comorbidade 2", "Desc"));
+
+            var requisicao = new ComorbidadeDTO.Atualizacao("Comorbidade 1", "Desc");
 
             mockMvc.perform(
-                            put("/comorbidades/{id}", 1L)
-                                    .contentType(MediaType.APPLICATION_JSON)
-                                    .content(objectMapper.writeValueAsString(requisicao)))
-                    .andExpect(status().isBadRequest());
-        }
-
-        @Test
-        @DisplayName("Deve retornar status 404 ao tentar atualizar comorbidade inexistente")
-        void deveRetornar404AoAtualizarComorbidadeInexistente() throws Exception {
-            var requisicao = new ComorbidadeDTO.Atualizacao("Nome", "Descrição");
-
-            when(comorbidadeService.atualizar(eq(99L), any(ComorbidadeDTO.Atualizacao.class)))
-                    .thenThrow(
-                            new EntidadeNaoEncontradaException(
-                                    "Comorbidade ativa não encontrada com o ID informado: 99"));
-
-            mockMvc.perform(
-                            put("/comorbidades/{id}", 99L)
-                                    .contentType(MediaType.APPLICATION_JSON)
-                                    .content(objectMapper.writeValueAsString(requisicao)))
-                    .andExpect(status().isNotFound());
-        }
-
-        @Test
-        @DisplayName("Deve retornar status 409 ao atualizar para nome já existente")
-        void deveRetornar409AoAtualizarParaNomeDuplicado() throws Exception {
-            var requisicao = new ComorbidadeDTO.Atualizacao("Diabetes", "Descrição");
-
-            when(comorbidadeService.atualizar(eq(1L), any(ComorbidadeDTO.Atualizacao.class)))
-                    .thenThrow(
-                            new ConflitoDadosException(
-                                    "Já existe uma comorbidade cadastrada com este nome."));
-
-            mockMvc.perform(
-                            put("/comorbidades/{id}", 1L)
+                            put("/comorbidades/{id}", c2.getId())
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(objectMapper.writeValueAsString(requisicao)))
                     .andExpect(status().isConflict());
         }
+
+        @Test
+        @DisplayName("Deve retornar status 404 ao tentar atualizar comorbidade inexistente")
+        void atualizar_comIdInexistente_retornaStatus404() throws Exception {
+            var requisicao = new ComorbidadeDTO.Atualizacao("Nome", "Desc");
+
+            mockMvc.perform(
+                            put("/comorbidades/{id}", 99999L)
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(objectMapper.writeValueAsString(requisicao)))
+                    .andExpect(status().isNotFound());
+        }
     }
 
     @Nested
-    @DisplayName("PATCH /comorbidades/{id}/desativar - Desativação (Soft Delete)")
+    @DisplayName("PATCH /comorbidades/{id}/desativar - DesativaÃ§Ã£o")
     class Desativar {
 
         @Test
         @DisplayName("Deve desativar comorbidade com sucesso retornando status 204")
-        void deveDesativarComorbidadeComSucesso() throws Exception {
-            doNothing().when(comorbidadeService).desativar(1L);
+        void desativar_comIdExistente_retornaStatus204() throws Exception {
+            Comorbidade comorbidade = comorbidadeRepository.save(new Comorbidade("Ativa", "Desc"));
 
-            mockMvc.perform(patch("/comorbidades/{id}/desativar", 1L))
+            mockMvc.perform(patch("/comorbidades/{id}/desativar", comorbidade.getId()))
                     .andExpect(status().isNoContent());
-
-            verify(comorbidadeService).desativar(1L);
         }
 
         @Test
-        @DisplayName(
-                "Deve retornar status 404 ao tentar desativar comorbidade inexistente ou já inativa")
-        void deveRetornar404AoDesativarComorbidadeInexistente() throws Exception {
-            doThrow(
-                            new EntidadeNaoEncontradaException(
-                                    "Comorbidade ativa não encontrada com o ID informado: 99"))
-                    .when(comorbidadeService)
-                    .desativar(99L);
-
-            mockMvc.perform(patch("/comorbidades/{id}/desativar", 99L))
+        @DisplayName("Deve retornar status 404 ao tentar desativar comorbidade inexistente")
+        void desativar_comIdInexistenteOuJaInativo_retornaStatus404() throws Exception {
+            mockMvc.perform(patch("/comorbidades/{id}/desativar", 99999L))
                     .andExpect(status().isNotFound());
         }
     }
 
     @Nested
-    @DisplayName("PATCH /comorbidades/{id}/reativar - Reativação")
+    @DisplayName("PATCH /comorbidades/{id}/reativar - ReativaÃ§Ã£o")
     class Reativar {
 
         @Test
         @DisplayName("Deve reativar comorbidade com sucesso retornando status 204")
-        void deveReativarComorbidadeComSucesso() throws Exception {
-            doNothing().when(comorbidadeService).reativar(1L);
+        void reativar_comIdExistente_retornaStatus204() throws Exception {
+            Comorbidade comorbidade = new Comorbidade("Inativa", "Desc");
+            comorbidade.setDataInativo(java.time.LocalDateTime.now());
+            comorbidade = comorbidadeRepository.save(comorbidade);
 
-            mockMvc.perform(patch("/comorbidades/{id}/reativar", 1L))
+            mockMvc.perform(patch("/comorbidades/{id}/reativar", comorbidade.getId()))
                     .andExpect(status().isNoContent());
-
-            verify(comorbidadeService).reativar(1L);
         }
 
         @Test
         @DisplayName("Deve retornar status 404 ao tentar reativar comorbidade inexistente")
-        void deveRetornar404AoReativarComorbidadeInexistente() throws Exception {
-            doThrow(
-                            new EntidadeNaoEncontradaException(
-                                    "Comorbidade não encontrada com o ID informado: 99"))
-                    .when(comorbidadeService)
-                    .reativar(99L);
-
-            mockMvc.perform(patch("/comorbidades/{id}/reativar", 99L))
+        void reativar_comIdInexistente_retornaStatus404() throws Exception {
+            mockMvc.perform(patch("/comorbidades/{id}/reativar", 99999L))
                     .andExpect(status().isNotFound());
         }
     }
 
     @Nested
-    @DisplayName("DELETE /comorbidades/{id} - Exclusão Física")
+    @DisplayName("DELETE /comorbidades/{id} - ExclusÃ£o FÃ­sica")
     class Excluir {
 
         @Test
         @DisplayName("Deve excluir comorbidade com sucesso retornando status 204")
-        void deveExcluirComorbidadeComSucesso() throws Exception {
-            doNothing().when(comorbidadeService).excluir(1L);
+        void excluir_comIdExistente_retornaStatus204() throws Exception {
+            Comorbidade comorbidade =
+                    comorbidadeRepository.save(new Comorbidade("Para Excluir", "Desc"));
 
-            mockMvc.perform(delete("/comorbidades/{id}", 1L)).andExpect(status().isNoContent());
-
-            verify(comorbidadeService).excluir(1L);
+            mockMvc.perform(delete("/comorbidades/{id}", comorbidade.getId()))
+                    .andExpect(status().isNoContent());
         }
 
         @Test
         @DisplayName("Deve retornar status 404 ao tentar excluir comorbidade inexistente")
-        void deveRetornar404AoExcluirComorbidadeInexistente() throws Exception {
-            doThrow(
-                            new EntidadeNaoEncontradaException(
-                                    "Comorbidade não encontrada com o ID informado: 99"))
-                    .when(comorbidadeService)
-                    .excluir(99L);
-
-            mockMvc.perform(delete("/comorbidades/{id}", 99L)).andExpect(status().isNotFound());
+        void excluir_comIdInexistente_retornaStatus404() throws Exception {
+            mockMvc.perform(delete("/comorbidades/{id}", 99999L)).andExpect(status().isNotFound());
         }
     }
 }

@@ -7,8 +7,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
-public interface PessoaRepository extends JpaRepository<Pessoa, Long> {
+public interface PessoaRepository
+        extends JpaRepository<Pessoa, Long>, JpaSpecificationExecutor<Pessoa> {
 
     @EntityGraph(attributePaths = {"comorbidades", "categorias"})
     Optional<Pessoa> findByIdAndDataInativoIsNull(Long id);
@@ -21,9 +23,9 @@ public interface PessoaRepository extends JpaRepository<Pessoa, Long> {
 
     List<Pessoa> findAllByDataInativoIsNull();
 
-    boolean existsByCpf(String cpf);
+    boolean existsByCpfCnpj(String cpfCnpj);
 
-    boolean existsByCpfAndIdNot(String cpf, Long id);
+    boolean existsByCpfCnpjAndIdNot(String cpfCnpj, Long id);
 
     boolean existsByEmail(String email);
 

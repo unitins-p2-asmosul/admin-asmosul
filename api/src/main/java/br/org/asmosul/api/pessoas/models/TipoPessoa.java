@@ -7,16 +7,14 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Arrays;
 
 @JsonFormat(shape = JsonFormat.Shape.OBJECT)
-public enum Sexo {
-    FEMININO("FEMININO", "Feminino"),
-    MASCULINO("MASCULINO", "Masculino"),
-    OUTRO("OUTRO", "Outro"),
-    NAO_INFORMADO("NAO_INFORMADO", "Prefiro não informar");
+public enum TipoPessoa {
+    FISICA("FISICA", "Pessoa Física"),
+    JURIDICA("JURIDICA", "Pessoa Jurídica");
 
     private final String codigo;
     private final String descricao;
 
-    Sexo(String codigo, String descricao) {
+    TipoPessoa(String codigo, String descricao) {
         this.codigo = codigo;
         this.descricao = descricao;
     }
@@ -32,16 +30,21 @@ public enum Sexo {
     }
 
     @JsonCreator
-    public static Sexo deCodigo(String valor) {
-        if (valor == null || valor.isBlank()) return null;
+    public static TipoPessoa deCodigo(String valor) {
+        if (valor == null || valor.isBlank()) {
+            return null;
+        }
 
-        return Arrays.stream(Sexo.values())
+        return Arrays.stream(TipoPessoa.values())
                 .filter(
-                        s ->
-                                s.name().equalsIgnoreCase(valor.trim())
-                                        || s.getCodigo().equalsIgnoreCase(valor.trim()))
+                        t ->
+                                t.name().equalsIgnoreCase(valor.trim())
+                                        || t.getCodigo().equalsIgnoreCase(valor.trim()))
                 .findFirst()
                 .orElseThrow(
-                        () -> ValidationException.of("sexo", "Opção de sexo informada é inválida"));
+                        () ->
+                                ValidationException.of(
+                                        "tipoPessoa",
+                                        "Opção de tipo de pessoa informada é inválida"));
     }
 }

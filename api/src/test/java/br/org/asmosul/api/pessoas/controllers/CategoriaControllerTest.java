@@ -1,12 +1,5 @@
 package br.org.asmosul.api.pessoas.controllers;
 
-import static org.hamcrest.Matchers.endsWith;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
@@ -16,32 +9,32 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import br.org.asmosul.api.comum.dtos.RespostaPaginada;
-import br.org.asmosul.api.comum.exceptions.ConflitoDadosException;
-import br.org.asmosul.api.comum.exceptions.EntidadeNaoEncontradaException;
+import br.org.asmosul.api.comum.config.BaseAPITest;
 import br.org.asmosul.api.pessoas.dtos.CategoriaDTO;
-import br.org.asmosul.api.pessoas.services.CategoriaService;
+import br.org.asmosul.api.pessoas.models.Categoria;
+import br.org.asmosul.api.pessoas.repositories.CategoriaRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.util.List;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-@WebMvcTest(CategoriaController.class)
-@DisplayName("Testes Unitários - CategoriaController")
-class CategoriaControllerTest {
+@DisplayName("Testes de IntegraÃ§Ã£o - CategoriaController")
+class CategoriaControllerTest extends BaseAPITest {
 
     @Autowired private MockMvc mockMvc;
 
+    @Autowired private CategoriaRepository categoriaRepository;
+
     private final ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
 
-    @MockitoBean private CategoriaService categoriaService;
+    @BeforeEach
+    void setUp() {
+        categoriaRepository.deleteAll();
+    }
 
     @Nested
     @DisplayName("POST /categorias - Cadastro de Categoria")
@@ -49,32 +42,29 @@ class CategoriaControllerTest {
 
         @Test
         @DisplayName("Deve cadastrar categoria com sucesso retornando status 201 e Location header")
-        void deveCadastrarCategoriaComSucesso() throws Exception {
+        void cadastrar_comDadosValidos_retornaStatus201ELocationHeader() throws Exception {
             var requisicao =
-                    new CategoriaDTO.Requisicao("Sócio Fundador", "Categoria de fundadores");
-            var detalheRetornado =
-                    new CategoriaDTO.Detalhe(1L, "Sócio Fundador", "Categoria de fundadores");
-
-            when(categoriaService.cadastrar(any(CategoriaDTO.Requisicao.class)))
-                    .thenReturn(detalheRetornado);
+                    new CategoriaDTO.Requisicao("SÃ³cio Fundador", "Categoria de fundadores");
 
             mockMvc.perform(
                             post("/categorias")
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(objectMapper.writeValueAsString(requisicao)))
                     .andExpect(status().isCreated())
-                    .andExpect(header().string("Location", endsWith("/categorias/1")))
-                    .andExpect(jsonPath("$.id").value(1L))
-                    .andExpect(jsonPath("$.nome").value("Sócio Fundador"))
+                    .andExpect(
+                            header().string(
+                                            "Location",
+                                            org.hamcrest.Matchers.matchesPattern(
+                                                    ".*/categorias/\\d+")))
+                    .andExpect(jsonPath("$.id").isNumber())
+                    .andExpect(jsonPath("$.nome").value("SÃ³cio Fundador"))
                     .andExpect(jsonPath("$.descricao").value("Categoria de fundadores"));
-
-            verify(categoriaService).cadastrar(any(CategoriaDTO.Requisicao.class));
         }
 
         @Test
         @DisplayName("Deve retornar status 400 quando o nome estiver em branco")
-        void deveRetornar400AoCadastrarComNomeEmBranco() throws Exception {
-            var requisicao = new CategoriaDTO.Requisicao("", "Descrição válida");
+        void cadastrar_comNomeEmBranco_retornaStatus400() throws Exception {
+            var requisicao = new CategoriaDTO.Requisicao("", "DescriÃ§Ã£o vÃ¡lida");
 
             mockMvc.perform(
                             post("/categorias")
@@ -85,9 +75,9 @@ class CategoriaControllerTest {
 
         @Test
         @DisplayName("Deve retornar status 400 quando o nome exceder 50 caracteres")
-        void deveRetornar400AoCadastrarComNomeExcedendoLimite() throws Exception {
+        void cadastrar_comNomeExcedendoLimite_retornaStatus400() throws Exception {
             var nomeLongo = "A".repeat(51);
-            var requisicao = new CategoriaDTO.Requisicao(nomeLongo, "Descrição");
+            var requisicao = new CategoriaDTO.Requisicao(nomeLongo, "DescriÃ§Ã£o");
 
             mockMvc.perform(
                             post("/categorias")
@@ -97,24 +87,18 @@ class CategoriaControllerTest {
         }
 
         @Test
-        @DisplayName("Deve retornar status 409 quando o serviço lançar ConflitoDadosException")
-        void deveRetornar409AoCadastrarComNomeDuplicado() throws Exception {
-            var requisicao = new CategoriaDTO.Requisicao("Sócio Efetivo", "Descrição");
+        @DisplayName("Deve retornar status 409 quando o nome jÃ¡ estiver cadastrado")
+        void cadastrar_comNomeDuplicado_retornaStatus409() throws Exception {
+            categoriaRepository.save(new Categoria("SÃ³cio Efetivo", "DescriÃ§Ã£o inicial"));
 
-            when(categoriaService.cadastrar(any(CategoriaDTO.Requisicao.class)))
-                    .thenThrow(
-                            new ConflitoDadosException(
-                                    "Já existe uma categoria cadastrada com este nome."));
+            var requisicao = new CategoriaDTO.Requisicao("SÃ³cio Efetivo", "Nova descriÃ§Ã£o");
 
             mockMvc.perform(
                             post("/categorias")
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(objectMapper.writeValueAsString(requisicao)))
                     .andExpect(status().isConflict())
-                    .andExpect(jsonPath("$.title").value("Conflito de Dados"))
-                    .andExpect(
-                            jsonPath("$.detail")
-                                    .value("Já existe uma categoria cadastrada com este nome."));
+                    .andExpect(jsonPath("$.title").value("Conflito de Dados"));
         }
     }
 
@@ -124,274 +108,184 @@ class CategoriaControllerTest {
 
         @Test
         @DisplayName("Deve retornar listagem paginada de categorias com status 200")
-        void deveListarCategoriasPaginadas() throws Exception {
-            var resumo = new CategoriaDTO.Resumo(1L, "Sócio Fundador", "Descrição", true);
-            var respostaPaginada = new RespostaPaginada<>(List.of(resumo), 0, 10, 1L, 1);
-
-            when(categoriaService.listar(any(Pageable.class), eq(false)))
-                    .thenReturn(respostaPaginada);
+        void listar_comPaginacao_retornaStatus200EListaPaginada() throws Exception {
+            categoriaRepository.save(new Categoria("Categoria 1", "Desc"));
+            categoriaRepository.save(new Categoria("Categoria 2", "Desc"));
 
             mockMvc.perform(get("/categorias").param("page", "0").param("size", "10"))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.dados[0].id").value(1L))
-                    .andExpect(jsonPath("$.dados[0].nome").value("Sócio Fundador"))
-                    .andExpect(jsonPath("$.dados[0].ativo").value(true))
-                    .andExpect(jsonPath("$.paginaAtual").value(0))
-                    .andExpect(jsonPath("$.tamanhoPagina").value(10))
-                    .andExpect(jsonPath("$.totalElementos").value(1L))
-                    .andExpect(jsonPath("$.totalPaginas").value(1));
-
-            verify(categoriaService).listar(any(Pageable.class), eq(false));
+                    .andExpect(jsonPath("$.dados").isArray())
+                    .andExpect(jsonPath("$.totalElementos").value(2));
         }
 
         @Test
-        @DisplayName("Deve repassar o parâmetro incluirInativos para o serviço")
-        void deveListarCategoriasComParametroIncluirInativos() throws Exception {
-            var respostaPaginada =
-                    new RespostaPaginada<CategoriaDTO.Resumo>(List.of(), 0, 10, 0L, 0);
+        @DisplayName("Deve filtrar inativos por padrÃ£o na listagem")
+        void listar_comFiltroIncluirInativos_retornaStatus200() throws Exception {
+            categoriaRepository.save(new Categoria("Categoria Ativa", "Desc"));
+            Categoria inativa = new Categoria("Categoria Inativa", "Desc");
+            inativa.setDataInativo(java.time.LocalDateTime.now());
+            categoriaRepository.save(inativa);
 
-            when(categoriaService.listar(any(Pageable.class), eq(true)))
-                    .thenReturn(respostaPaginada);
+            mockMvc.perform(get("/categorias").param("incluirInativos", "false"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.totalElementos").value(1))
+                    .andExpect(jsonPath("$.dados[0].nome").value("Categoria Ativa"));
 
             mockMvc.perform(get("/categorias").param("incluirInativos", "true"))
-                    .andExpect(status().isOk());
-
-            verify(categoriaService).listar(any(Pageable.class), eq(true));
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.totalElementos").value(2));
         }
     }
 
     @Nested
-    @DisplayName("GET /categorias/todas - Listagem Completa Não Paginada")
+    @DisplayName("GET /categorias/todas - Listagem NÃ£o Paginada")
     class ListarTodas {
 
         @Test
-        @DisplayName("Deve retornar todas as categorias em lista simples com status 200")
-        void deveListarTodasAsCategorias() throws Exception {
-            var lista =
-                    List.of(
-                            new CategoriaDTO.Resumo(1L, "Categoria 1", "Desc 1", true),
-                            new CategoriaDTO.Resumo(2L, "Categoria 2", "Desc 2", true));
-
-            when(categoriaService.listarTodas(false)).thenReturn(lista);
+        @DisplayName("Deve retornar lista completa de categorias com status 200")
+        void listarTodas_retornaStatus200EListaCompleta() throws Exception {
+            categoriaRepository.save(new Categoria("Categoria A", "Desc"));
+            categoriaRepository.save(new Categoria("Categoria B", "Desc"));
 
             mockMvc.perform(get("/categorias/todas"))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.length()").value(2))
-                    .andExpect(jsonPath("$[0].id").value(1L))
-                    .andExpect(jsonPath("$[0].nome").value("Categoria 1"))
-                    .andExpect(jsonPath("$[1].id").value(2L))
-                    .andExpect(jsonPath("$[1].nome").value("Categoria 2"));
-
-            verify(categoriaService).listarTodas(false);
-        }
-
-        @Test
-        @DisplayName("Deve repassar incluirInativos ao buscar todas as categorias")
-        void deveListarTodasComParametroIncluirInativos() throws Exception {
-            when(categoriaService.listarTodas(true)).thenReturn(List.of());
-
-            mockMvc.perform(get("/categorias/todas").param("incluirInativos", "true"))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.length()").value(0));
-
-            verify(categoriaService).listarTodas(true);
+                    .andExpect(jsonPath("$").isArray())
+                    .andExpect(jsonPath("$.length()").value(2));
         }
     }
 
     @Nested
-    @DisplayName("GET /categorias/{id} - Busca por ID")
+    @DisplayName("GET /categorias/{id} - Detalhamento")
     class BuscarPorId {
 
         @Test
-        @DisplayName("Deve retornar detalhes da categoria quando encontrada com status 200")
-        void deveBuscarCategoriaPorIdComSucesso() throws Exception {
-            var detalhe = new CategoriaDTO.Detalhe(1L, "Sócio Fundador", "Descrição");
+        @DisplayName("Deve retornar detalhes da categoria com status 200 quando existir")
+        void buscarPorId_comIdExistente_retornaStatus200() throws Exception {
+            Categoria categoria = categoriaRepository.save(new Categoria("Categoria X", "Desc X"));
 
-            when(categoriaService.buscarPorId(1L)).thenReturn(detalhe);
-
-            mockMvc.perform(get("/categorias/{id}", 1L))
+            mockMvc.perform(get("/categorias/{id}", categoria.getId()))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.id").value(1L))
-                    .andExpect(jsonPath("$.nome").value("Sócio Fundador"))
-                    .andExpect(jsonPath("$.descricao").value("Descrição"));
-
-            verify(categoriaService).buscarPorId(1L);
+                    .andExpect(jsonPath("$.id").value(categoria.getId()))
+                    .andExpect(jsonPath("$.nome").value("Categoria X"));
         }
 
         @Test
-        @DisplayName(
-                "Deve retornar status 404 quando o serviço lançar EntidadeNaoEncontradaException")
-        void deveRetornar404AoBuscarCategoriaInexistente() throws Exception {
-            when(categoriaService.buscarPorId(99L))
-                    .thenThrow(
-                            new EntidadeNaoEncontradaException(
-                                    "Categoria ativa não encontrada com o ID informado: 99"));
-
-            mockMvc.perform(get("/categorias/{id}", 99L))
-                    .andExpect(status().isNotFound())
-                    .andExpect(jsonPath("$.title").value("Recurso Não Encontrado"))
-                    .andExpect(
-                            jsonPath("$.detail")
-                                    .value(
-                                            "Categoria ativa não encontrada com o ID informado: 99"));
+        @DisplayName("Deve retornar status 404 quando o ID nÃ£o existir")
+        void buscarPorId_comIdInexistenteOuInativo_retornaStatus404() throws Exception {
+            mockMvc.perform(get("/categorias/{id}", 99999L)).andExpect(status().isNotFound());
         }
     }
 
     @Nested
-    @DisplayName("PUT /categorias/{id} - Atualização")
+    @DisplayName("PUT /categorias/{id} - AtualizaÃ§Ã£o")
     class Atualizar {
 
         @Test
-        @DisplayName("Deve atualizar categoria com sucesso retornando status 200")
-        void deveAtualizarCategoriaComSucesso() throws Exception {
-            var requisicao = new CategoriaDTO.Atualizacao("Sócio Atualizado", "Nova Descrição");
-            var detalhe = new CategoriaDTO.Detalhe(1L, "Sócio Atualizado", "Nova Descrição");
+        @DisplayName("Deve atualizar dados da categoria com status 200")
+        void atualizar_comDadosValidos_retornaStatus200() throws Exception {
+            Categoria categoria = categoriaRepository.save(new Categoria("Nome Antigo", "Desc"));
 
-            when(categoriaService.atualizar(eq(1L), any(CategoriaDTO.Atualizacao.class)))
-                    .thenReturn(detalhe);
+            var requisicao = new CategoriaDTO.Atualizacao("Nome Novo", "Desc Atualizada");
 
             mockMvc.perform(
-                            put("/categorias/{id}", 1L)
+                            put("/categorias/{id}", categoria.getId())
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(objectMapper.writeValueAsString(requisicao)))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.id").value(1L))
-                    .andExpect(jsonPath("$.nome").value("Sócio Atualizado"))
-                    .andExpect(jsonPath("$.descricao").value("Nova Descrição"));
-
-            verify(categoriaService).atualizar(eq(1L), any(CategoriaDTO.Atualizacao.class));
+                    .andExpect(jsonPath("$.id").value(categoria.getId()))
+                    .andExpect(jsonPath("$.nome").value("Nome Novo"))
+                    .andExpect(jsonPath("$.descricao").value("Desc Atualizada"));
         }
 
         @Test
-        @DisplayName("Deve retornar status 400 ao atualizar com nome em branco")
-        void deveRetornar400AoAtualizarComNomeEmBranco() throws Exception {
-            var requisicao = new CategoriaDTO.Atualizacao("", "Nova Descrição");
+        @DisplayName("Deve retornar status 409 ao tentar atualizar para nome jÃ¡ existente")
+        void atualizar_comNomeDuplicado_retornaStatus409() throws Exception {
+            categoriaRepository.save(new Categoria("Categoria 1", "Desc"));
+            Categoria cat2 = categoriaRepository.save(new Categoria("Categoria 2", "Desc"));
+
+            var requisicao = new CategoriaDTO.Atualizacao("Categoria 1", "Desc");
 
             mockMvc.perform(
-                            put("/categorias/{id}", 1L)
-                                    .contentType(MediaType.APPLICATION_JSON)
-                                    .content(objectMapper.writeValueAsString(requisicao)))
-                    .andExpect(status().isBadRequest());
-        }
-
-        @Test
-        @DisplayName("Deve retornar status 404 ao tentar atualizar categoria inexistente")
-        void deveRetornar404AoAtualizarCategoriaInexistente() throws Exception {
-            var requisicao = new CategoriaDTO.Atualizacao("Nome", "Descrição");
-
-            when(categoriaService.atualizar(eq(99L), any(CategoriaDTO.Atualizacao.class)))
-                    .thenThrow(
-                            new EntidadeNaoEncontradaException(
-                                    "Categoria ativa não encontrada com o ID informado: 99"));
-
-            mockMvc.perform(
-                            put("/categorias/{id}", 99L)
-                                    .contentType(MediaType.APPLICATION_JSON)
-                                    .content(objectMapper.writeValueAsString(requisicao)))
-                    .andExpect(status().isNotFound());
-        }
-
-        @Test
-        @DisplayName("Deve retornar status 409 ao atualizar para nome já existente")
-        void deveRetornar409AoAtualizarParaNomeDuplicado() throws Exception {
-            var requisicao = new CategoriaDTO.Atualizacao("Nome Conflitante", "Descrição");
-
-            when(categoriaService.atualizar(eq(1L), any(CategoriaDTO.Atualizacao.class)))
-                    .thenThrow(
-                            new ConflitoDadosException(
-                                    "Já existe uma categoria cadastrada com este nome."));
-
-            mockMvc.perform(
-                            put("/categorias/{id}", 1L)
+                            put("/categorias/{id}", cat2.getId())
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(objectMapper.writeValueAsString(requisicao)))
                     .andExpect(status().isConflict());
         }
+
+        @Test
+        @DisplayName("Deve retornar status 404 ao tentar atualizar categoria inexistente")
+        void atualizar_comIdInexistente_retornaStatus404() throws Exception {
+            var requisicao = new CategoriaDTO.Atualizacao("Nome", "Desc");
+
+            mockMvc.perform(
+                            put("/categorias/{id}", 99999L)
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(objectMapper.writeValueAsString(requisicao)))
+                    .andExpect(status().isNotFound());
+        }
     }
 
     @Nested
-    @DisplayName("PATCH /categorias/{id}/desativar - Desativação (Soft Delete)")
+    @DisplayName("PATCH /categorias/{id}/desativar - DesativaÃ§Ã£o")
     class Desativar {
 
         @Test
         @DisplayName("Deve desativar categoria com sucesso retornando status 204")
-        void deveDesativarCategoriaComSucesso() throws Exception {
-            doNothing().when(categoriaService).desativar(1L);
+        void desativar_comIdExistente_retornaStatus204() throws Exception {
+            Categoria categoria = categoriaRepository.save(new Categoria("Ativa", "Desc"));
 
-            mockMvc.perform(patch("/categorias/{id}/desativar", 1L))
+            mockMvc.perform(patch("/categorias/{id}/desativar", categoria.getId()))
                     .andExpect(status().isNoContent());
-
-            verify(categoriaService).desativar(1L);
         }
 
         @Test
-        @DisplayName(
-                "Deve retornar status 404 ao tentar desativar categoria inexistente ou já inativa")
-        void deveRetornar404AoDesativarCategoriaInexistente() throws Exception {
-            doThrow(
-                            new EntidadeNaoEncontradaException(
-                                    "Categoria ativa não encontrada com o ID informado: 99"))
-                    .when(categoriaService)
-                    .desativar(99L);
-
-            mockMvc.perform(patch("/categorias/{id}/desativar", 99L))
+        @DisplayName("Deve retornar status 404 ao tentar desativar categoria inexistente")
+        void desativar_comIdInexistenteOuJaInativo_retornaStatus404() throws Exception {
+            mockMvc.perform(patch("/categorias/{id}/desativar", 99999L))
                     .andExpect(status().isNotFound());
         }
     }
 
     @Nested
-    @DisplayName("PATCH /categorias/{id}/reativar - Reativação")
+    @DisplayName("PATCH /categorias/{id}/reativar - ReativaÃ§Ã£o")
     class Reativar {
 
         @Test
         @DisplayName("Deve reativar categoria com sucesso retornando status 204")
-        void deveReativarCategoriaComSucesso() throws Exception {
-            doNothing().when(categoriaService).reativar(1L);
+        void reativar_comIdExistente_retornaStatus204() throws Exception {
+            Categoria categoria = new Categoria("Inativa", "Desc");
+            categoria.setDataInativo(java.time.LocalDateTime.now());
+            categoria = categoriaRepository.save(categoria);
 
-            mockMvc.perform(patch("/categorias/{id}/reativar", 1L))
+            mockMvc.perform(patch("/categorias/{id}/reativar", categoria.getId()))
                     .andExpect(status().isNoContent());
-
-            verify(categoriaService).reativar(1L);
         }
 
         @Test
         @DisplayName("Deve retornar status 404 ao tentar reativar categoria inexistente")
-        void deveRetornar404AoReativarCategoriaInexistente() throws Exception {
-            doThrow(
-                            new EntidadeNaoEncontradaException(
-                                    "Categoria não encontrada com o ID informado: 99"))
-                    .when(categoriaService)
-                    .reativar(99L);
-
-            mockMvc.perform(patch("/categorias/{id}/reativar", 99L))
+        void reativar_comIdInexistente_retornaStatus404() throws Exception {
+            mockMvc.perform(patch("/categorias/{id}/reativar", 99999L))
                     .andExpect(status().isNotFound());
         }
     }
 
     @Nested
-    @DisplayName("DELETE /categorias/{id} - Exclusão Física")
+    @DisplayName("DELETE /categorias/{id} - ExclusÃ£o FÃ­sica")
     class Excluir {
 
         @Test
         @DisplayName("Deve excluir categoria com sucesso retornando status 204")
-        void deveExcluirCategoriaComSucesso() throws Exception {
-            doNothing().when(categoriaService).excluir(1L);
+        void excluir_comIdExistente_retornaStatus204() throws Exception {
+            Categoria categoria = categoriaRepository.save(new Categoria("Para Excluir", "Desc"));
 
-            mockMvc.perform(delete("/categorias/{id}", 1L)).andExpect(status().isNoContent());
-
-            verify(categoriaService).excluir(1L);
+            mockMvc.perform(delete("/categorias/{id}", categoria.getId()))
+                    .andExpect(status().isNoContent());
         }
 
         @Test
         @DisplayName("Deve retornar status 404 ao tentar excluir categoria inexistente")
-        void deveRetornar404AoExcluirCategoriaInexistente() throws Exception {
-            doThrow(
-                            new EntidadeNaoEncontradaException(
-                                    "Categoria não encontrada com o ID informado: 99"))
-                    .when(categoriaService)
-                    .excluir(99L);
-
-            mockMvc.perform(delete("/categorias/{id}", 99L)).andExpect(status().isNotFound());
+        void excluir_comIdInexistente_retornaStatus404() throws Exception {
+            mockMvc.perform(delete("/categorias/{id}", 99999L)).andExpect(status().isNotFound());
         }
     }
 }

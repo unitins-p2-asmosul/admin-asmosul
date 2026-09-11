@@ -1,13 +1,13 @@
 package br.org.asmosul.api.pessoas.models;
 
 import br.org.asmosul.api.comum.models.EntidadeInativavel;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
-
-import com.fasterxml.jackson.annotation.JsonFormat;
+import org.hibernate.annotations.BatchSize;
 
 @Entity
 @Table(name = "pessoa")
@@ -16,20 +16,24 @@ public class Pessoa extends EntidadeInativavel {
     @Column(nullable = false)
     private String nome;
 
-    @Column(nullable = false, unique = true, length = 11)
-    private String cpf;
+    @Column(name = "cpf_cnpj", nullable = false, unique = true, length = 14)
+    private String cpfCnpj;
 
-    @Column(name = "data_nascimento", nullable = false)
+    @Enumerated(EnumType.STRING)
+    @Column(name = "tipo_pessoa", nullable = false)
+    private TipoPessoa tipoPessoa;
+
+    @Column(name = "data_nascimento")
     @JsonFormat(pattern = "dd-MM-yyyy")
     private LocalDate dataNascimento;
 
     @Enumerated(EnumType.STRING)
     private Sexo sexo;
 
-    @Column(nullable = false, length = 11)
+    @Column(nullable = false, length = 14)
     private String telefone;
 
-    @Column(length = 50)
+    @Column(length = 50, unique = true)
     private String email;
 
     @Enumerated(EnumType.STRING)
@@ -45,29 +49,76 @@ public class Pessoa extends EntidadeInativavel {
     @Column(name = "descricao", columnDefinition = "TEXT")
     private String descricao;
 
+    @Column(length = 9)
+    private String cep;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "uf")
+    private Uf uf;
+
+    @Column(length = 100)
+    private String cidade;
+
+    @Column(length = 50)
+    private String bairro;
+
+    @Column(length = 100)
+    private String logradouro;
+
+    @Column(name = "complemento_endereco", length = 100)
+    private String complementoEndereco;
+
+    @Column(name = "quantidade_coabitante")
+    private Byte quantidadeCoabitantes = (byte) 0;
+
+    @Column(name = "eh_beneficiario")
+    private boolean ehBeneficiario = false;
+
+    @Column(name = "eh_doador")
+    private boolean ehDoador = false;
+
+    @BatchSize(size = 25)
     @ManyToMany
     @JoinTable(
-        name = "pessoa_comorbidade",
-        joinColumns = @JoinColumn(name = "id_pessoa"),
-        inverseJoinColumns = @JoinColumn(name = "id_comorbidade")
-    )
+            name = "pessoa_comorbidade",
+            joinColumns = @JoinColumn(name = "id_pessoa"),
+            inverseJoinColumns = @JoinColumn(name = "id_comorbidade"))
     private Set<Comorbidade> comorbidades = new HashSet<>();
 
+    @BatchSize(size = 25)
     @ManyToMany
     @JoinTable(
-        name = "pessoa_categoria",
-        joinColumns = @JoinColumn(name = "id_pessoa"),
-        inverseJoinColumns = @JoinColumn(name = "id_categoria")
-    )
+            name = "pessoa_categoria",
+            joinColumns = @JoinColumn(name = "id_pessoa"),
+            inverseJoinColumns = @JoinColumn(name = "id_categoria"))
     private Set<Categoria> categorias = new HashSet<>();
 
     protected Pessoa() {}
 
-    public Pessoa(String nome, String cpf, LocalDate dataNascimento, Sexo sexo, String telefone, 
-                  String email, Escolaridade escolaridade, String profissao, RendaFamiliar rendaFamiliar, 
-                  String descricao) {
+    public Pessoa(
+            String nome,
+            String cpfCnpj,
+            TipoPessoa tipoPessoa,
+            LocalDate dataNascimento,
+            Sexo sexo,
+            String telefone,
+            String email,
+            Escolaridade escolaridade,
+            String profissao,
+            RendaFamiliar rendaFamiliar,
+            String descricao,
+            String cep,
+            Uf uf,
+            String cidade,
+            String bairro,
+            String logradouro,
+            String complementoEndereco,
+            Integer quantidadeCoabitantes,
+            boolean ehBeneficiario,
+            boolean ehDoador) {
         this.nome = nome;
-        this.cpf = cpf;
+        this.cpfCnpj = cpfCnpj;
+        this.tipoPessoa = (tipoPessoa != null) ? tipoPessoa : TipoPessoa.FISICA;
         this.dataNascimento = dataNascimento;
         this.sexo = sexo;
         this.telefone = telefone;
@@ -76,13 +127,40 @@ public class Pessoa extends EntidadeInativavel {
         this.profissao = profissao;
         this.rendaFamiliar = rendaFamiliar;
         this.descricao = descricao;
+        this.cep = cep;
+        this.uf = uf;
+        this.cidade = cidade;
+        this.bairro = bairro;
+        this.logradouro = logradouro;
+        this.complementoEndereco = complementoEndereco;
+        this.quantidadeCoabitantes =
+                (quantidadeCoabitantes != null) ? quantidadeCoabitantes.byteValue() : (byte) 0;
+        this.ehBeneficiario = ehBeneficiario;
+        this.ehDoador = ehDoador;
     }
 
-    public void atualizarDados(String nome, String cpf, LocalDate dataNascimento, Sexo sexo, 
-                               String telefone, String email, Escolaridade escolaridade, 
-                               String profissao, RendaFamiliar rendaFamiliar, String descricao) {
+    public void atualizarDados(
+            String nome,
+            String cpfCnpj,
+            LocalDate dataNascimento,
+            Sexo sexo,
+            String telefone,
+            String email,
+            Escolaridade escolaridade,
+            String profissao,
+            RendaFamiliar rendaFamiliar,
+            String descricao,
+            String cep,
+            Uf uf,
+            String cidade,
+            String bairro,
+            String logradouro,
+            String complementoEndereco,
+            Integer quantidadeCoabitantes,
+            boolean ehBeneficiario,
+            boolean ehDoador) {
         this.nome = nome;
-        this.cpf = cpf;
+        this.cpfCnpj = cpfCnpj;
         this.dataNascimento = dataNascimento;
         this.sexo = sexo;
         this.telefone = telefone;
@@ -91,6 +169,16 @@ public class Pessoa extends EntidadeInativavel {
         this.profissao = profissao;
         this.rendaFamiliar = rendaFamiliar;
         this.descricao = descricao;
+        this.cep = cep;
+        this.uf = uf;
+        this.cidade = cidade;
+        this.bairro = bairro;
+        this.logradouro = logradouro;
+        this.complementoEndereco = complementoEndereco;
+        this.quantidadeCoabitantes =
+                (quantidadeCoabitantes != null) ? quantidadeCoabitantes.byteValue() : (byte) 0;
+        this.ehBeneficiario = ehBeneficiario;
+        this.ehDoador = ehDoador;
     }
 
     public void desativar() {
@@ -102,43 +190,180 @@ public class Pessoa extends EntidadeInativavel {
     }
 
     // Getters e Setters
-    public String getNome() { return nome; }
-    public void setNome(String nome) { this.nome = nome; }
-
-    public String getCpf() { return cpf; }
-    public void setCpf(String cpf) { this.cpf = cpf; }
-
-    public LocalDate getDataNascimento() { return dataNascimento; }
-    public void setDataNascimento(LocalDate dataNascimento) { this.dataNascimento = dataNascimento; }
-
-    public Sexo getSexo() { return sexo; }
-    public void setSexo(Sexo sexo) { this.sexo = sexo; }
-
-    public String getTelefone() { return telefone; }
-    public void setTelefone(String telefone) { this.telefone = telefone; }
-
-    public String getEmail() { return email; }
-    public void setEmail(String email) { this.email = email; }
-
-    public Escolaridade getEscolaridade() { return escolaridade; }
-    public void setEscolaridade(Escolaridade escolaridade) { this.escolaridade = escolaridade; }
-
-    public String getProfissao() { return profissao; }
-    public void setProfissao(String profissao) { this.profissao = profissao; }
-
-    public RendaFamiliar getRendaFamiliar() { return rendaFamiliar; }
-    public void setRendaFamiliar(RendaFamiliar rendaFamiliar) { this.rendaFamiliar = rendaFamiliar; }
-
-    public String getDescricao() { return descricao; }
-    public void setDescricao(String descricao) { this.descricao = descricao; }
-
-    public Set<Comorbidade> getComorbidades() { return comorbidades; }
-    public void setComorbidades(Set<Comorbidade> comorbidades) { 
-        this.comorbidades = (comorbidades != null) ? comorbidades : new HashSet<>(); 
+    public String getNome() {
+        return nome;
     }
 
-    public Set<Categoria> getCategorias() { return categorias; }
-    public void setCategorias(Set<Categoria> categorias) { 
-        this.categorias = (categorias != null) ? categorias : new HashSet<>(); 
+    public void setNome(String nome) {
+        this.nome = nome;
+    }
+
+    public String getCpfCnpj() {
+        return cpfCnpj;
+    }
+
+    public void setCpfCnpj(String cpfCnpj) {
+        this.cpfCnpj = cpfCnpj;
+    }
+
+    public TipoPessoa getTipoPessoa() {
+        return tipoPessoa;
+    }
+
+    public void setTipoPessoa(TipoPessoa tipoPessoa) {
+        this.tipoPessoa = tipoPessoa;
+    }
+
+    public LocalDate getDataNascimento() {
+        return dataNascimento;
+    }
+
+    public void setDataNascimento(LocalDate dataNascimento) {
+        this.dataNascimento = dataNascimento;
+    }
+
+    public Sexo getSexo() {
+        return sexo;
+    }
+
+    public void setSexo(Sexo sexo) {
+        this.sexo = sexo;
+    }
+
+    public String getTelefone() {
+        return telefone;
+    }
+
+    public void setTelefone(String telefone) {
+        this.telefone = telefone;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public Escolaridade getEscolaridade() {
+        return escolaridade;
+    }
+
+    public void setEscolaridade(Escolaridade escolaridade) {
+        this.escolaridade = escolaridade;
+    }
+
+    public String getProfissao() {
+        return profissao;
+    }
+
+    public void setProfissao(String profissao) {
+        this.profissao = profissao;
+    }
+
+    public RendaFamiliar getRendaFamiliar() {
+        return rendaFamiliar;
+    }
+
+    public void setRendaFamiliar(RendaFamiliar rendaFamiliar) {
+        this.rendaFamiliar = rendaFamiliar;
+    }
+
+    public String getDescricao() {
+        return descricao;
+    }
+
+    public void setDescricao(String descricao) {
+        this.descricao = descricao;
+    }
+
+    public String getCep() {
+        return cep;
+    }
+
+    public void setCep(String cep) {
+        this.cep = cep;
+    }
+
+    public Uf getUf() {
+        return uf;
+    }
+
+    public void setUf(Uf uf) {
+        this.uf = uf;
+    }
+
+    public String getCidade() {
+        return cidade;
+    }
+
+    public void setCidade(String cidade) {
+        this.cidade = cidade;
+    }
+
+    public String getBairro() {
+        return bairro;
+    }
+
+    public void setBairro(String bairro) {
+        this.bairro = bairro;
+    }
+
+    public String getLogradouro() {
+        return logradouro;
+    }
+
+    public void setLogradouro(String logradouro) {
+        this.logradouro = logradouro;
+    }
+
+    public String getComplementoEndereco() {
+        return complementoEndereco;
+    }
+
+    public void setComplementoEndereco(String complementoEndereco) {
+        this.complementoEndereco = complementoEndereco;
+    }
+
+    public Integer getQuantidadeCoabitantes() {
+        return quantidadeCoabitantes != null ? quantidadeCoabitantes.intValue() : 0;
+    }
+
+    public void setQuantidadeCoabitantes(Integer quantidadeCoabitantes) {
+        this.quantidadeCoabitantes =
+                (quantidadeCoabitantes != null) ? quantidadeCoabitantes.byteValue() : (byte) 0;
+    }
+
+    public boolean isEhBeneficiario() {
+        return ehBeneficiario;
+    }
+
+    public void setEhBeneficiario(boolean ehBeneficiario) {
+        this.ehBeneficiario = ehBeneficiario;
+    }
+
+    public boolean isEhDoador() {
+        return ehDoador;
+    }
+
+    public void setEhDoador(boolean ehDoador) {
+        this.ehDoador = ehDoador;
+    }
+
+    public Set<Comorbidade> getComorbidades() {
+        return comorbidades;
+    }
+
+    public void setComorbidades(Set<Comorbidade> comorbidades) {
+        this.comorbidades = (comorbidades != null) ? comorbidades : new HashSet<>();
+    }
+
+    public Set<Categoria> getCategorias() {
+        return categorias;
+    }
+
+    public void setCategorias(Set<Categoria> categorias) {
+        this.categorias = (categorias != null) ? categorias : new HashSet<>();
     }
 }
