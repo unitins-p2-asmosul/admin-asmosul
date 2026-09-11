@@ -71,7 +71,7 @@ public class PessoaService {
                 requisicao.quantidadeCoabitantes(),
                 requisicao.ehBeneficiario(),
                 requisicao.ehDoador(),
-                null);
+                null, requisicao.profissao());
 
         validarUnicidade(requisicao.cpfCnpj(), requisicao.email(), null);
 
@@ -168,7 +168,7 @@ public class PessoaService {
                 requisicao.quantidadeCoabitantes(),
                 requisicao.ehBeneficiario(),
                 requisicao.ehDoador(),
-                id);
+                id, requisicao.profissao());
 
         validarUnicidade(requisicao.cpfCnpj(), requisicao.email(), id);
 
@@ -256,7 +256,8 @@ public class PessoaService {
             Integer quantidadeCoabitantes,
             Boolean ehBeneficiario,
             Boolean ehDoador,
-            Long idAtual) {
+            Long idAtual,
+            String profissao) {
 
         if (tipo == TipoPessoa.JURIDICA) {
             // RN05 - Restrição de Papel para Pessoa Jurídica (proibido ser beneficiária)
@@ -271,36 +272,6 @@ public class PessoaService {
                 throw ValidationException.of(
                         "cpfCnpj", "CNPJ deve conter exatamente 14 dígitos numéricos");
             }
-
-            if (email == null || email.isBlank()) {
-                throw ValidationException.of(
-                        "email", "O e-mail é obrigatório para Pessoa Jurídica");
-            }
-
-            if (cep == null || cep.isBlank()) {
-                throw ValidationException.of("cep", "O CEP é obrigatório para Pessoa Jurídica");
-            }
-
-            if (uf == null) {
-                throw ValidationException.of(
-                        "uf", "O estado (UF) é obrigatório para Pessoa Jurídica");
-            }
-
-            if (cidade == null || cidade.isBlank()) {
-                throw ValidationException.of(
-                        "cidade", "A cidade é obrigatória para Pessoa Jurídica");
-            }
-
-            if (bairro == null || bairro.isBlank()) {
-                throw ValidationException.of(
-                        "bairro", "O bairro é obrigatório para Pessoa Jurídica");
-            }
-
-            if (logradouro == null || logradouro.isBlank()) {
-                throw ValidationException.of(
-                        "logradouro", "O logradouro é obrigatório para Pessoa Jurídica");
-            }
-
 
             // PJ não pode possuir atributos específicos de PF
             if (comorbidades != null && !comorbidades.isEmpty()) {
@@ -332,6 +303,12 @@ public class PessoaService {
                         "quantidadeCoabitantes",
                         "Pessoa Jurídica não deve possuir quantidade de coabitantes");
             }
+
+            if (profissao != null) {
+                throw ValidationException.of("profissao",
+                    "Pessoa Jurídica não deve possuir profissão");
+            }
+
         } else {
             // RN07 - Dados Obrigatórios de Pessoa Física
             if (cpfCnpj == null || cpfCnpj.length() != 11) {
@@ -343,6 +320,8 @@ public class PessoaService {
                 throw ValidationException.of(
                         "dataNascimento", "A data de nascimento é obrigatória para Pessoa Física");
             }
+
+            // nome e telefone são validados no DTO
 
         }
     }

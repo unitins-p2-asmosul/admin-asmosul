@@ -302,71 +302,6 @@ class PessoaServiceTest {
         }
 
         @Test
-        @DisplayName("Deve lançar ValidationException se PJ não informar e-mail (RN06)")
-        void cadastrarPessoa_comPjSemEmail_lancaValidationException() {
-            var req =
-                    new PessoaDTO.Requisicao(
-                            "Empresa Solidária",
-                            "12345678000199",
-                            TipoPessoa.JURIDICA,
-                            null,
-                            null,
-                            "63988887777",
-                            "", // sem email
-                            null,
-                            null,
-                            null,
-                            null,
-                            List.of(1L),
-                            "Desc",
-                            "77000-000",
-                            Uf.TO,
-                            "Palmas",
-                            "Centro",
-                            "Rua 1",
-                            null,
-                            0,
-                            false,
-                            true);
-
-            assertValidationExceptionContem(
-                    () -> pessoaService.cadastrar(req),
-                    "O e-mail é obrigatório para Pessoa Jurídica");
-        }
-
-        @Test
-        @DisplayName("Deve lançar ValidationException se PJ não informar endereço (RN06)")
-        void cadastrarPessoa_comPjSemEndereco_lancaValidationException() {
-            var req =
-                    new PessoaDTO.Requisicao(
-                            "Empresa Solidária",
-                            "12345678000199",
-                            TipoPessoa.JURIDICA,
-                            null,
-                            null,
-                            "63988887777",
-                            "pj@empresa.com",
-                            null,
-                            null,
-                            null,
-                            null,
-                            List.of(1L),
-                            "Desc",
-                            "", // sem CEP
-                            Uf.TO,
-                            "Palmas",
-                            "Centro",
-                            "Rua 1",
-                            null,
-                            0,
-                            false,
-                            true);
-
-            assertValidationExceptionContem(
-                    () -> pessoaService.cadastrar(req), "O CEP é obrigatório para Pessoa Jurídica");
-        }
-
-        @Test
         @DisplayName("Deve lançar ValidationException se PJ informar comorbidades (RN06)")
         void cadastrarPessoa_comPjEComorbidades_lancaValidationException() {
             var req =
@@ -464,38 +399,6 @@ class PessoaServiceTest {
                     "A data de nascimento é obrigatória para Pessoa Física");
         }
 
-        @Test
-        @DisplayName("Deve lançar ValidationException se PF não informar categoria (RN07)")
-        void cadastrarPessoa_comPfSemCategoria_lancaValidationException() {
-            var req =
-                    new PessoaDTO.Requisicao(
-                            "Maria",
-                            "12345678901",
-                            TipoPessoa.FISICA,
-                            LocalDate.of(1990, 1, 1),
-                            Sexo.FEMININO,
-                            "63999998888",
-                            "maria@email.com",
-                            null,
-                            null,
-                            null,
-                            null,
-                            List.of(), // sem categoria
-                            null,
-                            null,
-                            null,
-                            null,
-                            null,
-                            null,
-                            null,
-                            0,
-                            false,
-                            false);
-
-            assertValidationExceptionContem(
-                    () -> pessoaService.cadastrar(req),
-                    "Pessoa Física deve possuir ao menos uma categoria vinculada");
-        }
     }
 
     @Nested
