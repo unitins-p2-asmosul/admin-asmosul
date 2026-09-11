@@ -301,11 +301,6 @@ public class PessoaService {
                         "logradouro", "O logradouro é obrigatório para Pessoa Jurídica");
             }
 
-            if (categorias == null || categorias.isEmpty()) {
-                throw ValidationException.of(
-                        "categorias",
-                        "Pessoa Jurídica deve possuir ao menos uma categoria vinculada");
-            }
 
             // PJ não pode possuir atributos específicos de PF
             if (comorbidades != null && !comorbidades.isEmpty()) {
@@ -349,11 +344,6 @@ public class PessoaService {
                         "dataNascimento", "A data de nascimento é obrigatória para Pessoa Física");
             }
 
-            if (categorias == null || categorias.isEmpty()) {
-                throw ValidationException.of(
-                        "categorias",
-                        "Pessoa Física deve possuir ao menos uma categoria vinculada");
-            }
         }
     }
 
