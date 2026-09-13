@@ -45,6 +45,25 @@
   --mat-button-filled-label-text-color: var(--color-asmosul-navy);
 }
 
+.categoria-filtro-dialog .mat-mdc-dialog-container .mdc-dialog__surface {
+  --mdc-dialog-container-color: #f7f7f7;
+  --mdc-dialog-container-shape: 76px;
+  border-radius: 76px;
+  box-shadow: none;
+}
+
+.categoria-filtro-dialog .mat-mdc-dialog-content {
+  overflow: visible;
+}
+
+.categoria-filtro-dialog .mat-mdc-checkbox {
+  --mdc-checkbox-selected-checkmark-color: #ffffff;
+  --mdc-checkbox-selected-icon-color: var(--color-asmosul-navy);
+  --mdc-checkbox-selected-hover-icon-color: var(--color-asmosul-navy);
+  --mdc-checkbox-selected-focus-icon-color: var(--color-asmosul-navy);
+  --mdc-checkbox-selected-pressed-icon-color: var(--color-asmosul-navy);
+}
+
 /* O min-width do Material vence as classes do Tailwind, entao vai aqui. */
 @media (min-width: 640px) {
   .pagina-formulario button[mat-flat-button] {

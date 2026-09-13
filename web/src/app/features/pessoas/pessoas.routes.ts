@@ -16,6 +16,45 @@ export const PESSOAS_ROUTES: Routes = [
         (m) => m.PessoaCadastroPageComponent
       ),
   },
+
+  // ==========================================
+  // Recurso: Categorias
+  // ==========================================
+  {
+    path: 'categorias',
+    children: [
+      {
+        path: '',
+        pathMatch: 'full',
+        loadComponent: () =>
+          import('./pages/categoria-lista-page/categoria-lista-page.component').then(
+            (m) => m.CategoriaListaPageComponent,
+          ),
+      },
+      {
+        path: 'adicionar',
+        loadComponent: () =>
+          import('./pages/categoria-cadastro-page/categoria-cadastro-page.component').then(
+            (m) => m.CategoriaCadastroPageComponent,
+          ),
+      },
+      {
+        path: ':id/editar',
+        loadComponent: () =>
+          import('./pages/categoria-cadastro-page/categoria-cadastro-page.component').then(
+            (m) => m.CategoriaCadastroPageComponent,
+          ),
+      },
+      {
+        path: ':id',
+        loadComponent: () =>
+          import('./pages/categoria-cadastro-page/categoria-cadastro-page.component').then(
+            (m) => m.CategoriaCadastroPageComponent,
+          ),
+        data: { visualizacao: true },
+      },
+    ],
+  },
   {
     path: ':id/editar',
     loadComponent: () =>
@@ -71,39 +110,4 @@ export const PESSOAS_ROUTES: Routes = [
     ],
   },
 
-  // ==========================================
-  // Recurso: Categorias
-  // ==========================================
-  {
-    path: 'categorias',
-    children: [
-      {
-        path: '',
-        pathMatch: 'full',
-        redirectTo: 'adicionar', // Alterne para a página de listagem de categorias
-      },
-      {
-        path: 'adicionar',
-        loadComponent: () =>
-          import('./pages/categoria-cadastro-page/categoria-cadastro-page.component').then(
-            (m) => m.CategoriaCadastroPageComponent
-          ),
-      },
-      {
-        path: ':id/editar',
-        loadComponent: () =>
-          import('./pages/categoria-cadastro-page/categoria-cadastro-page.component').then(
-            (m) => m.CategoriaCadastroPageComponent
-          ),
-      },
-      {
-        path: ':id',
-        loadComponent: () =>
-          import('./pages/categoria-cadastro-page/categoria-cadastro-page.component').then(
-            (m) => m.CategoriaCadastroPageComponent
-          ),
-        data: { visualizacao: true },
-      },
-    ],
-  },
 ];

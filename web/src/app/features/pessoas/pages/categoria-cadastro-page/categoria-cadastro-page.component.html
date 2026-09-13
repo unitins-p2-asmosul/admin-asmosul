@@ -1,19 +1,66 @@
-<section class="pagina-formulario mx-auto max-w-4xl">
+<section class="pagina-formulario mx-auto max-w-6xl">
   <div class="mb-8">
-    <h1 class="text-[2rem] font-bold">Cadastro de Categoria</h1>
-    <p class="mt-2 text-base font-medium text-slate-500">
-      Preencha os dados abaixo para cadastrar uma nova categoria.
-    </p>
+    @if (visualizacao()) {
+      <div class="flex items-center gap-4">
+        <h1 class="text-[2rem] font-bold">Detalhes da Categoria</h1>
+        <span class="rounded-full bg-[#8bce68] px-12 py-2 font-bold text-white">Ativo</span>
+      </div>
+    } @else {
+      <div class="flex items-center gap-4">
+        <h1 class="text-[2rem] font-bold">{{ titulo }}</h1>
+      </div>
+    }
   </div>
 
-  <form
-    [formGroup]="form"
-    (ngSubmit)="salvar()"
-    class="rounded-xl border border-gray-200 bg-white p-8 shadow-sm"
-  >
-    <h2 class="mb-5 text-lg font-semibold">Dados da Categoria</h2>
+  @if (visualizacao()) {
+    <div class="rounded-xl border border-gray-200 bg-white px-12 py-10 shadow-sm">
+      <h2 class="mb-8 text-lg font-semibold text-slate-800">Dados da Categoria</h2>
 
-    <div class="w-full">
+      <div class="grid grid-cols-1 gap-8 md:grid-cols-[220px_1fr]">
+        <div>
+          <h3 class="text-sm font-bold text-slate-700">Nome</h3>
+          <p class="mt-1 font-medium text-slate-400">{{ categoria()?.nome }}</p>
+        </div>
+        <div>
+          <h3 class="text-sm font-bold text-slate-700">Descrição</h3>
+          <p class="mt-1 max-w-2xl font-medium leading-5 text-slate-400">
+            {{ categoria()?.descricao || 'Sem descrição informada.' }}
+          </p>
+        </div>
+      </div>
+
+      <div class="mt-28 flex justify-center gap-6">
+        <button
+          mat-flat-button
+          color="primary"
+          type="button"
+          class="!h-12 !min-w-40 !rounded-full"
+          (click)="editar()"
+          aria-label="Editar categoria"
+        >
+          <span class="material-icons" aria-hidden="true">edit</span>
+        </button>
+        <button
+          mat-flat-button
+          type="button"
+          class="!h-12 !min-w-40 !rounded-full !bg-[#ed6b70] !text-white"
+          (click)="excluir()"
+          [disabled]="carregando()"
+          aria-label="Excluir categoria"
+        >
+          <span class="material-icons" aria-hidden="true">delete_outline</span>
+        </button>
+      </div>
+    </div>
+  } @else {
+    <form
+      [formGroup]="form"
+      (ngSubmit)="salvar()"
+      class="rounded-xl border border-gray-200 bg-white p-8 shadow-sm"
+    >
+      <h2 class="mb-5 text-lg font-semibold">Dados da Categoria</h2>
+
+      <div class="w-full">
       <label for="nome" class="mb-2 block text-sm font-semibold text-gray-700">Nome *</label>
       <mat-form-field appearance="outline" class="w-full">
         <input id="nome" matInput formControlName="nome" placeholder="Digite o nome da categoria" />
@@ -23,9 +70,9 @@
           <mat-error>{{ form.controls.nome.getError('backend') }}</mat-error>
         }
       </mat-form-field>
-    </div>
+      </div>
 
-    <div class="w-full">
+      <div class="w-full">
       <label for="descricao" class="mb-2 block text-sm font-semibold text-gray-700">
         Descrição
       </label>
@@ -41,21 +88,24 @@
           <mat-error>{{ form.controls.descricao.getError('backend') }}</mat-error>
         }
       </mat-form-field>
-    </div>
+      </div>
 
-    <div
-      class="mt-2 flex flex-col-reverse justify-center gap-3 border-t border-gray-100 pt-7 sm:flex-row sm:gap-10"
-    >
-      <button mat-flat-button type="button" (click)="cancelar()" [disabled]="carregando()">
-        Cancelar
-      </button>
-      <button mat-flat-button color="primary" type="submit" [disabled]="carregando()">
-        @if (carregando()) {
-          Cadastrando...
-        } @else {
-          Cadastrar Categoria
-        }
-      </button>
-    </div>
-  </form>
+      <div
+        class="mt-2 flex flex-col-reverse justify-center gap-3 border-t border-gray-100 pt-7 sm:flex-row sm:gap-10"
+      >
+        <button mat-flat-button type="button" (click)="cancelar()" [disabled]="carregando()">
+          Cancelar
+        </button>
+        <button mat-flat-button color="primary" type="submit" [disabled]="carregando()">
+          @if (carregando()) {
+            Salvando...
+          } @else if (modoEdicao) {
+            Atualizar Categoria
+          } @else {
+            Cadastrar Categoria
+          }
+        </button>
+      </div>
+    </form>
+  }
 </section>

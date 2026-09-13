@@ -12,11 +12,22 @@
 
 		<a
 			routerLink="/pessoas"
-			routerLinkActive="bg-asmosul-navy text-white shadow-sm"
+			[class.bg-asmosul-navy]="pessoasSelecionado()"
+			[class.text-white]="pessoasSelecionado()"
+			[class.shadow-sm]="pessoasSelecionado()"
 			class="flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-semibold text-gray-600 transition-colors hover:bg-gray-100"
 		>
 			<span class="material-icons text-xl" aria-hidden="true">groups</span>
 			Pessoas
+		</a>
+
+		<a
+			routerLink="/pessoas/categorias"
+			routerLinkActive="bg-asmosul-navy text-white shadow-sm"
+			class="flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-semibold text-gray-600 transition-colors hover:bg-gray-100"
+		>
+			<span class="material-icons text-xl" aria-hidden="true">category</span>
+			Categorias
 		</a>
 	</nav>
 </aside>
