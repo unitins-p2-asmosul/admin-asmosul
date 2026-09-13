@@ -1,0 +1,114 @@
+<div class="overflow-x-auto">
+  <table
+    mat-table
+    [dataSource]="dados()"
+    matSort
+    [matSortActive]="campoOrdenado"
+    [matSortDirection]="direcaoOrdenada"
+    matSortDisableClear
+    (matSortChange)="aoMudarOrdem.emit($event)"
+    class="tabela-asmosul w-full"
+  >
+    <ng-container matColumnDef="id">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header="id" class="w-20">#</th>
+      <td mat-cell *matCellDef="let item" class="w-20">{{ item.id }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="acoes">
+      <th mat-header-cell *matHeaderCellDef class="w-40">Ações</th>
+      <td mat-cell *matCellDef="let item" class="w-40">
+        <div class="flex items-center justify-center gap-1">
+          <button
+            mat-icon-button
+            type="button"
+            matTooltip="Visualizar"
+            aria-label="Visualizar comorbidade"
+            (click)="aoVisualizar.emit(item.id)"
+          >
+            <mat-icon>visibility</mat-icon>
+          </button>
+
+          <button
+            mat-icon-button
+            type="button"
+            matTooltip="Editar"
+            aria-label="Editar comorbidade"
+            (click)="aoEditar.emit(item.id)"
+          >
+            <mat-icon>edit</mat-icon>
+          </button>
+
+          @if (item.ativo) {
+            <button
+              mat-icon-button
+              type="button"
+              matTooltip="Desativar"
+              aria-label="Desativar comorbidade"
+              (click)="aoAlternarEstado.emit({ id: item.id, ativo: false })"
+            >
+              <mat-icon>delete</mat-icon>
+            </button>
+          } @else {
+            <button
+              mat-icon-button
+              type="button"
+              matTooltip="Reativar"
+              aria-label="Reativar comorbidade"
+              (click)="aoAlternarEstado.emit({ id: item.id, ativo: true })"
+            >
+              <mat-icon>restore</mat-icon>
+            </button>
+          }
+        </div>
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="nome">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header="nome">Nome</th>
+      <td mat-cell *matCellDef="let item" class="font-medium">{{ item.nome }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="descricao">
+      <th mat-header-cell *matHeaderCellDef>Descrição</th>
+      <td mat-cell *matCellDef="let item" class="text-sm">{{ item.descricao || '-' }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="status">
+      <th mat-header-cell *matHeaderCellDef class="w-44">Status</th>
+      <td mat-cell *matCellDef="let item" class="status w-44">
+        <span
+          class="block rounded-lg px-4 py-2 text-center font-semibold text-white"
+          [class.bg-asmosul-sucesso]="item.ativo"
+          [class.bg-gray-400]="!item.ativo"
+        >
+          {{ item.ativo ? 'Ativo' : 'Inativo' }}
+        </span>
+      </td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="colunasExibidas"></tr>
+    <tr mat-row *matRowDef="let row; columns: colunasExibidas"></tr>
+
+    <tr class="mat-row" *matNoDataRow>
+      <td class="mat-cell p-6 text-center text-gray-500" [attr.colspan]="colunasExibidas.length">
+        @if (carregando()) {
+          Carregando comorbidades...
+        } @else {
+          Nenhuma comorbidade encontrada.
+        }
+      </td>
+    </tr>
+  </table>
+</div>
+
+<mat-paginator
+  [length]="totalElementos()"
+  [pageSize]="tamanhoPagina()"
+  [pageIndex]="paginaAtual()"
+  [pageSizeOptions]="[5, 10, 25, 50]"
+  [showFirstLastButtons]="true"
+  (page)="aoMudarPagina.emit($event)"
+  aria-label="Selecione a página"
+  class="mt-2 bg-transparent"
+>
+</mat-paginator>

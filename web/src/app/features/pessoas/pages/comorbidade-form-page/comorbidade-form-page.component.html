@@ -1,0 +1,134 @@
+<section class="pagina-formulario mx-auto max-w-4xl">
+  <div class="mb-8">
+    <div class="flex flex-wrap items-center gap-4">
+      <h1 class="text-[2rem] font-bold">
+        @if (modoVisualizacao()) {
+          Detalhes da Comorbidade
+        } @else if (modoEdicao()) {
+          Editar Comorbidade
+        } @else {
+          Cadastro de Comorbidade
+        }
+      </h1>
+
+      @if (modoVisualizacao() && registro()?.ativo !== undefined) {
+        <span
+          class="rounded-full px-5 py-1 text-sm font-semibold text-white"
+          [class.bg-green-400]="registro()?.ativo"
+          [class.bg-gray-400]="!registro()?.ativo"
+        >
+          {{ registro()?.ativo ? 'Ativo' : 'Inativo' }}
+        </span>
+      }
+    </div>
+
+    @if (modoCriacao()) {
+      <p class="mt-2 text-base font-medium text-slate-500">
+        Preencha os dados abaixo para cadastrar uma nova comorbidade.
+      </p>
+    } @else if (modoEdicao()) {
+      <p class="mt-2 text-base font-medium text-slate-500">
+        Altere os dados abaixo e salve para atualizar a comorbidade.
+      </p>
+    }
+  </div>
+
+  <form
+    [formGroup]="form"
+    (ngSubmit)="salvar()"
+    class="rounded-xl border border-gray-200 bg-white p-8 shadow-sm"
+  >
+    <h2 class="mb-5 text-lg font-semibold">Dados da Comorbidade</h2>
+
+    <div class="w-full">
+      <label for="nome" class="mb-2 block text-sm font-semibold text-gray-700">
+        Nome
+        @if (!modoVisualizacao()) {
+          *
+        }
+      </label>
+      <mat-form-field appearance="outline" class="w-full">
+        <input
+          id="nome"
+          matInput
+          formControlName="nome"
+          placeholder="Digite o nome da comorbidade"
+          [maxlength]="tamanhoMaximoNome"
+        />
+        @if (form.controls.nome.hasError('required') || form.controls.nome.hasError('pattern')) {
+          <mat-error>O nome é obrigatório.</mat-error>
+        } @else if (form.controls.nome.hasError('maxlength')) {
+          <mat-error>O nome deve ter no máximo {{ tamanhoMaximoNome }} caracteres.</mat-error>
+        } @else if (form.controls.nome.hasError('backend')) {
+          <mat-error>{{ form.controls.nome.getError('backend') }}</mat-error>
+        }
+      </mat-form-field>
+    </div>
+
+    <div class="w-full">
+      <label for="descricao" class="mb-2 block text-sm font-semibold text-gray-700">
+        Descrição
+      </label>
+      <mat-form-field appearance="outline" class="w-full">
+        <textarea
+          id="descricao"
+          matInput
+          formControlName="descricao"
+          rows="4"
+          placeholder="Digite a descrição da comorbidade"
+        ></textarea>
+        @if (form.controls.descricao.hasError('backend')) {
+          <mat-error>{{ form.controls.descricao.getError('backend') }}</mat-error>
+        }
+      </mat-form-field>
+    </div>
+
+    <div
+      class="mt-2 flex flex-col-reverse justify-center gap-3 border-t border-gray-100 pt-7 sm:flex-row sm:gap-10"
+    >
+      @if (modoVisualizacao()) {
+        <button mat-flat-button type="button" (click)="voltar()" [disabled]="carregando()">
+          Voltar
+        </button>
+
+        @if (registro()?.ativo !== undefined) {
+          <button
+            mat-flat-button
+            type="button"
+            [class.acao-perigo]="registro()?.ativo"
+            [class.acao-sucesso]="!registro()?.ativo"
+            (click)="alternarStatus()"
+            [disabled]="carregando()"
+          >
+            <mat-icon>{{ registro()?.ativo ? 'delete' : 'restore' }}</mat-icon>
+            {{ registro()?.ativo ? 'Desativar' : 'Reativar' }}
+          </button>
+        }
+
+        <button
+          mat-flat-button
+          type="button"
+          class="acao-primaria"
+          (click)="irParaEdicao()"
+          [disabled]="carregando()"
+        >
+          <mat-icon>edit</mat-icon>
+          Editar
+        </button>
+      } @else {
+        <button mat-flat-button type="button" (click)="voltar()" [disabled]="carregando()">
+          Cancelar
+        </button>
+        <button mat-flat-button color="primary" type="submit" [disabled]="carregando()">
+          @if (carregando()) {
+            Salvando...
+          } @else if (modoEdicao()) {
+            Salvar Alterações
+          } @else {
+            Cadastrar Comorbidade
+          }
+        </button>
+      }
+    </div>
+  </form>
+</section>
