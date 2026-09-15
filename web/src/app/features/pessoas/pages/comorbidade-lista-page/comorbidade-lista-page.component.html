@@ -1,0 +1,40 @@
+<section class="pagina-formulario mx-auto max-w-7xl">
+  <header class="mb-8">
+    <h1 class="text-[2rem] font-bold">Gerenciamento de Comorbidades</h1>
+
+    <div class="mt-4 flex flex-wrap items-center justify-between gap-4">
+      <button
+        mat-flat-button
+        type="button"
+        class="acao-primaria !min-w-0 !px-3"
+        [matTooltip]="filtrosAtivos > 0 ? filtrosAtivos + ' filtro(s) aplicado(s)' : 'Filtrar'"
+        aria-label="Abrir filtros"
+        (click)="abrirFiltros()"
+      >
+        <mat-icon class="!m-0">tune</mat-icon>
+        @if (filtrosAtivos > 0) {
+          <span class="ml-2 text-sm font-semibold">{{ filtrosAtivos }}</span>
+        }
+      </button>
+
+      <button mat-flat-button type="button" class="acao-primaria" (click)="irParaAdicionar()">
+        Adicionar Comorbidade
+        <mat-icon iconPositionEnd>add_circle_outline</mat-icon>
+      </button>
+    </div>
+  </header>
+
+  <app-comorbidade-tabela
+    [dados]="resposta().dados"
+    [totalElementos]="resposta().totalElementos"
+    [tamanhoPagina]="resposta().tamanhoPagina"
+    [paginaAtual]="resposta().paginaAtual"
+    [carregando]="carregando()"
+    [ordenacao]="parametrosAtuais().sort ?? 'nome,asc'"
+    (aoMudarPagina)="mudarPagina($event)"
+    (aoMudarOrdem)="mudarOrdem($event)"
+    (aoVisualizar)="visualizar($event)"
+    (aoEditar)="editar($event)"
+    (aoAlternarEstado)="alternarEstado($event)"
+  />
+</section>

@@ -6,6 +6,8 @@
   --color-asmosul-navy: #14395c;
   --color-asmosul-borda: #d9dee5;
   --color-asmosul-acao-secundaria: #e9eef4;
+  --color-asmosul-perigo: #e57373;
+  --color-asmosul-sucesso: #7cb342;
 }
 
 /*
@@ -45,9 +47,63 @@
   --mat-button-filled-label-text-color: var(--color-asmosul-navy);
 }
 
+/*
+ * Variantes para botoes type="button" que precisam de destaque
+ * (ex.: acoes da tela de detalhes, onde nao ha submit).
+ */
+.pagina-formulario button.acao-primaria {
+  --mat-button-filled-container-color: var(--color-asmosul-navy);
+  --mat-button-filled-label-text-color: #ffffff;
+}
+
+.pagina-formulario button.acao-perigo {
+  --mat-button-filled-container-color: var(--color-asmosul-perigo);
+  --mat-button-filled-label-text-color: #ffffff;
+}
+
+.pagina-formulario button.acao-sucesso {
+  --mat-button-filled-container-color: var(--color-asmosul-sucesso);
+  --mat-button-filled-label-text-color: #ffffff;
+}
+
 /* O min-width do Material vence as classes do Tailwind, entao vai aqui. */
 @media (min-width: 640px) {
   .pagina-formulario button[mat-flat-button] {
     min-width: 10rem;
   }
+}
+
+/*
+ * Tabela no padrao visual do Figma: celulas separadas, brancas e arredondadas.
+ * Aplique a classe .tabela-asmosul no <table mat-table>.
+ */
+.tabela-asmosul {
+  border-collapse: separate;
+  border-spacing: 0.75rem 0.5rem;
+  background: transparent;
+}
+
+.tabela-asmosul th.mat-mdc-header-cell {
+  border: 0;
+  background: transparent;
+  color: var(--color-asmosul-navy);
+  font-size: 1rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.tabela-asmosul td.mat-mdc-cell {
+  background: #ffffff;
+  border: 1px solid var(--color-asmosul-borda);
+  border-radius: 8px;
+  color: #6b7280;
+  padding: 0.5rem 0.75rem;
+  text-align: center;
+}
+
+/* A celula de status e o proprio selo colorido, sem a caixa branca em volta. */
+.tabela-asmosul td.mat-mdc-cell.status {
+  background: transparent;
+  border: 0;
+  padding: 0;
 }
