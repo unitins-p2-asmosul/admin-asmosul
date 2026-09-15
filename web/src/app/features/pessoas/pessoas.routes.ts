@@ -52,8 +52,10 @@ export const PESSOAS_ROUTES: Routes = [
     children: [
       {
         path: '',
-        pathMatch: 'full',
-        redirectTo: 'adicionar', // Alterne para a página de listagem de categorias
+        loadComponent: () =>
+          import('./pages/categoria-lista-page/categoria-lista-page.component').then(
+            (m) => m.CategoriaListaPageComponent,
+          ),
       },
       {
         path: 'adicionar',
