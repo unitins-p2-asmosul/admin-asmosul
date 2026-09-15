@@ -29,26 +29,37 @@
       </div>
 
       <div>
-        <label for="cpf" class="mb-2 block text-sm font-semibold text-gray-700">CPF *</label>
+        <label for="cpfCnpj" class="mb-2 block text-sm font-semibold text-gray-700">CPF/CNPJ *</label>
         <mat-form-field appearance="outline" class="w-full">
           <input
-            id="cpf"
+            id="cpfCnpj"
             matInput
-            formControlName="cpf"
-            (input)="aplicarMascaraCpf()"
-            placeholder="000.000.000-00"
+            formControlName="cpfCnpj"
+            (input)="aplicarMascaraCpfCnpj()"
+            placeholder="CPF ou CNPJ"
             inputmode="numeric"
-            maxlength="14"
+            maxlength="18"
           />
-          @if (form.controls.cpf.hasError('required')) {
-            <mat-error>O CPF é obrigatório.</mat-error>
-          } @else if (form.controls.cpf.hasError('cpfIncompleto')) {
-            <mat-error>O CPF deve conter 11 números.</mat-error>
-          } @else if (form.controls.cpf.hasError('cpfInvalido')) {
-            <mat-error>CPF inválido. Confira os números digitados.</mat-error>
-          } @else if (form.controls.cpf.hasError('backend')) {
-            <mat-error>{{ form.controls.cpf.getError('backend') }}</mat-error>
+          @if (form.controls.cpfCnpj.hasError('required')) {
+            <mat-error>O CPF/CNPJ é obrigatório.</mat-error>
+          } @else if (form.controls.cpfCnpj.hasError('documentoIncompleto')) {
+            <mat-error>Informe um CPF ou CNPJ completo.</mat-error>
+          } @else if (form.controls.cpfCnpj.hasError('documentoInvalido')) {
+            <mat-error>CPF/CNPJ inválido.</mat-error>
+          } @else if (form.controls.cpfCnpj.hasError('backend')) {
+            <mat-error>{{ form.controls.cpfCnpj.getError('backend') }}</mat-error>
           }
+        </mat-form-field>
+      </div>
+
+      <div>
+        <label for="tipoPessoa" class="mb-2 block text-sm font-semibold text-gray-700">Tipo de pessoa</label>
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-select id="tipoPessoa" formControlName="tipoPessoa">
+            @for (opcao of tipoPessoaOpcoes; track opcao.codigo) {
+              <mat-option [value]="opcao.codigo">{{ opcao.descricao }}</mat-option>
+            }
+          </mat-select>
         </mat-form-field>
       </div>
 
@@ -178,6 +189,51 @@
       </div>
     </div>
 
+    <h2 class="mt-6 mb-5 text-lg font-semibold">Endereço</h2>
+
+    <div class="grid grid-cols-1 gap-x-8 md:grid-cols-2">
+      <div>
+        <label for="cep" class="mb-2 block text-sm font-semibold text-gray-700">CEP</label>
+        <mat-form-field appearance="outline" class="w-full">
+          <input id="cep" matInput formControlName="cep" (input)="aplicarMascaraCep()" (blur)="consultarCep()" placeholder="00000-000" inputmode="numeric" maxlength="9" />
+          @if (form.controls.cep.hasError('cepNaoEncontrado')) {
+            <mat-error>CEP não encontrado.</mat-error>
+          }
+        </mat-form-field>
+      </div>
+
+      <div>
+        <label for="uf" class="mb-2 block text-sm font-semibold text-gray-700">UF</label>
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-select id="uf" formControlName="uf">
+            @for (uf of ufOpcoes; track uf) {
+              <mat-option [value]="uf">{{ uf }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+      </div>
+
+      <div>
+        <label for="cidade" class="mb-2 block text-sm font-semibold text-gray-700">Cidade</label>
+        <mat-form-field appearance="outline" class="w-full"><input id="cidade" matInput formControlName="cidade" /></mat-form-field>
+      </div>
+
+      <div>
+        <label for="bairro" class="mb-2 block text-sm font-semibold text-gray-700">Bairro</label>
+        <mat-form-field appearance="outline" class="w-full"><input id="bairro" matInput formControlName="bairro" /></mat-form-field>
+      </div>
+
+      <div class="md:col-span-2">
+        <label for="logradouro" class="mb-2 block text-sm font-semibold text-gray-700">Logradouro</label>
+        <mat-form-field appearance="outline" class="w-full"><input id="logradouro" matInput formControlName="logradouro" /></mat-form-field>
+      </div>
+
+      <div class="md:col-span-2">
+        <label for="complementoEndereco" class="mb-2 block text-sm font-semibold text-gray-700">Complemento</label>
+        <mat-form-field appearance="outline" class="w-full"><input id="complementoEndereco" matInput formControlName="complementoEndereco" /></mat-form-field>
+      </div>
+    </div>
+
     <h2 class="mt-6 mb-5 text-lg font-semibold">Informações Adicionais</h2>
 
     <div class="grid grid-cols-1 gap-x-8 md:grid-cols-2">
@@ -202,6 +258,14 @@
           }
         </mat-form-field>
       </div>
+
+      <div>
+        <label for="quantidadeCoabitantes" class="mb-2 block text-sm font-semibold text-gray-700">Quantidade de coabitantes</label>
+        <mat-form-field appearance="outline" class="w-full"><input id="quantidadeCoabitantes" matInput type="number" min="0" formControlName="quantidadeCoabitantes" /></mat-form-field>
+      </div>
+
+      <mat-checkbox formControlName="ehBeneficiario">É beneficiário?</mat-checkbox>
+      <mat-checkbox formControlName="ehDoador">É doador?</mat-checkbox>
 
       <div>
         <label for="comorbidades" class="mb-2 block text-sm font-semibold text-gray-700">

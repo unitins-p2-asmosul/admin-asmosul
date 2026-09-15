@@ -28,6 +28,7 @@ export const MOCK_PESSOAS: PessoaDetalhe[] = [
     comorbidades: [1, 2],
     categorias: [1],
     descricao: 'Pessoa cadastrada para acompanhamento da ASMOSUL.',
+    ativo: true,
   },
 ];
 
