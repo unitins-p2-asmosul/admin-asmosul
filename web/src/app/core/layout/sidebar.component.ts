@@ -1,5 +1,5 @@
-import { Component } from '@angular/core';
-import { RouterLink, RouterLinkActive } from '@angular/router';
+import { Component, inject } from '@angular/core';
+import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 
 @Component({
 	selector: 'app-sidebar',
@@ -7,4 +7,11 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
 	imports: [RouterLink, RouterLinkActive],
 	templateUrl: './sidebar.component.html',
 })
-export class SidebarComponent {}
+export class SidebarComponent {
+	private readonly router = inject(Router);
+
+	protected pessoasSelecionado(): boolean {
+		const url = this.router.url.split('?')[0];
+		return url === '/pessoas' || (url.startsWith('/pessoas/') && !url.startsWith('/pessoas/categorias'));
+	}
+}

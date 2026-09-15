@@ -1,0 +1,84 @@
+<section class="mx-auto max-w-6xl px-2 py-8 sm:px-6">
+  <header class="flex flex-col gap-4">
+    <div class="flex items-center justify-between gap-4">
+      <h1 class="text-4xl font-bold text-asmosul-navy">Gerenciamento de Categorias</h1>
+      <button mat-flat-button color="primary" type="button" class="!h-9 !rounded-lg !px-5" (click)="adicionar()">
+        Adicionar Categoria
+        <span class="material-icons ml-1" aria-hidden="true">add_circle_outline</span>
+      </button>
+    </div>
+    <button
+      mat-icon-button
+      type="button"
+      class="!h-9 !w-9 !rounded-lg !bg-asmosul-navy !text-white"
+      aria-label="Filtrar categorias"
+      (click)="abrirFiltros()"
+    >
+      <span class="material-icons">tune</span>
+    </button>
+  </header>
+
+  <div class="mt-20 overflow-x-auto">
+    <div class="min-w-[900px]">
+      <div class="grid grid-cols-[76px_150px_290px_minmax(300px,1fr)_155px] items-center gap-2 px-3 pb-2 text-base font-bold text-slate-700 sm:px-5">
+      <button type="button" class="text-left" (click)="ordenar('id')">#</button>
+      <span>Ações</span>
+      <button type="button" class="text-left" (click)="ordenar('nome')">Nome</button>
+      <span>Descrição</span>
+      <span>Status</span>
+      </div>
+
+      @if (carregando()) {
+        <p class="rounded-lg bg-white p-10 text-center text-slate-500">Carregando categorias...</p>
+      } @else if (resposta().dados.length === 0) {
+        <p class="rounded-lg bg-white p-10 text-center text-slate-500">Nenhuma categoria encontrada.</p>
+      } @else {
+        @for (categoria of resposta().dados; track categoria.id; let indice = $index) {
+          <div class="mb-3 grid grid-cols-[76px_150px_290px_minmax(300px,1fr)_155px] items-center gap-2 text-sm">
+            <span class="flex h-11 items-center justify-center rounded-xl bg-white font-semibold text-slate-400 shadow-sm">
+              {{ resposta().paginaAtual * resposta().tamanhoPagina + indice + 1 }}
+            </span>
+            <div class="flex h-11 items-center justify-center gap-1 rounded-xl bg-white shadow-sm">
+              <button mat-icon-button type="button" aria-label="Visualizar categoria" (click)="visualizar(categoria.id)">
+                <span class="material-icons text-slate-400">visibility</span>
+              </button>
+              <button mat-icon-button type="button" aria-label="Editar categoria" (click)="editar(categoria.id)">
+                <span class="material-icons text-slate-400">edit</span>
+              </button>
+              <button mat-icon-button type="button" [attr.aria-label]="categoria.ativo ? 'Desativar categoria' : 'Reativar categoria'" (click)="alternarEstado(categoria.id, !categoria.ativo)">
+                <span class="material-icons text-slate-400">{{ categoria.ativo ? 'delete' : 'check_circle' }}</span>
+              </button>
+            </div>
+            <span class="flex h-11 items-center justify-center rounded-xl bg-white px-3 font-semibold text-slate-400 shadow-sm">
+              {{ categoria.nome }}
+            </span>
+            <span class="flex min-h-11 items-center justify-center rounded-xl bg-white px-5 text-center font-medium leading-tight text-slate-400 shadow-sm">
+              {{ categoria.descricao || '-' }}
+            </span>
+            <button
+              type="button"
+              class="flex h-11 w-full items-center justify-center rounded-xl bg-[#8bce68] px-3 font-bold text-white transition-colors hover:brightness-95"
+              [class.!bg-red-400]="!categoria.ativo"
+              [attr.aria-label]="categoria.ativo ? 'Desativar categoria' : 'Reativar categoria'"
+              (click)="alternarEstado(categoria.id, !categoria.ativo)"
+            >
+              {{ categoria.ativo ? 'Ativo' : 'Desativado' }}
+            </button>
+          </div>
+        }
+      }
+
+      @if (resposta().totalPaginas > 0) {
+        <nav class="mt-5 flex items-center justify-end gap-4 pr-4 text-sm font-bold text-asmosul-navy" aria-label="Paginação de categorias">
+          <button type="button" [disabled]="resposta().paginaAtual === 0" (click)="irParaPagina(resposta().paginaAtual - 1)" aria-label="Página anterior">&lt;</button>
+          @for (pagina of paginas(); track pagina) {
+            <button type="button" class="flex h-9 w-9 items-center justify-center rounded-full" [class.bg-asmosul-navy]="pagina === resposta().paginaAtual" [class.text-white]="pagina === resposta().paginaAtual" (click)="irParaPagina(pagina)">
+              {{ pagina + 1 }}
+            </button>
+          }
+          <button type="button" [disabled]="resposta().paginaAtual === resposta().totalPaginas - 1" (click)="irParaPagina(resposta().paginaAtual + 1)" aria-label="Próxima página">&gt;</button>
+        </nav>
+      }
+    </div>
+  </div>
+</section>
