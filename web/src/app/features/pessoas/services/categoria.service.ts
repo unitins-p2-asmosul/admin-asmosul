@@ -51,6 +51,17 @@ export class CategoriaService {
     return this.http.get<RespostaPaginada<CategoriaResumo>>(this.endpoint, { params });
   }
 
+  /** GET /categorias/todas — lista completa, sem paginação, para selects. */
+  listarTodas(incluirInativos = false): Observable<CategoriaResumo[]> {
+    if (environment.mockApi) {
+      const lista = this.categorias.filter((item) => incluirInativos || item.ativo);
+      return of(lista.sort((a, b) => a.nome.localeCompare(b.nome))).pipe(delay(200));
+    }
+
+    const params = new HttpParams().set('incluirInativos', incluirInativos);
+    return this.http.get<CategoriaResumo[]>(`${this.endpoint}/todas`, { params });
+  }
+
   buscarPorId(id: number): Observable<CategoriaDetalhe> {
     if (environment.mockApi) {
       const categoria = this.categorias.find((item) => item.id === id);

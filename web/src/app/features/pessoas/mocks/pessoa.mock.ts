@@ -4,6 +4,8 @@ import {
   PessoaDetalhe,
   RendaFamiliarCodigo,
   SexoCodigo,
+  TipoPessoa,
+  UfCodigo,
 } from '../models/pessoa.model';
 
 /** Base simulada de pessoas. Usada para validar o retorno 201 e o conflito de CPF (409). */
@@ -11,7 +13,8 @@ export const MOCK_PESSOAS: PessoaDetalhe[] = [
   {
     id: 1,
     nome: 'Maria Silva',
-    cpf: '52998224725',
+    cpfCnpj: '52998224725',
+    tipoPessoa: TipoPessoa.FISICA,
     dataNascimento: '19-08-1995',
     sexo: { codigo: SexoCodigo.FEMININO, descricao: 'Feminino' },
     telefone: '63999998888',
@@ -28,16 +31,22 @@ export const MOCK_PESSOAS: PessoaDetalhe[] = [
     comorbidades: [1, 2],
     categorias: [1],
     descricao: 'Pessoa cadastrada para acompanhamento da ASMOSUL.',
+    cep: '77001000',
+    uf: UfCodigo.TO,
+    cidade: 'Palmas',
+    bairro: 'Plano Diretor Sul',
+    logradouro: 'Avenida JK',
+    complementoEndereco: 'Quadra 104 Sul',
+    quantidadeCoabitantes: 2,
+    ehBeneficiario: true,
+    ehDoador: false,
+    ativo: true,
   },
 ];
 
 /**
  * Listas temporárias para os selects múltiplos do formulário.
- *
- * Quando os endpoints existirem, substituir por ComorbidadeService.listar()
- * e CategoriaService.listar() — ver pessoa.service.ts.
  */
-
 export const MOCK_COMORBIDADES: ItemRelacionadoResumo[] = [
   { id: 1, nome: 'Hipertensão' },
   { id: 2, nome: 'Diabetes' },
