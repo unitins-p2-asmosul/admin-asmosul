@@ -129,18 +129,4 @@ public class CategoriaService {
 
         categoria.setDataInativo(null);
     }
-
-    @Transactional
-    public void excluir(Long id) {
-        Categoria categoria =
-                categoriaRepository
-                        .findById(id)
-                        .orElseThrow(
-                                () ->
-                                        new EntidadeNaoEncontradaException(
-                                                "Categoria não encontrada com o ID informado: "
-                                                        + id));
-
-        categoriaRepository.delete(categoria);
-    }
 }

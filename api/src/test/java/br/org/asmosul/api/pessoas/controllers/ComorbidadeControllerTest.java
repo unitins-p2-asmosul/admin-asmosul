@@ -1,6 +1,5 @@
 package br.org.asmosul.api.pessoas.controllers;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -268,27 +267,6 @@ class ComorbidadeControllerTest extends BaseAPITest {
         void reativar_comIdInexistente_retornaStatus404() throws Exception {
             mockMvc.perform(patch("/comorbidades/{id}/reativar", 99999L))
                     .andExpect(status().isNotFound());
-        }
-    }
-
-    @Nested
-    @DisplayName("DELETE /comorbidades/{id} - ExclusÃ£o FÃ­sica")
-    class Excluir {
-
-        @Test
-        @DisplayName("Deve excluir comorbidade com sucesso retornando status 204")
-        void excluir_comIdExistente_retornaStatus204() throws Exception {
-            Comorbidade comorbidade =
-                    comorbidadeRepository.save(new Comorbidade("Para Excluir", "Desc"));
-
-            mockMvc.perform(delete("/comorbidades/{id}", comorbidade.getId()))
-                    .andExpect(status().isNoContent());
-        }
-
-        @Test
-        @DisplayName("Deve retornar status 404 ao tentar excluir comorbidade inexistente")
-        void excluir_comIdInexistente_retornaStatus404() throws Exception {
-            mockMvc.perform(delete("/comorbidades/{id}", 99999L)).andExpect(status().isNotFound());
         }
     }
 }

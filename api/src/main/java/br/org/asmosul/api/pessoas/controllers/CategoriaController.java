@@ -12,7 +12,6 @@ import java.net.URI;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -153,20 +152,6 @@ public class CategoriaController {
     @PatchMapping("/{id}/reativar")
     public ResponseEntity<Void> reativar(@PathVariable Long id) {
         categoriaService.reativar(id);
-        return ResponseEntity.noContent().build();
-    }
-
-    @Operation(
-            summary = "Excluir categoria",
-            description = "Realiza a exclusão física definitiva da categoria no sistema")
-    @ApiResponses(
-            value = {
-                @ApiResponse(responseCode = "204", description = "Categoria excluída com sucesso"),
-                @ApiResponse(responseCode = "404", description = "Categoria não encontrada")
-            })
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> excluir(@PathVariable Long id) {
-        categoriaService.excluir(id);
         return ResponseEntity.noContent().build();
     }
 }
