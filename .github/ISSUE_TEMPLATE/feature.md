@@ -1,35 +1,42 @@
----
-name: Feature
-about: Implementação de nova funcionalidade ou tarefa técnica
-title: '[BE | FE | BD | DOC | INFRA] - Título Objetivo'
-labels: 'feature'
-assignees: ''
----
-
 ## Informações Gerais
-* **História de Usuário:** US-XX
-* **Dependências:** #ID_da_issue_bloqueante
-* **Link Figma:** [Link do protótipo aqui]
+
+* **História de Usuário:** 
+Acessar em https://docs.google.com/document/d/1rq5v5gy3jP5Z_YZUNOlLaIUfiC3ssNA0ss8qHfWN2o0/edit?usp=sharing
+* **Dependências:** #NUM_ISSUE_1 #NUM_ISSUE_2
+
+**Link Figma:** 
+
+**Regras de Negócio:**
+
+Acessar em:
+ https://docs.google.com/document/d/1ivEeqPCUHuhfFeL2kipkofFetS56CaEXb68_40-qJw8/edit?usp=sharing
+
+**Diagrama de fluxo:**
+
+https://app.diagrams.net/#G1ruCAsf-YYDyAYcbsdcluNYrX6Ca4KOf9
+
+**Contrato de API:**
+
+https://h.asmosul.site/api/swagger-ui/index.html
 
 ---
 
 ## Descrição
-Descreva brevemente o que precisa ser feito e o objetivo desta entrega.
+Descrição breve
 
 ---
 
 ## Critérios de Aceitação (PO)
-- [ ] (ex.: Bloquear cadastro com CPF duplicado retornando 409 Conflict)
-- [ ] (ex.: O campo 'nome' não pode ser vazio)
-- [ ] Testes de API cobrindo cenário de sucesso
-- [ ] Testes de API cobrindo cenários de falha (400, 404, 409)
-- [ ] Testes de Service cobrindo cenário mais avançado (ex.: regra para estoque de doação abaixo de 0)
-- [ ] Documentação do endpoint atualizada no Swagger/OpenAPI
+- [ ]
 
 ---
 
-### Especificações Técnicas (Preenchido pelo time técnico)
+## Critérios de Aceitação (Tech Lead)
+- [ ] 
 
-* **Endpoints a serem criados/afetados:** `POST /pessoas`, `PUT /pessoas/{id}`
-* **Tabelas/Migrations a serem criadas:** `V1__criar_tabela_pessoas.sql`
-* **Componentes a serem criados/afetados:** `FormularioPessoaComponent`
+---
+
+### Especificações Técnicas
+
+* **Endpoints a serem criados/consultados/editados:**  
+* **Arquivos/classes a serem criados/afetados:**
