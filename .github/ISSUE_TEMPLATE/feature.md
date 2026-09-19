@@ -8,6 +8,10 @@ assignees: ''
 
 ## Informações Gerais
 
+Padrão de documentação frontend: docs/padrao-arquitetura/padrao-arquitetura-frontend.md  
+
+Padrão de documentação backend: docs/padrao-arquitetura/padrao-arquitetura-backend.md 
+
 * **História de Usuário:** 
 Acessar em https://docs.google.com/document/d/1rq5v5gy3jP5Z_YZUNOlLaIUfiC3ssNA0ss8qHfWN2o0/edit?usp=sharing
 * **Dependências:** #NUM_ISSUE_1 #NUM_ISSUE_2
