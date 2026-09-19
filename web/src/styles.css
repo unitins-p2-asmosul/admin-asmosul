@@ -3,23 +3,46 @@
 @import 'tailwindcss';
 
 @theme {
-  --color-asmosul-navy: #14395c;
-  --color-asmosul-borda: #d9dee5;
-  --color-asmosul-acao-secundaria: #e9eef4;
-  --color-asmosul-perigo: #e57373;
-  --color-asmosul-sucesso: #7cb342;
+  --color-asmosul-fundo: #f5f7fa;
+  --color-asmosul-branco: #ffffff;
+  --color-asmosul-navy: #0b3c5d;
+  --color-asmosul-texto: #1f2937;
+  --color-asmosul-texto-secundario: #374151;
+  --color-asmosul-cinza: #9ca3af;
+  --color-asmosul-borda: #e5e7eb;
+  --color-asmosul-acao-secundaria: #e5e7eb;
+  --color-asmosul-perigo: #ea5b5b;
+  --color-asmosul-sucesso: #56b86b;
 }
 
-/*
- * Estilo compartilhado das paginas de formulario.
- *
- * Aplique a classe .pagina-formulario na <section> raiz da page para que o
- * formulario siga o padrao visual definido no Figma.
- *
- * Usa apenas os tokens publicos do Angular Material 21 (sem ::ng-deep).
- * O escopo pela classe evita que os estilos vazem para botoes e campos
- * de outras telas do sistema.
- */
+body {
+  background: #f5f7fa;
+  color: #1f2937;
+  font-family: Inter, sans-serif;
+}
+
+html, body {
+  margin: 0;
+  min-height: 100%;
+}
+
+.app-header {
+  display: flex;
+  align-items: center;
+  min-height: 68px;
+  padding: 0 36px;
+  border-bottom: 1px solid #e5e7eb;
+  background: #ffffff;
+}
+
+.app-header h1 {
+  margin: 0;
+  color: #0b3c5d;
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1;
+}
+
 .pagina-formulario {
   --mat-form-field-container-height: 48px;
   --mat-form-field-container-vertical-padding: 12px;
@@ -47,10 +70,6 @@
   --mat-button-filled-label-text-color: var(--color-asmosul-navy);
 }
 
-/*
- * Variantes para botoes type="button" que precisam de destaque
- * (ex.: acoes da tela de detalhes, onde nao ha submit).
- */
 .pagina-formulario button.acao-primaria {
   --mat-button-filled-container-color: var(--color-asmosul-navy);
   --mat-button-filled-label-text-color: #ffffff;
@@ -93,44 +112,573 @@
   --mdc-checkbox-selected-pressed-icon-color: var(--color-asmosul-navy);
 }
 
-/* O min-width do Material vence as classes do Tailwind, entao vai aqui. */
-@media (min-width: 640px) {
-  .pagina-formulario button[mat-flat-button] {
-    min-width: 10rem;
-  }
+.pessoa-filtro-dialog .mat-mdc-dialog-container .mdc-dialog__surface {
+  --mdc-dialog-container-color: #f5f5f5;
+  --mdc-dialog-container-shape: 76px;
+  border-radius: 76px;
+  box-shadow: none;
 }
 
-/*
- * Tabela no padrao visual do Figma: celulas separadas, brancas e arredondadas.
- * Aplique a classe .tabela-asmosul no <table mat-table>.
- */
-.tabela-asmosul {
-  border-collapse: separate;
-  border-spacing: 0.75rem 0.5rem;
+.pessoa-filtro-dialog .mat-mdc-dialog-content {
+  max-height: 65vh;
+  overflow: auto;
+}
+
+.pessoa-filtro__titulo {
+  display: flex !important;
+  align-items: center;
+  gap: 20px;
+  padding: 36px 48px 8px !important;
+  color: #0b3c5d !important;
+  font-size: 40px !important;
+  font-weight: 700 !important;
+  line-height: 1.1 !important;
+}
+
+.pessoa-filtro__titulo .material-icons {
+  font-size: 44px;
+  font-weight: 400;
+}
+
+.pessoa-filtro__content {
+  padding: 8px 48px 0 !important;
+}
+
+.pessoa-filtro__form {
+  padding-bottom: 8px;
+}
+
+.pessoa-filtro__section-title {
+  margin: 14px 0 0;
+  color: #1f2937;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.pessoa-filtro__form .mat-mdc-form-field {
+  --mat-form-field-container-height: 42px;
+  --mat-form-field-container-vertical-padding: 8px;
+}
+
+.pessoa-filtro__form .mat-mdc-text-field-wrapper {
+  border-radius: 8px;
+}
+
+.pessoa-filtro__actions {
+  gap: 12px;
+  padding: 20px 48px 48px !important;
+}
+
+.pessoa-filtro__button {
+  min-width: 96px !important;
+  height: 32px !important;
+  border-radius: 3px !important;
+  background: #0b3c5d !important;
+  color: #ffffff !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+}
+
+.pessoa-filtro-dialog .mat-mdc-checkbox {
+  --mdc-checkbox-selected-checkmark-color: #ffffff;
+  --mdc-checkbox-selected-icon-color: #0b3c5d;
+  --mdc-checkbox-selected-hover-icon-color: #0b3c5d;
+  --mdc-checkbox-selected-focus-icon-color: #0b3c5d;
+  --mdc-checkbox-selected-pressed-icon-color: #0b3c5d;
+}
+
+.pagina-pessoas {
+  width: 100%;
+  padding: 24px 28px 0;
+  background: #f5f7fa;
+}
+
+.pagina-pessoas__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  min-height: 128px;
+  margin-bottom: 12px;
+}
+
+.pagina-pessoas__title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.pagina-pessoas__title-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  background: #1b3d5b;
+  color: #fff;
+}
+
+.pagina-pessoas__title-icon .material-icons {
+  font-size: 2rem;
+}
+
+.pagina-pessoas h1 {
+  margin: 0;
+  font-size: 40px;
+  line-height: 1.1;
+  font-weight: 800;
+  letter-spacing: 0;
+  color: #0b3c5d;
+}
+
+.pagina-pessoas__add {
+  min-height: 48px !important;
+  border-radius: 10px !important;
+  padding: 0 18px !important;
+  font-size: 1.02rem !important;
+  font-weight: 700 !important;
+  background: #0b3c5d !important;
+  color: #fff !important;
+  box-shadow: none !important;
+}
+
+.pagina-pessoas__toolbar {
+  display: flex;
+  justify-content: flex-start;
+  margin-bottom: 16px;
+}
+
+.pagina-pessoas__filter {
+  min-width: 52px !important;
+  min-height: 44px !important;
+  border-radius: 10px !important;
+  padding: 0 16px !important;
+  background: #0b3c5d !important;
+  color: #fff !important;
+}
+
+.pessoa-tabela-shell {
+  width: 100%;
+}
+
+.pessoa-tabela-scroll {
+  overflow-x: auto;
+  border-top: 1px solid #e5e7eb;
+  padding: 8px 0 8px;
+  scrollbar-color: #9ca3af #f5f7fa;
+}
+
+.pessoa-table {
+  min-width: 2200px;
+  width: 100%;
   background: transparent;
+  border-collapse: separate;
+  border-spacing: 10px 18px !important;
 }
 
-.tabela-asmosul th.mat-mdc-header-cell {
+.pessoa-table th.mat-mdc-header-cell {
+  background: transparent;
+  color: #1f2f45;
+  font-size: 0.94rem;
+  font-weight: 700;
+  border: 0;
+  padding: 0 10px 10px;
+  white-space: nowrap;
+  text-align: center;
+}
+
+.pessoa-table td.mat-mdc-cell {
+  background: #ffffff;
+  border: 0.5px solid #e5e7eb !important;
+  border-bottom: 1px solid #e5e7eb !important;
+  border-radius: 10px;
+  color: #9ca3af;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 10px 12px;
+  height: 52px;
+  vertical-align: middle;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.pessoa-table .mat-column-indice {
+  width: 58px;
+  min-width: 58px;
+}
+
+.pessoa-table .mat-column-acoes {
+  width: 115px;
+  min-width: 115px;
+}
+
+.pessoa-table .mat-column-nome {
+  width: 210px;
+  min-width: 210px;
+}
+
+.pessoa-table .mat-column-cpf {
+  width: 150px;
+  min-width: 150px;
+}
+
+.pessoa-table .mat-column-telefone {
+  width: 125px;
+  min-width: 125px;
+}
+
+.pessoa-table .mat-column-tipoPessoa {
+  width: 120px;
+  min-width: 120px;
+}
+
+.pessoa-table .mat-column-dataNascimento {
+  width: 130px;
+  min-width: 130px;
+}
+
+.pessoa-table .mat-column-email {
+  width: 175px;
+  min-width: 175px;
+}
+
+.pessoa-table tr.mat-row {
+  height: auto;
+}
+
+.pessoa-table__numero {
+  width: 54px;
+  text-align: center !important;
+  font-weight: 700 !important;
+  color: #465a72 !important;
+}
+
+.pessoa-table__texto {
+  min-width: 120px;
+}
+
+.pessoa-table__acoes {
+  min-width: 120px;
+  width: 120px;
+}
+
+.pessoa-table__acoes-inner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.pessoa-table__acoes-inner button {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  margin: 0 !important;
+  width: 28px !important;
+  height: 28px !important;
+  min-width: 28px !important;
+  min-height: 28px !important;
+  border-radius: 8px !important;
+  background: transparent !important;
+}
+
+.pessoa-table__acoes-inner button:hover {
+  background: #e5e7eb !important;
+}
+
+.pessoa-table__acoes-inner .material-icons {
+  font-size: 18px;
+  color: #9ca3af;
+}
+
+.pessoa-table__status-cell {
+  width: 120px;
+  min-width: 120px;
+  height: 42px !important;
+  padding: 0 12px !important;
+  border: 0 !important;
+  border-radius: 10px !important;
+  text-align: center !important;
+}
+
+.pessoa-table__status-button {
+  cursor: pointer;
+  color: #ffffff !important;
+  outline: none;
+}
+
+.pessoa-table__status-button--ativo {
+  background: #8bce68 !important;
+}
+
+.pessoa-table__status-button--inativo {
+  background: #ed6b70 !important;
+}
+
+.pessoa-tabela__paginacao {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  min-height: 52px;
+  margin-top: 8px;
+  padding: 0 18px;
+}
+
+.pagina-categorias {
+  width: 100%;
+  padding: 24px 28px 0;
+  background: #f5f7fa;
+}
+
+.pagina-categorias__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  min-height: 128px;
+  margin-bottom: 12px;
+}
+
+.pagina-categorias__title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.pagina-categorias__title-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  background: #0b3c5d;
+  color: #ffffff;
+}
+
+.pagina-categorias h1 {
+  margin: 0;
+  color: #0b3c5d;
+  font-size: 40px;
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+.pagina-categorias__add {
+  min-height: 48px !important;
+  border-radius: 10px !important;
+  padding: 0 18px !important;
+  background: #0b3c5d !important;
+  color: #ffffff !important;
+  font-size: 1.02rem !important;
+  font-weight: 700 !important;
+}
+
+.pagina-categorias__toolbar {
+  display: flex;
+  margin-bottom: 16px;
+}
+
+.pagina-categorias__filter {
+  width: 52px !important;
+  height: 44px !important;
+  border-radius: 10px !important;
+  background: #0b3c5d !important;
+  color: #ffffff !important;
+}
+
+.categoria-tabela-scroll {
+  overflow-x: auto;
+  padding-top: 8px;
+  border-top: 1px solid #e5e7eb;
+  scrollbar-color: #9ca3af #f5f7fa;
+}
+
+.categoria-table {
+  min-width: 900px;
+}
+
+.categoria-table__header,
+.categoria-table__row {
+  display: grid;
+  grid-template-columns: 76px 140px 270px minmax(300px, 1fr) 140px;
+  align-items: center;
+  column-gap: 10px;
+}
+
+.categoria-table__header {
+  min-height: 34px;
+  padding: 0 10px 10px;
+  color: #1f2937;
+  font-size: 14px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.categoria-table__header button {
   border: 0;
   background: transparent;
-  color: var(--color-asmosul-navy);
-  font-size: 1rem;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.categoria-table__row {
+  margin-bottom: 18px;
+  font-size: 14px;
+}
+
+.categoria-table__cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 52px;
+  padding: 10px 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #9ca3af;
   font-weight: 600;
   text-align: center;
 }
 
-.tabela-asmosul td.mat-mdc-cell {
+.categoria-table__index {
+  min-width: 0;
+}
+
+.categoria-table__description {
+  line-height: 1.2;
+}
+
+.categoria-table__actions {
+  display: flex;
+  align-items: center;
+  justify-content: center !important;
+  gap: 4px;
+  padding: 0 8px;
+}
+
+.categoria-table__actions button {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  margin: 0 !important;
+  width: 28px !important;
+  height: 28px !important;
+  min-width: 28px !important;
+  min-height: 28px !important;
+  background: transparent !important;
+}
+
+.categoria-table__actions button:hover {
+  background: #e5e7eb !important;
+}
+
+.categoria-table__status {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 52px;
+  border: 0;
+  border-radius: 10px;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.categoria-table__status--ativo {
+  background: #8bce68;
+}
+
+.categoria-table__status--inativo {
+  background: #ed6b70;
+}
+
+.categoria-table__empty {
+  margin: 0;
+  padding: 40px;
+  border-radius: 10px;
   background: #ffffff;
-  border: 1px solid var(--color-asmosul-borda);
-  border-radius: 8px;
-  color: #6b7280;
-  padding: 0.5rem 0.75rem;
+  color: #9ca3af;
   text-align: center;
 }
 
-/* A celula de status e o proprio selo colorido, sem a caixa branca em volta. */
-.tabela-asmosul td.mat-mdc-cell.status {
-  background: transparent;
+.categoria-table__pagination {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  min-height: 52px;
+  padding: 0 18px;
+  color: #0b3c5d;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.categoria-table__pagination > button {
   border: 0;
-  padding: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+.categoria-table__page {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+}
+
+.categoria-table__page--active {
+  background: #0b3c5d !important;
+  color: #ffffff !important;
+}
+
+.pessoa-tabela__pagina,
+.pessoa-tabela__pagina-seta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: #0b3c5d;
+  font-family: Inter, sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.pessoa-tabela__pagina--ativa {
+  background: #0b3c5d;
+  color: #ffffff;
+}
+
+.pessoa-tabela__pagina-seta {
+  width: 24px;
+  font-size: 20px;
+}
+
+.pessoa-tabela__pagina-seta:disabled {
+  color: #9ca3af;
+  cursor: default;
+}
+
+.pessoa-tabela__pagina:not(.pessoa-tabela__pagina--ativa):hover,
+.pessoa-tabela__pagina-seta:not(:disabled):hover {
+  background: #e5e7eb;
+}
+
+@media (min-width: 640px) {
+  .pagina-formulario button[mat-flat-button] {
+    min-width: 10rem;
+  }
 }

@@ -87,8 +87,10 @@ export const PESSOAS_ROUTES: Routes = [
   // ==========================================
   {
     path: '',
-    pathMatch: 'full',
-    redirectTo: 'adicionar', // Alterne para a página de listagem quando ela for criada
+    loadComponent: () =>
+      import('./pages/pessoa-lista-page/pessoa-lista-page.component').then(
+        (m) => m.PessoaListaPageComponent,
+      ),
   },
   {
     path: 'adicionar',

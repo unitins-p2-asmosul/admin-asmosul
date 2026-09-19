@@ -30,7 +30,7 @@ import {
   RendaFamiliarCodigo,
   SEXO_OPCOES,
   SexoCodigo,
-  TipoPessoa,
+  TipoPessoaCodigo,
   UF_OPCOES,
   UfCodigo,
 } from '../../models/pessoa.model';
@@ -323,8 +323,9 @@ export class PessoaFormPageComponent {
 
     const requisicao: PessoaRequisicao = {
       nome: valores.nome.trim(),
+      dataNascimento: valores.dataNascimento.replace(/\//g, '-'),
       cpfCnpj: somenteDigitos(valores.cpfCnpj),
-      tipoPessoa: ehJuridica ? TipoPessoa.JURIDICA : TipoPessoa.FISICA,
+      tipoPessoa: ehJuridica ? TipoPessoaCodigo.JURIDICA : TipoPessoaCodigo.FISICA,
       telefone: somenteDigitos(valores.telefone),
       email: valores.email.trim() || undefined,
       categorias: valores.categorias.length > 0 ? valores.categorias : undefined,

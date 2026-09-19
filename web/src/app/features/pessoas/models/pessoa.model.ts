@@ -11,6 +11,18 @@ export enum SexoCodigo {
   PREFIRO_NAO_INFORMAR = 'PREFIRO_NAO_INFORMAR',
 }
 
+export enum TipoPessoaCodigo {
+  FISICA = 'FISICA',
+  JURIDICA = 'JURIDICA',
+}
+
+export enum UfCodigo {
+  AC = 'AC', AL = 'AL', AP = 'AP', AM = 'AM', BA = 'BA', CE = 'CE', DF = 'DF', ES = 'ES',
+  GO = 'GO', MA = 'MA', MT = 'MT', MS = 'MS', MG = 'MG', PA = 'PA', PB = 'PB', PR = 'PR',
+  PE = 'PE', PI = 'PI', RJ = 'RJ', RN = 'RN', RS = 'RS', RO = 'RO', RR = 'RR', SC = 'SC',
+  SP = 'SP', SE = 'SE', TO = 'TO',
+}
+
 export type SexoItem = ItemDominio<SexoCodigo>;
 
 export enum EscolaridadeCodigo {
@@ -32,36 +44,6 @@ export enum RendaFamiliarCodigo {
 }
 
 export type RendaFamiliarItem = ItemDominio<RendaFamiliarCodigo>;
-
-export enum UfCodigo {
-  AC = 'AC',
-  AL = 'AL',
-  AP = 'AP',
-  AM = 'AM',
-  BA = 'BA',
-  CE = 'CE',
-  DF = 'DF',
-  ES = 'ES',
-  GO = 'GO',
-  MA = 'MA',
-  MT = 'MT',
-  MS = 'MS',
-  MG = 'MG',
-  PA = 'PA',
-  PB = 'PB',
-  PR = 'PR',
-  PE = 'PE',
-  PI = 'PI',
-  RJ = 'RJ',
-  RN = 'RN',
-  RS = 'RS',
-  RO = 'RO',
-  RR = 'RR',
-  SC = 'SC',
-  SP = 'SP',
-  SE = 'SE',
-  TO = 'TO',
-}
 
 export type UfItem = ItemDominio<UfCodigo>;
 
@@ -131,11 +113,32 @@ export interface CepDados {
   uf: UfCodigo | string;
 }
 
-export interface PessoaRequisicao {
+export interface PessoaResumo {
+  id: number;
   nome: string;
   cpfCnpj: string;
   tipoPessoa?: TipoPessoa;
   dataNascimento?: string;
+  telefone: string;
+  email?: string;
+  sexo?: SexoItem;
+  escolaridade?: EscolaridadeItem;
+  profissao?: string;
+  bairro?: string;
+  rendaFamiliar?: RendaFamiliarItem;
+  comorbidades?: ItemRelacionadoResumo[];
+  categorias?: ItemRelacionadoResumo[];
+  quantidadeCoabitantes?: number;
+  ehBeneficiario?: boolean;
+  ehDoador?: boolean;
+  ativo: boolean;
+}
+
+export interface PessoaRequisicao {
+  nome: string;
+  cpfCnpj: string;
+  tipoPessoa: TipoPessoaCodigo;
+  dataNascimento: string;
   sexo?: SexoCodigo;
   telefone: string;
   email?: string;
@@ -160,7 +163,7 @@ export interface PessoaDetalhe {
   id: number;
   nome: string;
   cpfCnpj: string;
-  tipoPessoa?: TipoPessoa;
+  tipoPessoa: TipoPessoa;
   dataNascimento?: string;
   sexo?: SexoItem;
   telefone: string;
@@ -168,8 +171,8 @@ export interface PessoaDetalhe {
   escolaridade?: EscolaridadeItem;
   profissao?: string;
   rendaFamiliar?: RendaFamiliarItem;
-  comorbidades?: ItemRelacionadoResumo[] | number[];
-  categorias?: ItemRelacionadoResumo[] | number[];
+  comorbidades?: ItemRelacionadoResumo[];
+  categorias?: ItemRelacionadoResumo[];
   descricao?: string;
   cep?: string;
   uf?: UfItem | UfCodigo | string;
@@ -181,4 +184,48 @@ export interface PessoaDetalhe {
   ehBeneficiario?: boolean;
   ehDoador?: boolean;
   ativo?: boolean;
+}
+
+export interface PessoaFiltros {
+  nome?: string;
+  cpfCnpj?: string;
+  tipoPessoa?: string;
+  dataNascimento?: string;
+  sexo?: SexoCodigo;
+  telefone?: string;
+  email?: string;
+  escolaridade?: EscolaridadeCodigo;
+  profissao?: string;
+  bairro?: string;
+  rendaFamiliar?: RendaFamiliarCodigo;
+  comorbidadeId?: number;
+  categoriaId?: number;
+  quantidadeCoabitantes?: number;
+  ehBeneficiario?: boolean;
+  ehDoador?: boolean;
+  apenasInativos?: boolean;
+}
+
+export interface PessoaConsultaParametros {
+  page: number;
+  size: number;
+  sort?: string;
+  incluirInativos?: boolean;
+  apenasInativos?: boolean;
+  nome?: string;
+  cpfCnpj?: string;
+  tipoPessoa?: string;
+  dataNascimento?: string;
+  sexo?: SexoCodigo;
+  telefone?: string;
+  email?: string;
+  escolaridade?: EscolaridadeCodigo;
+  profissao?: string;
+  bairro?: string;
+  rendaFamiliar?: RendaFamiliarCodigo;
+  comorbidadeId?: number;
+  categoriaId?: number;
+  quantidadeCoabitantes?: number;
+  ehBeneficiario?: boolean;
+  ehDoador?: boolean;
 }
