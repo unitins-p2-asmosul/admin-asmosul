@@ -1,3 +1,11 @@
+---
+name: Feature
+about: Implementação de nova funcionalidade ou tarefa técnica
+title: '[BE | FE | BD | DOC | INFRA] - Título Objetivo'
+labels: 'feature'
+assignees: ''
+---
+
 ## Informações Gerais
 
 * **História de Usuário:** 
