@@ -95,22 +95,22 @@ export const PESSOAS_ROUTES: Routes = [
   {
     path: 'adicionar',
     loadComponent: () =>
-      import('./pages/pessoa-cadastro-page/pessoa-cadastro-page.component').then(
-        (m) => m.PessoaCadastroPageComponent,
+      import('./pages/pessoa-form-page/pessoa-form-page.component').then(
+        (m) => m.PessoaFormPageComponent,
       ),
   },
   {
     path: ':id/editar',
     loadComponent: () =>
-      import('./pages/pessoa-cadastro-page/pessoa-cadastro-page.component').then(
-        (m) => m.PessoaCadastroPageComponent,
+      import('./pages/pessoa-form-page/pessoa-form-page.component').then(
+        (m) => m.PessoaFormPageComponent,
       ),
   },
   {
     path: ':id',
     loadComponent: () =>
-      import('./pages/pessoa-cadastro-page/pessoa-cadastro-page.component').then(
-        (m) => m.PessoaCadastroPageComponent,
+      import('./pages/pessoa-form-page/pessoa-form-page.component').then(
+        (m) => m.PessoaFormPageComponent,
       ),
     data: {
       visualizacao: true,

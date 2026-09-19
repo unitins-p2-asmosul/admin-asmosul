@@ -129,18 +129,4 @@ public class ComorbidadeService {
 
         comorbidade.setDataInativo(null);
     }
-
-    @Transactional
-    public void excluir(Long id) {
-        Comorbidade comorbidade =
-                comorbidadeRepository
-                        .findById(id)
-                        .orElseThrow(
-                                () ->
-                                        new EntidadeNaoEncontradaException(
-                                                "Comorbidade não encontrada com o ID informado: "
-                                                        + id));
-
-        comorbidadeRepository.delete(comorbidade);
-    }
 }

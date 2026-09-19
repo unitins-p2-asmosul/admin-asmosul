@@ -10,12 +10,10 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.net.URI;
-import java.util.List;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -77,20 +75,6 @@ public class PessoaController {
         RespostaPaginada<PessoaDTO.Resumo> resposta =
                 pessoaService.listar(filtro, paginacao, incluirInativos);
         return ResponseEntity.ok(resposta);
-    }
-
-    @Operation(
-            summary = "Listar todas as pessoas",
-            description =
-                    "Retorna uma lista simples não paginada com todas as pessoas (podendo incluir inativas)")
-    @ApiResponses(
-            value = {
-                @ApiResponse(responseCode = "200", description = "Lista retornada com sucesso")
-            })
-    @GetMapping("/todas")
-    public ResponseEntity<List<PessoaDTO.Resumo>> listarTodas(
-            @RequestParam(defaultValue = "false") boolean incluirInativos) {
-        return ResponseEntity.ok(pessoaService.listarTodas(incluirInativos));
     }
 
     @Operation(
@@ -157,20 +141,6 @@ public class PessoaController {
     @PatchMapping("/{id}/reativar")
     public ResponseEntity<Void> reativar(@PathVariable Long id) {
         pessoaService.reativar(id);
-        return ResponseEntity.noContent().build();
-    }
-
-    @Operation(
-            summary = "Excluir pessoa",
-            description = "Realiza a exclusão física definitiva da pessoa no sistema")
-    @ApiResponses(
-            value = {
-                @ApiResponse(responseCode = "204", description = "Pessoa excluída com sucesso"),
-                @ApiResponse(responseCode = "404", description = "Pessoa não encontrada")
-            })
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> excluir(@PathVariable Long id) {
-        pessoaService.excluir(id);
         return ResponseEntity.noContent().build();
     }
 }

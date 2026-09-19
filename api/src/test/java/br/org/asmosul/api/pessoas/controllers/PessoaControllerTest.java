@@ -1,6 +1,5 @@
 package br.org.asmosul.api.pessoas.controllers;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -329,22 +328,6 @@ class PessoaControllerTest extends BaseAPITest {
     }
 
     @Nested
-    @DisplayName("GET /pessoas/todas - Listagem Não Paginada")
-    class ListarTodas {
-
-        @Test
-        @DisplayName("Deve listar todas as pessoas ativas retornando status 200")
-        void listarTodas_retornaStatus200() throws Exception {
-            criarPessoaPfSalva("Carlos", "11122233344", "carlos@email.com");
-
-            mockMvc.perform(get("/pessoas/todas"))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$").isArray())
-                    .andExpect(jsonPath("$[0].nome").value("Carlos"));
-        }
-    }
-
-    @Nested
     @DisplayName("GET /pessoas/{id} - Detalhamento")
     class BuscarPorId {
 
@@ -466,22 +449,6 @@ class PessoaControllerTest extends BaseAPITest {
 
             Pessoa reativado = pessoaRepository.findById(p.getId()).orElseThrow();
             org.junit.jupiter.api.Assertions.assertNull(reativado.getDataInativo());
-        }
-    }
-
-    @Nested
-    @DisplayName("DELETE /pessoas/{id} - Exclusão Física")
-    class Excluir {
-
-        @Test
-        @DisplayName("Deve excluir pessoa fisicamente com sucesso retornando status 204")
-        void excluir_comIdExistente_retornaStatus204() throws Exception {
-            Pessoa p = criarPessoaPfSalva("Para Excluir", "12345678901", "excluir@email.com");
-
-            mockMvc.perform(delete("/pessoas/{id}", p.getId())).andExpect(status().isNoContent());
-
-            org.junit.jupiter.api.Assertions.assertFalse(
-                    pessoaRepository.findById(p.getId()).isPresent());
         }
     }
 }

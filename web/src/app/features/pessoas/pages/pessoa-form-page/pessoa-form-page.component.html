@@ -1,0 +1,535 @@
+<section class="pagina-formulario mx-auto max-w-4xl">
+  <div class="mb-8">
+    <h1 class="text-[2rem] font-bold">
+      @if (ehPessoaJuridica()) {
+        Cadastro de Pessoa Jurídica
+      } @else {
+        Cadastro de Pessoa
+      }
+    </h1>
+    <p class="mt-2 text-base font-medium text-slate-500">
+      Preencha os dados abaixo para cadastrar
+      @if (ehPessoaJuridica()) {
+        uma nova pessoa jurídica
+      } @else {
+        uma nova pessoa
+      }
+      .
+    </p>
+  </div>
+
+  <form
+    [formGroup]="form"
+    (ngSubmit)="salvar()"
+    class="rounded-xl border border-gray-200 bg-white p-8 shadow-sm"
+  >
+    <div class="mb-6 flex items-center justify-between border-b border-gray-100 pb-4">
+      <h2 class="text-lg font-semibold">
+        @if (ehPessoaJuridica()) {
+          Dados da Empresa
+        } @else {
+          Dados Pessoais
+        }
+      </h2>
+
+      <mat-checkbox id="ehPessoaJuridica" formControlName="ehPessoaJuridica" color="primary">
+        <span class="text-sm font-semibold text-gray-700">Pessoa Jurídica</span>
+      </mat-checkbox>
+    </div>
+
+    <div class="grid grid-cols-1 gap-x-8 md:grid-cols-2">
+      <!-- Nome / Razão Social -->
+      <div class="md:col-span-2">
+        <label for="nome" class="mb-2 block text-sm font-semibold text-gray-700">
+          @if (ehPessoaJuridica()) {
+            Razão Social / Nome Fantasia *
+          } @else {
+            Nome completo *
+          }
+        </label>
+        <mat-form-field appearance="outline" class="w-full">
+          <input
+            id="nome"
+            matInput
+            formControlName="nome"
+            maxlength="255"
+            [placeholder]="
+              ehPessoaJuridica()
+                ? 'Digite a razão social ou nome fantasia'
+                : 'Digite o nome completo'
+            "
+          />
+          @if (form.controls.nome.hasError('required') || form.controls.nome.hasError('pattern')) {
+            <mat-error>O nome é obrigatório.</mat-error>
+          } @else if (form.controls.nome.hasError('maxlength')) {
+            <mat-error>O nome deve conter no máximo 255 caracteres.</mat-error>
+          } @else if (form.controls.nome.hasError('backend')) {
+            <mat-error>{{ form.controls.nome.getError('backend') }}</mat-error>
+          }
+        </mat-form-field>
+      </div>
+
+      <!-- CPF / CNPJ -->
+      <div>
+        <label for="cpfCnpj" class="mb-2 block text-sm font-semibold text-gray-700">
+          @if (ehPessoaJuridica()) {
+            CNPJ *
+          } @else {
+            CPF *
+          }
+        </label>
+        <mat-form-field appearance="outline" class="w-full">
+          <input
+            id="cpfCnpj"
+            matInput
+            formControlName="cpfCnpj"
+            (input)="aplicarMascaraDocumento()"
+            [placeholder]="ehPessoaJuridica() ? '00.000.000/0000-00' : '000.000.000-00'"
+            inputmode="numeric"
+            [maxlength]="ehPessoaJuridica() ? 18 : 14"
+          />
+          @if (form.controls.cpfCnpj.hasError('required')) {
+            <mat-error>{{
+              ehPessoaJuridica() ? 'O CNPJ é obrigatório.' : 'O CPF é obrigatório.'
+            }}</mat-error>
+          } @else if (form.controls.cpfCnpj.hasError('cpfIncompleto')) {
+            <mat-error>O CPF deve conter 11 números.</mat-error>
+          } @else if (form.controls.cpfCnpj.hasError('cpfInvalido')) {
+            <mat-error>CPF inválido. Confira os números digitados.</mat-error>
+          } @else if (form.controls.cpfCnpj.hasError('cnpjIncompleto')) {
+            <mat-error>O CNPJ deve conter 14 números.</mat-error>
+          } @else if (form.controls.cpfCnpj.hasError('cnpjInvalido')) {
+            <mat-error>CNPJ inválido. Confira os números digitados.</mat-error>
+          } @else if (form.controls.cpfCnpj.hasError('backend')) {
+            <mat-error>{{ form.controls.cpfCnpj.getError('backend') }}</mat-error>
+          }
+        </mat-form-field>
+      </div>
+
+      <!-- Data de Nascimento (apenas PF) -->
+      @if (!ehPessoaJuridica()) {
+        <div>
+          <label for="dataNascimento" class="mb-2 block text-sm font-semibold text-gray-700">
+            Data de nascimento *
+          </label>
+          <mat-form-field appearance="outline" class="w-full">
+            <input
+              id="dataNascimento"
+              matInput
+              formControlName="dataNascimento"
+              (input)="aplicarMascaraData()"
+              placeholder="dd/mm/aaaa"
+              inputmode="numeric"
+              maxlength="10"
+            />
+            @if (form.controls.dataNascimento.hasError('required')) {
+              <mat-error>A data de nascimento é obrigatória.</mat-error>
+            } @else if (form.controls.dataNascimento.hasError('dataFormato')) {
+              <mat-error>Informe a data no formato dd/mm/aaaa.</mat-error>
+            } @else if (form.controls.dataNascimento.hasError('dataInvalida')) {
+              <mat-error>Esta data não existe no calendário.</mat-error>
+            } @else if (form.controls.dataNascimento.hasError('dataFutura')) {
+              <mat-error>A data de nascimento não pode ser futura.</mat-error>
+            } @else if (form.controls.dataNascimento.hasError('backend')) {
+              <mat-error>{{ form.controls.dataNascimento.getError('backend') }}</mat-error>
+            }
+          </mat-form-field>
+        </div>
+      }
+
+      <!-- Telefone -->
+      <div>
+        <label for="telefone" class="mb-2 block text-sm font-semibold text-gray-700">
+          Telefone *
+        </label>
+        <mat-form-field appearance="outline" class="w-full">
+          <input
+            id="telefone"
+            matInput
+            formControlName="telefone"
+            (input)="aplicarMascaraTelefone()"
+            (blur)="aplicarMascaraTelefone()"
+            placeholder="(00) 00000-0000"
+            inputmode="tel"
+            maxlength="15"
+          />
+          @if (form.controls.telefone.hasError('required')) {
+            <mat-error>O telefone é obrigatório.</mat-error>
+          } @else if (form.controls.telefone.hasError('telefoneInvalido')) {
+            <mat-error>O telefone deve ter 10 ou 11 números, com DDD.</mat-error>
+          } @else if (form.controls.telefone.hasError('backend')) {
+            <mat-error>{{ form.controls.telefone.getError('backend') }}</mat-error>
+          }
+        </mat-form-field>
+      </div>
+
+      <!-- E-mail -->
+      <div>
+        <label for="email" class="mb-2 block text-sm font-semibold text-gray-700">E-mail</label>
+        <mat-form-field appearance="outline" class="w-full">
+          <input
+            id="email"
+            matInput
+            formControlName="email"
+            type="email"
+            maxlength="50"
+            placeholder="Digite o e-mail"
+          />
+          @if (form.controls.email.hasError('email')) {
+            <mat-error>Informe um e-mail válido.</mat-error>
+          } @else if (form.controls.email.hasError('maxlength')) {
+            <mat-error>O e-mail deve conter no máximo 50 caracteres.</mat-error>
+          } @else if (form.controls.email.hasError('backend')) {
+            <mat-error>{{ form.controls.email.getError('backend') }}</mat-error>
+          }
+        </mat-form-field>
+      </div>
+
+      <!-- Campos exclusivos de PF -->
+      @if (!ehPessoaJuridica()) {
+        <div>
+          <label for="sexo" class="mb-2 block text-sm font-semibold text-gray-700">Sexo</label>
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-select id="sexo" formControlName="sexo" placeholder="Selecione o sexo">
+              @for (opcao of sexoOpcoes; track opcao.codigo) {
+                <mat-option [value]="opcao.codigo">{{ opcao.descricao }}</mat-option>
+              } @empty {
+                <mat-option [disabled]="true">Nenhuma opção disponível</mat-option>
+              }
+            </mat-select>
+            @if (form.controls.sexo.hasError('backend')) {
+              <mat-error>{{ form.controls.sexo.getError('backend') }}</mat-error>
+            }
+          </mat-form-field>
+        </div>
+
+        <div>
+          <label for="escolaridade" class="mb-2 block text-sm font-semibold text-gray-700">
+            Escolaridade
+          </label>
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-select
+              id="escolaridade"
+              formControlName="escolaridade"
+              placeholder="Selecione a escolaridade"
+            >
+              @for (opcao of escolaridadeOpcoes; track opcao.codigo) {
+                <mat-option [value]="opcao.codigo">{{ opcao.descricao }}</mat-option>
+              } @empty {
+                <mat-option [disabled]="true">Nenhuma opção disponível</mat-option>
+              }
+            </mat-select>
+            @if (form.controls.escolaridade.hasError('backend')) {
+              <mat-error>{{ form.controls.escolaridade.getError('backend') }}</mat-error>
+            }
+          </mat-form-field>
+        </div>
+
+        <div class="md:col-span-2">
+          <label for="profissao" class="mb-2 block text-sm font-semibold text-gray-700">
+            Profissão
+          </label>
+          <mat-form-field appearance="outline" class="w-full">
+            <input
+              id="profissao"
+              matInput
+              formControlName="profissao"
+              maxlength="50"
+              placeholder="Digite a profissão"
+            />
+            @if (form.controls.profissao.hasError('maxlength')) {
+              <mat-error>A profissão deve conter no máximo 50 caracteres.</mat-error>
+            } @else if (form.controls.profissao.hasError('backend')) {
+              <mat-error>{{ form.controls.profissao.getError('backend') }}</mat-error>
+            }
+          </mat-form-field>
+        </div>
+      }
+    </div>
+
+    <!-- Seção de Endereço -->
+    <h2 class="mt-8 mb-5 text-lg font-semibold border-t border-gray-100 pt-6">Endereço</h2>
+
+    <div class="grid grid-cols-1 gap-x-8 md:grid-cols-2">
+      <!-- CEP -->
+      <div>
+        <label for="cep" class="mb-2 block text-sm font-semibold text-gray-700">
+          CEP
+          @if (buscandoCep()) {
+            <span class="text-xs font-normal text-slate-500">(Buscando endereço...)</span>
+          }
+        </label>
+        <mat-form-field appearance="outline" class="w-full">
+          <input
+            id="cep"
+            matInput
+            formControlName="cep"
+            (input)="aplicarMascaraCep()"
+            (blur)="aplicarMascaraCep()"
+            placeholder="00000-000"
+            inputmode="numeric"
+            maxlength="9"
+          />
+          @if (buscandoCep()) {
+            <mat-spinner matSuffix [diameter]="18" class="mr-3"></mat-spinner>
+          }
+          @if (form.controls.cep.hasError('cepIncompleto')) {
+            <mat-error>O CEP deve conter 8 dígitos.</mat-error>
+          } @else if (form.controls.cep.hasError('backend')) {
+            <mat-error>{{ form.controls.cep.getError('backend') }}</mat-error>
+          }
+        </mat-form-field>
+      </div>
+
+      <!-- Logradouro -->
+      <div>
+        <label for="logradouro" class="mb-2 block text-sm font-semibold text-gray-700">
+          Logradouro
+        </label>
+        <mat-form-field appearance="outline" class="w-full">
+          <input
+            id="logradouro"
+            matInput
+            formControlName="logradouro"
+            maxlength="100"
+            placeholder="Rua, Avenida, Praça..."
+          />
+          @if (form.controls.logradouro.hasError('maxlength')) {
+            <mat-error>O logradouro deve conter no máximo 100 caracteres.</mat-error>
+          } @else if (form.controls.logradouro.hasError('backend')) {
+            <mat-error>{{ form.controls.logradouro.getError('backend') }}</mat-error>
+          }
+        </mat-form-field>
+      </div>
+
+      <!-- Complemento -->
+      <div>
+        <label for="complementoEndereco" class="mb-2 block text-sm font-semibold text-gray-700">
+          Complemento
+        </label>
+        <mat-form-field appearance="outline" class="w-full">
+          <input
+            id="complementoEndereco"
+            matInput
+            formControlName="complementoEndereco"
+            maxlength="100"
+            placeholder="Apto, Sala, Bloco, Casa..."
+          />
+          @if (form.controls.complementoEndereco.hasError('maxlength')) {
+            <mat-error>O complemento deve conter no máximo 100 caracteres.</mat-error>
+          } @else if (form.controls.complementoEndereco.hasError('backend')) {
+            <mat-error>{{ form.controls.complementoEndereco.getError('backend') }}</mat-error>
+          }
+        </mat-form-field>
+      </div>
+
+      <!-- Bairro -->
+      <div>
+        <label for="bairro" class="mb-2 block text-sm font-semibold text-gray-700"> Bairro </label>
+        <mat-form-field appearance="outline" class="w-full">
+          <input
+            id="bairro"
+            matInput
+            formControlName="bairro"
+            maxlength="50"
+            placeholder="Digite o bairro"
+          />
+          @if (form.controls.bairro.hasError('maxlength')) {
+            <mat-error>O bairro deve conter no máximo 50 caracteres.</mat-error>
+          } @else if (form.controls.bairro.hasError('backend')) {
+            <mat-error>{{ form.controls.bairro.getError('backend') }}</mat-error>
+          }
+        </mat-form-field>
+      </div>
+
+      <!-- Cidade -->
+      <div>
+        <label for="cidade" class="mb-2 block text-sm font-semibold text-gray-700"> Cidade </label>
+        <mat-form-field appearance="outline" class="w-full">
+          <input
+            id="cidade"
+            matInput
+            formControlName="cidade"
+            maxlength="100"
+            placeholder="Digite a cidade"
+          />
+          @if (form.controls.cidade.hasError('maxlength')) {
+            <mat-error>A cidade deve conter no máximo 100 caracteres.</mat-error>
+          } @else if (form.controls.cidade.hasError('backend')) {
+            <mat-error>{{ form.controls.cidade.getError('backend') }}</mat-error>
+          }
+        </mat-form-field>
+      </div>
+
+      <!-- UF (Estado) -->
+      <div>
+        <label for="uf" class="mb-2 block text-sm font-semibold text-gray-700"> Estado (UF) </label>
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-select id="uf" formControlName="uf" placeholder="Selecione o estado">
+            @for (item of ufOpcoes; track item.codigo) {
+              <mat-option [value]="item.codigo"
+                >{{ item.codigo }} - {{ item.descricao }}</mat-option
+              >
+            }
+          </mat-select>
+          @if (form.controls.uf.hasError('backend')) {
+            <mat-error>{{ form.controls.uf.getError('backend') }}</mat-error>
+          }
+        </mat-form-field>
+      </div>
+    </div>
+
+    <!-- Seção de Informações Adicionais -->
+    <h2 class="mt-8 mb-5 text-lg font-semibold border-t border-gray-100 pt-6">
+      Informações Adicionais
+    </h2>
+
+    <div class="grid grid-cols-1 gap-x-8 md:grid-cols-2">
+      <!-- Renda Familiar (apenas PF) -->
+      @if (!ehPessoaJuridica()) {
+        <div>
+          <label for="rendaFamiliar" class="mb-2 block text-sm font-semibold text-gray-700">
+            Renda Familiar
+          </label>
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-select
+              id="rendaFamiliar"
+              formControlName="rendaFamiliar"
+              placeholder="Selecione a faixa de renda"
+            >
+              @for (opcao of rendaFamiliarOpcoes; track opcao.codigo) {
+                <mat-option [value]="opcao.codigo">{{ opcao.descricao }}</mat-option>
+              } @empty {
+                <mat-option [disabled]="true">Nenhuma opção disponível</mat-option>
+              }
+            </mat-select>
+            @if (form.controls.rendaFamiliar.hasError('backend')) {
+              <mat-error>{{ form.controls.rendaFamiliar.getError('backend') }}</mat-error>
+            }
+          </mat-form-field>
+        </div>
+
+        <!-- Quantidade de Coabitantes (apenas PF) -->
+        <div>
+          <label for="quantidadeCoabitantes" class="mb-2 block text-sm font-semibold text-gray-700">
+            Quantidade de Coabitantes
+          </label>
+          <mat-form-field appearance="outline" class="w-full">
+            <input
+              id="quantidadeCoabitantes"
+              matInput
+              formControlName="quantidadeCoabitantes"
+              type="number"
+              min="0"
+              max="127"
+              placeholder="Ex: 2"
+            />
+            @if (form.controls.quantidadeCoabitantes.hasError('min')) {
+              <mat-error>A quantidade não pode ser negativa.</mat-error>
+            } @else if (form.controls.quantidadeCoabitantes.hasError('max')) {
+              <mat-error>A quantidade máxima permitida é 127.</mat-error>
+            } @else if (form.controls.quantidadeCoabitantes.hasError('backend')) {
+              <mat-error>{{ form.controls.quantidadeCoabitantes.getError('backend') }}</mat-error>
+            }
+          </mat-form-field>
+        </div>
+
+        <!-- Comorbidades (apenas PF) -->
+        <div>
+          <label for="comorbidades" class="mb-2 block text-sm font-semibold text-gray-700">
+            Comorbidades
+          </label>
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-select
+              id="comorbidades"
+              formControlName="comorbidades"
+              multiple
+              placeholder="Selecione as comorbidades"
+            >
+              @for (item of comorbidades(); track item.id) {
+                <mat-option [value]="item.id">{{ item.nome }}</mat-option>
+              } @empty {
+                <mat-option [disabled]="true">Nenhuma comorbidade disponível</mat-option>
+              }
+            </mat-select>
+            @if (form.controls.comorbidades.hasError('backend')) {
+              <mat-error>{{ form.controls.comorbidades.getError('backend') }}</mat-error>
+            }
+          </mat-form-field>
+        </div>
+      }
+
+      <!-- Categorias (PF e PJ) -->
+      <div [class.md:col-span-2]="ehPessoaJuridica()">
+        <label for="categorias" class="mb-2 block text-sm font-semibold text-gray-700">
+          Categorias
+        </label>
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-select
+            id="categorias"
+            formControlName="categorias"
+            multiple
+            placeholder="Selecione as categorias"
+          >
+            @for (item of categorias(); track item.id) {
+              <mat-option [value]="item.id">{{ item.nome }}</mat-option>
+            } @empty {
+              <mat-option [disabled]="true">Nenhuma categoria disponível</mat-option>
+            }
+          </mat-select>
+          @if (form.controls.categorias.hasError('backend')) {
+            <mat-error>{{ form.controls.categorias.getError('backend') }}</mat-error>
+          }
+        </mat-form-field>
+      </div>
+
+      <!-- Papéis e Vínculos (Beneficiário / Doador) -->
+      <div class="md:col-span-2 my-2 flex flex-wrap items-center gap-8">
+        @if (!ehPessoaJuridica()) {
+          <mat-checkbox id="ehBeneficiario" formControlName="ehBeneficiario" color="primary">
+            <span class="text-sm font-semibold text-gray-700">Beneficiário</span>
+          </mat-checkbox>
+        }
+
+        <mat-checkbox id="ehDoador" formControlName="ehDoador" color="primary">
+          <span class="text-sm font-semibold text-gray-700">Doador</span>
+        </mat-checkbox>
+      </div>
+
+      <!-- Descrição -->
+      <div class="md:col-span-2">
+        <label for="descricao" class="mb-2 block text-sm font-semibold text-gray-700">
+          Descrição
+        </label>
+        <mat-form-field appearance="outline" class="w-full">
+          <textarea
+            id="descricao"
+            matInput
+            formControlName="descricao"
+            rows="3"
+            placeholder="Digite informações adicionais..."
+          ></textarea>
+          @if (form.controls.descricao.hasError('backend')) {
+            <mat-error>{{ form.controls.descricao.getError('backend') }}</mat-error>
+          }
+        </mat-form-field>
+      </div>
+    </div>
+
+    <!-- Botões de Ação -->
+    <div
+      class="mt-4 flex flex-col-reverse justify-center gap-3 border-t border-gray-100 pt-7 sm:flex-row sm:gap-10"
+    >
+      <button mat-flat-button type="button" (click)="cancelar()" [disabled]="carregando()">
+        Cancelar
+      </button>
+      <button mat-flat-button color="primary" type="submit" [disabled]="carregando()">
+        @if (carregando()) {
+          Cadastrando...
+        } @else {
+          {{ ehPessoaJuridica() ? 'Cadastrar Pessoa Jurídica' : 'Cadastrar Pessoa' }}
+        }
+      </button>
+    </div>
+  </form>
+</section>

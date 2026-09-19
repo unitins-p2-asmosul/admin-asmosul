@@ -1,6 +1,5 @@
 package br.org.asmosul.api.pessoas.controllers;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -266,26 +265,6 @@ class CategoriaControllerTest extends BaseAPITest {
         void reativar_comIdInexistente_retornaStatus404() throws Exception {
             mockMvc.perform(patch("/categorias/{id}/reativar", 99999L))
                     .andExpect(status().isNotFound());
-        }
-    }
-
-    @Nested
-    @DisplayName("DELETE /categorias/{id} - ExclusÃ£o FÃ­sica")
-    class Excluir {
-
-        @Test
-        @DisplayName("Deve excluir categoria com sucesso retornando status 204")
-        void excluir_comIdExistente_retornaStatus204() throws Exception {
-            Categoria categoria = categoriaRepository.save(new Categoria("Para Excluir", "Desc"));
-
-            mockMvc.perform(delete("/categorias/{id}", categoria.getId()))
-                    .andExpect(status().isNoContent());
-        }
-
-        @Test
-        @DisplayName("Deve retornar status 404 ao tentar excluir categoria inexistente")
-        void excluir_comIdInexistente_retornaStatus404() throws Exception {
-            mockMvc.perform(delete("/categorias/{id}", 99999L)).andExpect(status().isNotFound());
         }
     }
 }

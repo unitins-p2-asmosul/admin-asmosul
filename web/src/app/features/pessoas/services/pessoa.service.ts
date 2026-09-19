@@ -1,21 +1,21 @@
-import { HttpClient, HttpParams } from '@angular/common/http';
-import { inject, Injectable } from '@angular/core';
-import { ItemDominio } from '@features/shared/models/item-dominio.model';
-import { ErroCampo } from '@features/shared/models/erro-api.model';
-import { RespostaPaginada } from '@features/shared/models/resposta-paginada.model';
-import { Observable, of, throwError } from 'rxjs';
-import { delay } from 'rxjs/operators';
-import { environment } from '../../../../enviroments/enviroment';
-import { MOCK_CATEGORIAS, MOCK_COMORBIDADES, MOCK_PESSOAS } from '../mocks/pessoa.mock';
+import {HttpClient, HttpParams} from '@angular/common/http';
+import {inject, Injectable} from '@angular/core';
+import {ItemDominio} from '@features/shared/models/item-dominio.model';
+import {ErroCampo} from '@features/shared/models/erro-api.model';
+import {RespostaPaginada} from '@features/shared/models/resposta-paginada.model';
+import {Observable, of, throwError} from 'rxjs';
+import {delay} from 'rxjs/operators';
+import {environment} from '../../../../enviroments/enviroment';
+import {MOCK_CATEGORIAS, MOCK_COMORBIDADES, MOCK_PESSOAS} from '../mocks/pessoa.mock';
 import {
-  ESCOLARIDADE_OPCOES,
+  CepDados,
   ItemRelacionadoResumo,
   PessoaConsultaParametros,
   PessoaDetalhe,
   PessoaRequisicao,
   PessoaResumo,
-  RENDA_FAMILIAR_OPCOES,
-  SEXO_OPCOES,
+  TipoPessoaCodigo,
+  UfCodigo,
 } from '../models/pessoa.model';
 
 const LATENCIA_SIMULADA_MS = 300;
@@ -26,6 +26,7 @@ const LATENCIA_SIMULADA_MS = 300;
 export class PessoaService {
   private readonly http = inject(HttpClient);
   private readonly endpoint = 'pessoas';
+  private readonly cepEndpoint = 'cep';
   private readonly pessoas = [...MOCK_PESSOAS];
 
   listar(parametros: PessoaConsultaParametros): Observable<RespostaPaginada<PessoaResumo>> {
@@ -39,7 +40,7 @@ export class PessoaService {
 
       const filtradas = this.pessoas.filter((pessoa) => {
         const correspondeNome = !nome || pessoa.nome.toLocaleLowerCase().includes(nome);
-        const correspondeCpf = !cpfCnpj || (pessoa.cpfCnpj ?? pessoa.cpf).includes(cpfCnpj);
+        const correspondeCpf = !cpfCnpj || (pessoa.cpfCnpj).includes(cpfCnpj);
         const correspondeTipo = !parametros.tipoPessoa || pessoa.tipoPessoa === parametros.tipoPessoa;
         const correspondeData = !parametros.dataNascimento || pessoa.dataNascimento === parametros.dataNascimento;
         const correspondeTelefone = !telefone || pessoa.telefone.includes(telefone);
@@ -49,8 +50,6 @@ export class PessoaService {
         const correspondeSexo = !parametros.sexo || pessoa.sexo?.codigo === parametros.sexo;
         const correspondeEscolaridade = !parametros.escolaridade || pessoa.escolaridade?.codigo === parametros.escolaridade;
         const correspondeRenda = !parametros.rendaFamiliar || pessoa.rendaFamiliar?.codigo === parametros.rendaFamiliar;
-        const correspondeComorbidade = !parametros.comorbidadeId || pessoa.comorbidades?.includes(parametros.comorbidadeId);
-        const correspondeCategoria = !parametros.categoriaId || pessoa.categorias?.includes(parametros.categoriaId);
         const correspondeCoabitantes = parametros.quantidadeCoabitantes === undefined
           || pessoa.quantidadeCoabitantes === parametros.quantidadeCoabitantes;
         const correspondeBeneficiario = parametros.ehBeneficiario === undefined
@@ -62,17 +61,16 @@ export class PessoaService {
 
         return correspondeNome && correspondeCpf && correspondeTipo && correspondeData
           && correspondeTelefone && correspondeEmail && correspondeProfissao && correspondeBairro
-          && correspondeSexo && correspondeEscolaridade && correspondeRenda && correspondeComorbidade
-          && correspondeCategoria && correspondeCoabitantes && correspondeBeneficiario && correspondeDoador
+          && correspondeSexo && correspondeEscolaridade && correspondeRenda
+          && correspondeCoabitantes && correspondeBeneficiario && correspondeDoador
           && correspondeStatus;
       });
 
       const dados: PessoaResumo[] = filtradas.map((pessoa) => ({
         id: pessoa.id,
         nome: pessoa.nome,
-        cpf: pessoa.cpf,
-        cpfCnpj: pessoa.cpfCnpj ?? pessoa.cpf,
-        tipoPessoa: pessoa.tipoPessoa ?? (pessoa.cpf.length === 14 ? 'JURIDICA' : 'FISICA'),
+        cpfCnpj: pessoa.cpfCnpj,
+        tipoPessoa: pessoa.tipoPessoa,
         dataNascimento: pessoa.dataNascimento,
         telefone: pessoa.telefone,
         email: pessoa.email,
@@ -133,20 +131,67 @@ export class PessoaService {
   }
 
   cadastrar(requisicao: PessoaRequisicao): Observable<PessoaDetalhe> {
-    if (environment.mockApi) {
-      return this.cadastrarSimulado(requisicao);
-    }
+    //if (environment.mockApi) {
+    //  return this.cadastrarSimulado(requisicao);
+    //}
 
     return this.http.post<PessoaDetalhe>(this.endpoint, requisicao);
   }
 
+  /**
+   * GET /cep/{cep}
+   *
+   * Consulta os dados de endereço a partir do CEP informado via integração com ViaCEP no backend.
+   */
+  consultarCep(cep: string): Observable<CepDados> {
+    const cepLimpo = cep.replace(/\D/g, '');
+
+    if (environment.mockApi) {
+      if (cepLimpo.length !== 8) {
+        return throwError(() => ({ status: 400, error: { detail: 'CEP inválido' } }));
+      }
+
+      if (cepLimpo === '00000000' || cepLimpo === '99999999') {
+        return throwError(() => ({
+          status: 404,
+          error: { detail: 'CEP não encontrado' },
+        })).pipe(delay(LATENCIA_SIMULADA_MS));
+      }
+
+      if (cepLimpo.startsWith('01')) {
+        return of({
+          cep: `${cepLimpo.slice(0, 5)}-${cepLimpo.slice(5)}`,
+          logradouro: 'Praça da Sé',
+          complemento: 'lado ímpar',
+          bairro: 'Sé',
+          cidade: 'São Paulo',
+          uf: UfCodigo.SP,
+        }).pipe(delay(LATENCIA_SIMULADA_MS));
+      }
+
+      return of({
+        cep: `${cepLimpo.slice(0, 5)}-${cepLimpo.slice(5)}`,
+        logradouro: 'Avenida Joaquim Teotônio Segurado',
+        complemento: '',
+        bairro: 'Plano Diretor Sul',
+        cidade: 'Palmas',
+        uf: UfCodigo.TO,
+      }).pipe(delay(LATENCIA_SIMULADA_MS));
+    }
+
+    return this.http.get<CepDados>(`${this.cepEndpoint}/${cepLimpo}`);
+  }
+
+  /**
+   * Opções do select de comorbidades (fallback mockado).
+   */
   atualizar(id: number, requisicao: PessoaRequisicao): Observable<PessoaDetalhe> {
     if (environment.mockApi) {
       const pessoa = this.pessoas.find((item) => item.id === id);
       if (!pessoa) {
         return throwError(() => ({ status: 404, error: { detail: 'Pessoa não encontrada.' } })).pipe(delay(LATENCIA_SIMULADA_MS));
       }
-
+      /*
       const atualizada: PessoaDetalhe = {
         ...pessoa,
         nome: requisicao.nome,
@@ -175,7 +220,7 @@ export class PessoaService {
       };
 
       Object.assign(pessoa, atualizada);
-      return of(atualizada).pipe(delay(LATENCIA_SIMULADA_MS));
+      return of(atualizada).pipe(delay(LATENCIA_SIMULADA_MS));*/
     }
 
     return this.http.put<PessoaDetalhe>(`${this.endpoint}/${id}`, requisicao);
@@ -205,71 +250,111 @@ export class PessoaService {
     return of([...MOCK_COMORBIDADES]).pipe(delay(LATENCIA_SIMULADA_MS));
   }
 
+  /**
+   * Opções do select de categorias (fallback mockado).
+   */
   listarCategorias(): Observable<ItemRelacionadoResumo[]> {
     return of([...MOCK_CATEGORIAS]).pipe(delay(LATENCIA_SIMULADA_MS));
   }
 
-  private cadastrarSimulado(requisicao: PessoaRequisicao): Observable<PessoaDetalhe> {
-    const erros = this.validarRequisicao(requisicao);
+  private cadastrarSimulado(): void {
+  /*const erros = this.validarRequisicao(requisicao);
 
     if (erros.length > 0) {
       return this.erroSimulado(400, 'Um ou mais campos não passaram na validação.', erros);
     }
 
-    const cpfJaCadastrado = this.pessoas.some((pessoa) => (pessoa.cpfCnpj ?? pessoa.cpf) === requisicao.cpfCnpj);
+    const documentoJaCadastrado = this.pessoas.some(
+      (pessoa) => pessoa.cpfCnpj === requisicao.cpfCnpj,
+    );
 
-    if (cpfJaCadastrado) {
-      return this.erroSimulado(409, 'Já existe uma pessoa cadastrada com este CPF');
+    if (documentoJaCadastrado) {
+      const rotulo = requisicao.tipoPessoa === TipoPessoa.JURIDICA ? 'CNPJ' : 'CPF';
+      return this.erroSimulado(409, `Já existe uma pessoa cadastrada com este ${rotulo}`);
     }
+
+    if (requisicao.email) {
+      const emailJaCadastrado = this.pessoas.some(
+        (pessoa) => pessoa.email?.toLowerCase() === requisicao.email?.toLowerCase(),
+      );
+      if (emailJaCadastrado) {
+        return this.erroSimulado(409, 'Já existe uma pessoa cadastrada com este e-mail');
+      }
+    }
+
+    const ehJuridica = requisicao.tipoPessoa === TipoPessoa.JURIDICA;
 
     const pessoa: PessoaDetalhe = {
       id: Math.max(0, ...this.pessoas.map((item) => item.id)) + 1,
       nome: requisicao.nome,
-      cpf: requisicao.cpfCnpj,
       cpfCnpj: requisicao.cpfCnpj,
-      tipoPessoa: requisicao.tipoPessoa,
-      dataNascimento: requisicao.dataNascimento,
-      sexo: this.descreverCodigo(requisicao.sexo, SEXO_OPCOES),
+      tipoPessoa: requisicao.tipoPessoa ?? TipoPessoa.FISICA,
+      dataNascimento: ehJuridica ? undefined : requisicao.dataNascimento,
+      sexo: ehJuridica ? undefined : this.descreverCodigo(requisicao.sexo, SEXO_OPCOES),
       telefone: requisicao.telefone,
       email: requisicao.email,
-      escolaridade: this.descreverCodigo(requisicao.escolaridade, ESCOLARIDADE_OPCOES),
-      profissao: requisicao.profissao,
-      rendaFamiliar: this.descreverCodigo(requisicao.rendaFamiliar, RENDA_FAMILIAR_OPCOES),
-      comorbidades: requisicao.comorbidades,
+      escolaridade: ehJuridica
+        ? undefined
+        : this.descreverCodigo(requisicao.escolaridade, ESCOLARIDADE_OPCOES),
+      profissao: ehJuridica ? undefined : requisicao.profissao,
+      rendaFamiliar: ehJuridica
+        ? undefined
+        : this.descreverCodigo(requisicao.rendaFamiliar, RENDA_FAMILIAR_OPCOES),
+      comorbidades: ehJuridica ? undefined : requisicao.comorbidades,
       categorias: requisicao.categorias,
       descricao: requisicao.descricao,
       cep: requisicao.cep,
-      uf: requisicao.uf,
+      uf: requisicao.uf ? this.descreverCodigo(requisicao.uf as UfCodigo, UF_OPCOES) : undefined,
       cidade: requisicao.cidade,
       bairro: requisicao.bairro,
       logradouro: requisicao.logradouro,
       complementoEndereco: requisicao.complementoEndereco,
-      quantidadeCoabitantes: requisicao.quantidadeCoabitantes,
-      ehBeneficiario: requisicao.ehBeneficiario,
-      ehDoador: requisicao.ehDoador,
+      quantidadeCoabitantes: ehJuridica ? 0 : (requisicao.quantidadeCoabitantes ?? 0),
+      ehBeneficiario: ehJuridica ? false : Boolean(requisicao.ehBeneficiario),
+      ehDoador: Boolean(requisicao.ehDoador),
       ativo: true,
     };
 
     this.pessoas.push(pessoa);
-    return of(pessoa).pipe(delay(LATENCIA_SIMULADA_MS));
+    return of(pessoa).pipe(delay(LATENCIA_SIMULADA_MS)); */
   }
 
+  /** Espelha as validações obrigatórias de PF e PJ. */
   private validarRequisicao(requisicao: PessoaRequisicao): ErroCampo[] {
     const erros: ErroCampo[] = [];
+    const ehJuridica = requisicao.tipoPessoa === TipoPessoaCodigo.JURIDICA;
 
-    if (!requisicao.nome.trim()) {
+    if (!requisicao.nome?.trim()) {
       erros.push({ campo: 'nome', mensagem: 'O nome é obrigatório' });
     }
 
-    if (!/^\d{11}$|^\d{14}$/.test(requisicao.cpfCnpj)) {
-      erros.push({ campo: 'cpfCnpj', mensagem: 'O CPF/CNPJ deve conter 11 ou 14 números' });
-    }
+    if (ehJuridica) {
+      if (!/^\d{14}$/.test(requisicao.cpfCnpj)) {
+        erros.push({ campo: 'cpfCnpj', mensagem: 'O CNPJ deve conter 14 números' });
+      }
 
-    if (requisicao.dataNascimento && !/^\d{2}-\d{2}-\d{4}$/.test(requisicao.dataNascimento)) {
-      erros.push({
-        campo: 'dataNascimento',
-        mensagem: 'A data de nascimento deve estar no formato dd-mm-aaaa',
-      });
+      if (requisicao.ehBeneficiario) {
+        erros.push({
+          campo: 'ehBeneficiario',
+          mensagem: 'Pessoa Jurídica não pode ser cadastrada como beneficiária',
+        });
+      }
+    } else {
+      if (!/^\d{11}$/.test(requisicao.cpfCnpj)) {
+        erros.push({ campo: 'cpfCnpj', mensagem: 'O CPF deve conter 11 números' });
+      }
+
+      if (!requisicao.dataNascimento) {
+        erros.push({
+          campo: 'dataNascimento',
+          mensagem: 'A data de nascimento é obrigatória para Pessoa Física',
+        });
+      } else if (!/^\d{2}-\d{2}-\d{4}$/.test(requisicao.dataNascimento)) {
+        erros.push({
+          campo: 'dataNascimento',
+          mensagem: 'A data de nascimento deve estar no formato dd-mm-aaaa',
+        });
+      }
     }
 
     if (!/^\d{10,11}$/.test(requisicao.telefone)) {
@@ -283,6 +368,7 @@ export class PessoaService {
     return erros;
   }
 
+  /** Converte o código do enum no objeto { codigo, descricao } devolvido pela API. */
   private descreverCodigo<T extends string>(
     codigo: T | undefined,
     opcoes: readonly ItemDominio<T>[],
@@ -294,6 +380,7 @@ export class PessoaService {
     return opcoes.find((opcao) => opcao.codigo === codigo);
   }
 
+  /** Reproduz o corpo de erro RFC 7807 que o Back-end devolverá. */
   private erroSimulado(status: number, detail: string, erros?: ErroCampo[]): Observable<never> {
     return throwError(() => ({
       status,
