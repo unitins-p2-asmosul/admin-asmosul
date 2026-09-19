@@ -31,6 +31,10 @@ https://app.diagrams.net/#G1ruCAsf-YYDyAYcbsdcluNYrX6Ca4KOf9
 
 https://h.asmosul.site/api/swagger-ui/index.html
 
+**Campos:**
+
+https://docs.google.com/document/d/1trMX6pRqONxMhOdo2VJxRaiULOofJjx6FoInyFHP16E/edit?usp=sharing
+
 ---
 
 ## Descrição
