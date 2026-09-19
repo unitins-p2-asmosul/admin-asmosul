@@ -1,44 +1,51 @@
-<section class="mx-auto max-w-6xl px-2 py-8 sm:px-6">
-  <header class="flex flex-col gap-4">
-    <div class="flex items-center justify-between gap-4">
-      <h1 class="text-4xl font-bold text-asmosul-navy">Gerenciamento de Categorias</h1>
-      <button mat-flat-button color="primary" type="button" class="!h-9 !rounded-lg !px-5" (click)="adicionar()">
-        Adicionar Categoria
-        <span class="material-icons ml-1" aria-hidden="true">add_circle_outline</span>
-      </button>
+<section class="pagina-categorias">
+  <header class="pagina-categorias__header">
+    <div class="pagina-categorias__title-wrap">
+      <span class="pagina-categorias__title-icon" aria-hidden="true">
+        <mat-icon>category</mat-icon>
+      </span>
+      <h1>Gerenciamento de Categorias</h1>
     </div>
-    <button
-      mat-icon-button
-      type="button"
-      class="!h-9 !w-9 !rounded-lg !bg-asmosul-navy !text-white"
-      aria-label="Filtrar categorias"
-      (click)="abrirFiltros()"
-    >
-      <span class="material-icons">tune</span>
+
+    <button mat-flat-button type="button" class="pagina-categorias__add" (click)="adicionar()">
+        Adicionar Categoria
+        <mat-icon iconPositionEnd>add_circle_outline</mat-icon>
     </button>
   </header>
 
-  <div class="mt-20 overflow-x-auto">
-    <div class="min-w-[900px]">
-      <div class="grid grid-cols-[76px_150px_290px_minmax(300px,1fr)_155px] items-center gap-2 px-3 pb-2 text-base font-bold text-slate-700 sm:px-5">
-      <button type="button" class="text-left" (click)="ordenar('id')">#</button>
-      <span>Ações</span>
-      <button type="button" class="text-left" (click)="ordenar('nome')">Nome</button>
-      <span>Descrição</span>
-      <span>Status</span>
+  <div class="pagina-categorias__toolbar">
+    <button
+      mat-icon-button
+      type="button"
+      class="pagina-categorias__filter"
+      aria-label="Filtrar categorias"
+      (click)="abrirFiltros()"
+    >
+      <mat-icon>tune</mat-icon>
+    </button>
+  </div>
+
+  <div class="categoria-tabela-scroll">
+    <div class="categoria-table">
+      <div class="categoria-table__header">
+        <button type="button" (click)="ordenar('id')">#</button>
+        <span>Ações</span>
+        <button type="button" (click)="ordenar('nome')">Nome</button>
+        <span>Descrição</span>
+        <span>Status</span>
       </div>
 
       @if (carregando()) {
-        <p class="rounded-lg bg-white p-10 text-center text-slate-500">Carregando categorias...</p>
+        <p class="categoria-table__empty">Carregando categorias...</p>
       } @else if (resposta().dados.length === 0) {
-        <p class="rounded-lg bg-white p-10 text-center text-slate-500">Nenhuma categoria encontrada.</p>
+        <p class="categoria-table__empty">Nenhuma categoria encontrada.</p>
       } @else {
         @for (categoria of resposta().dados; track categoria.id; let indice = $index) {
-          <div class="mb-3 grid grid-cols-[76px_150px_290px_minmax(300px,1fr)_155px] items-center gap-2 text-sm">
-            <span class="flex h-11 items-center justify-center rounded-xl bg-white font-semibold text-slate-400 shadow-sm">
+          <div class="categoria-table__row">
+            <span class="categoria-table__cell categoria-table__index">
               {{ resposta().paginaAtual * resposta().tamanhoPagina + indice + 1 }}
             </span>
-            <div class="flex h-11 items-center justify-center gap-1 rounded-xl bg-white shadow-sm">
+            <div class="categoria-table__cell categoria-table__actions">
               <button mat-icon-button type="button" aria-label="Visualizar categoria" (click)="visualizar(categoria.id)">
                 <span class="material-icons text-slate-400">visibility</span>
               </button>
@@ -49,16 +56,17 @@
                 <span class="material-icons text-slate-400">{{ categoria.ativo ? 'delete' : 'check_circle' }}</span>
               </button>
             </div>
-            <span class="flex h-11 items-center justify-center rounded-xl bg-white px-3 font-semibold text-slate-400 shadow-sm">
+            <span class="categoria-table__cell categoria-table__name">
               {{ categoria.nome }}
             </span>
-            <span class="flex min-h-11 items-center justify-center rounded-xl bg-white px-5 text-center font-medium leading-tight text-slate-400 shadow-sm">
+            <span class="categoria-table__cell categoria-table__description">
               {{ categoria.descricao || '-' }}
             </span>
             <button
               type="button"
-              class="flex h-11 w-full items-center justify-center rounded-xl bg-[#8bce68] px-3 font-bold text-white transition-colors hover:brightness-95"
-              [class.!bg-red-400]="!categoria.ativo"
+              class="categoria-table__status"
+              [class.categoria-table__status--ativo]="categoria.ativo"
+              [class.categoria-table__status--inativo]="!categoria.ativo"
               [attr.aria-label]="categoria.ativo ? 'Desativar categoria' : 'Reativar categoria'"
               (click)="alternarEstado(categoria.id, !categoria.ativo)"
             >
@@ -69,10 +77,10 @@
       }
 
       @if (resposta().totalPaginas > 0) {
-        <nav class="mt-5 flex items-center justify-end gap-4 pr-4 text-sm font-bold text-asmosul-navy" aria-label="Paginação de categorias">
+        <nav class="categoria-table__pagination" aria-label="Paginação de categorias">
           <button type="button" [disabled]="resposta().paginaAtual === 0" (click)="irParaPagina(resposta().paginaAtual - 1)" aria-label="Página anterior">&lt;</button>
           @for (pagina of paginas(); track pagina) {
-            <button type="button" class="flex h-9 w-9 items-center justify-center rounded-full" [class.bg-asmosul-navy]="pagina === resposta().paginaAtual" [class.text-white]="pagina === resposta().paginaAtual" (click)="irParaPagina(pagina)">
+            <button type="button" class="categoria-table__page" [class.categoria-table__page--active]="pagina === resposta().paginaAtual" (click)="irParaPagina(pagina)">
               {{ pagina + 1 }}
             </button>
           }
