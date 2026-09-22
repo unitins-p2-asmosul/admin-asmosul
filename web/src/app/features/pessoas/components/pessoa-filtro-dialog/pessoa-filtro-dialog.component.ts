@@ -27,6 +27,7 @@ import { PessoaService } from '../../services/pessoa.service';
     MatSelectModule,
   ],
   template: `
+    <div class="pagina-formulario">
     <h2 mat-dialog-title class="pessoa-filtro__titulo">
       <span class="material-icons" aria-hidden="true">tune</span>
       <span>Filtrar Pessoas</span>
@@ -160,12 +161,13 @@ import { PessoaService } from '../../services/pessoa.service';
       </form>
     </mat-dialog-content>
 
-    <mat-dialog-actions align="center" class="pessoa-filtro__actions">
-      <button mat-flat-button type="button" class="pessoa-filtro__button" (click)="limpar()">Limpar</button>
-      <button mat-flat-button color="primary" type="button" class="pessoa-filtro__button" (click)="aplicar()">
+    <mat-dialog-actions align="center" class="pessoa-filtro__actions !gap-4 !pb-5">
+      <button mat-flat-button type="button" (click)="limpar()">Limpar</button>
+      <button mat-flat-button type="submit" (click)="aplicar()">
         Aplicar Filtros
       </button>
     </mat-dialog-actions>
+    </div>
   `,
 })
 export class PessoaFiltroDialogComponent {

@@ -5,15 +5,15 @@ import { PageEvent } from '@angular/material/paginator';
 import { MatSortModule, Sort } from '@angular/material/sort';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { ComorbidadeResumo } from '../../models/comorbidade.model';
+import { CategoriaResumo } from '../../models/categoria.model';
 
-export interface AlternarEstadoEvento {
+export interface AlternarEstadoCategoriaEvento {
   id: number;
   ativo: boolean;
 }
 
 @Component({
-  selector: 'app-comorbidade-tabela',
+  selector: 'app-categoria-tabela',
   standalone: true,
   imports: [
     MatTableModule,
@@ -22,10 +22,10 @@ export interface AlternarEstadoEvento {
     MatButtonModule,
     MatTooltipModule,
   ],
-  templateUrl: './comorbidade-tabela.component.html',
+  templateUrl: './categoria-tabela.component.html',
 })
-export class ComorbidadeTabelaComponent {
-  readonly dados = input.required<ComorbidadeResumo[]>();
+export class CategoriaTabelaComponent {
+  readonly dados = input.required<CategoriaResumo[]>();
   readonly totalElementos = input.required<number>();
   readonly tamanhoPagina = input.required<number>();
   readonly paginaAtual = input.required<number>();
@@ -36,11 +36,10 @@ export class ComorbidadeTabelaComponent {
   readonly aoMudarOrdem = output<Sort>();
   readonly aoVisualizar = output<number>();
   readonly aoEditar = output<number>();
-  readonly aoAlternarEstado = output<AlternarEstadoEvento>();
+  readonly aoAlternarEstado = output<AlternarEstadoCategoriaEvento>();
 
   protected readonly colunasExibidas = ['id', 'acoes', 'nome', 'descricao', 'status'];
 
-  /** Campo e direção atuais, extraídos de "campo,direcao", para o mat-sort refletir a URL. */
   protected get campoOrdenado(): string {
     return this.ordenacao().split(',')[0] ?? 'nome';
   }

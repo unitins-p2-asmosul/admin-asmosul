@@ -19,44 +19,18 @@
       <th mat-header-cell *matHeaderCellDef class="w-40">Ações</th>
       <td mat-cell *matCellDef="let item" class="pessoa-table__acoes">
         <div class="pessoa-table__acoes-inner">
-          <button
-            mat-icon-button
-            type="button"
-            matTooltip="Visualizar"
-            aria-label="Visualizar comorbidade"
-            (click)="aoVisualizar.emit(item.id)"
-          >
+          <button mat-icon-button type="button" matTooltip="Visualizar" aria-label="Visualizar categoria" (click)="aoVisualizar.emit(item.id)">
             <mat-icon>visibility</mat-icon>
           </button>
-
-          <button
-            mat-icon-button
-            type="button"
-            matTooltip="Editar"
-            aria-label="Editar comorbidade"
-            (click)="aoEditar.emit(item.id)"
-          >
+          <button mat-icon-button type="button" matTooltip="Editar" aria-label="Editar categoria" (click)="aoEditar.emit(item.id)">
             <mat-icon>edit</mat-icon>
           </button>
-
           @if (item.ativo) {
-            <button
-              mat-icon-button
-              type="button"
-              matTooltip="Desativar"
-              aria-label="Desativar comorbidade"
-              (click)="aoAlternarEstado.emit({ id: item.id, ativo: false })"
-            >
+            <button mat-icon-button type="button" matTooltip="Desativar" aria-label="Desativar categoria" (click)="aoAlternarEstado.emit({ id: item.id, ativo: false })">
               <mat-icon>delete</mat-icon>
             </button>
           } @else {
-            <button
-              mat-icon-button
-              type="button"
-              matTooltip="Reativar"
-              aria-label="Reativar comorbidade"
-              (click)="aoAlternarEstado.emit({ id: item.id, ativo: true })"
-            >
+            <button mat-icon-button type="button" matTooltip="Reativar" aria-label="Reativar categoria" (click)="aoAlternarEstado.emit({ id: item.id, ativo: true })">
               <mat-icon>restore</mat-icon>
             </button>
           }
@@ -84,7 +58,7 @@
         [class.pessoa-table__status-button--inativo]="!item.ativo"
         role="button"
         tabindex="0"
-        [attr.aria-label]="item.ativo ? 'Desativar comorbidade' : 'Reativar comorbidade'"
+        [attr.aria-label]="item.ativo ? 'Desativar categoria' : 'Reativar categoria'"
         (click)="aoAlternarEstado.emit({ id: item.id, ativo: !item.ativo })"
         (keydown.enter)="aoAlternarEstado.emit({ id: item.id, ativo: !item.ativo })"
         (keydown.space)="$event.preventDefault(); aoAlternarEstado.emit({ id: item.id, ativo: !item.ativo })"
@@ -95,21 +69,16 @@
 
     <tr mat-header-row *matHeaderRowDef="colunasExibidas"></tr>
     <tr mat-row *matRowDef="let row; columns: colunasExibidas"></tr>
-
     <tr class="mat-row" *matNoDataRow>
       <td class="mat-cell p-6 text-center text-gray-500" [attr.colspan]="colunasExibidas.length">
-        @if (carregando()) {
-          Carregando comorbidades...
-        } @else {
-          Nenhuma comorbidade encontrada.
-        }
+        @if (carregando()) { Carregando categorias... } @else { Nenhuma categoria encontrada. }
       </td>
     </tr>
   </table>
 </div>
 </div>
 
-<nav class="pessoa-tabela__paginacao" aria-label="Paginação de comorbidades">
+<nav class="pessoa-tabela__paginacao" aria-label="Paginação de categorias">
   <button type="button" class="pessoa-tabela__pagina-seta" [disabled]="paginaAtual() === 0" aria-label="Página anterior" (click)="mudarPagina(paginaAtual() - 1)">
     &lt;
   </button>
