@@ -1,41 +1,83 @@
-<aside class="hidden h-full w-[260px] shrink-0 border-r border-[#dfe7ef] bg-[#f9fafb] md:block">
-	<nav class="flex flex-col gap-2 p-4 pt-5" aria-label="Navegação principal">
-		<a
-			routerLink="/"
-			routerLinkActive="bg-[#1b3d5b] text-white shadow-sm"
-			[routerLinkActiveOptions]="{ exact: true }"
-			class="flex items-center gap-3 rounded-xl px-4 py-3 text-[1.02rem] font-semibold text-[#1b3d5b] transition-colors hover:bg-[#edf1f5]"
-		>
-			<span class="material-icons text-xl" aria-hidden="true">home</span>
-			Início
-		</a>
+<aside
+	class="hidden h-full w-[260px] shrink-0 border-r border-asmosul-borda bg-asmosul-branco md:block"
+>
+	<nav class="flex flex-col gap-1 p-4 pt-6" aria-label="Navegação principal">
+		@for (secao of secoes(); track secao.id) {
+			@if (secao.itens.length === 0 && secao.rota) {
+				<!-- Seção sem sub-itens: link direto -->
+				<a
+					[routerLink]="secao.rota"
+					class="flex items-center gap-4 rounded-xl px-4 py-3 text-[1.02rem] font-semibold transition-colors"
+					[class]="
+						rotaAtiva() === secao.rota
+							? 'bg-asmosul-navy text-white shadow-sm'
+							: 'text-asmosul-navy hover:bg-asmosul-fundo'
+					"
+					[attr.aria-current]="rotaAtiva() === secao.rota ? 'page' : null"
+				>
+					<span class="material-icons text-xl" aria-hidden="true">{{ secao.icone }}</span>
+					{{ secao.titulo }}
+				</a>
+			} @else if (secao.emDefinicao) {
+				<!-- Módulo sem escopo definido: informativo, não navegável -->
+				<div
+					class="flex cursor-not-allowed items-center gap-4 rounded-xl px-4 py-3 text-[1.02rem] font-semibold text-asmosul-navy opacity-50"
+					title="Módulo em definição"
+					aria-disabled="true"
+				>
+					<span class="material-icons text-xl" aria-hidden="true">{{ secao.icone }}</span>
+					<span class="flex-1">{{ secao.titulo }}</span>
+				</div>
+			} @else {
+				<!-- Módulo com sub-itens: sanfona -->
+				<button
+					type="button"
+					class="flex w-full items-center gap-4 rounded-xl px-4 py-3 text-left text-[1.02rem] font-semibold text-asmosul-navy transition-colors hover:bg-asmosul-fundo"
+					[attr.aria-expanded]="estaExpandida(secao.id)"
+					[attr.aria-controls]="'secao-' + secao.id"
+					(click)="alternarSecao(secao.id)"
+				>
+					<span class="material-icons text-xl" aria-hidden="true">{{ secao.icone }}</span>
+					<span class="flex-1">{{ secao.titulo }}</span>
+					<span
+						class="material-icons text-lg transition-transform"
+						[class.rotate-180]="estaExpandida(secao.id)"
+						aria-hidden="true"
+						>expand_more</span
+					>
+				</button>
 
-		<a
-			routerLink="/pessoas"
-			routerLinkActive="bg-[#1b3d5b] text-white shadow-sm"
-			class="flex items-center gap-3 rounded-xl px-4 py-3 text-[1.02rem] font-semibold text-[#1b3d5b] transition-colors hover:bg-[#edf1f5]"
-		>
-			<span class="material-icons text-xl" aria-hidden="true">groups</span>
-			Pessoas
-		</a>
-
-		<!-- Sub-recursos de Pessoas -->
-		<a
-			routerLink="/pessoas/comorbidades"
-			routerLinkActive="bg-[#e9eef4] text-[#1b3d5b]"
-			class="ml-6 flex items-center gap-3 rounded-xl px-4 py-2 text-[0.98rem] font-medium text-[#4c6075] transition-colors hover:bg-[#edf1f5]"
-		>
-			<span class="material-icons text-lg" aria-hidden="true">medical_information</span>
-			Comorbidades
-		</a>
-
-		<a
-			routerLink="/pessoas/categorias"
-			routerLinkActive="bg-[#e9eef4] text-[#1b3d5b]"
-			class="ml-6 flex items-center gap-3 rounded-xl px-4 py-2 text-[0.98rem] font-medium text-[#4c6075] transition-colors hover:bg-[#edf1f5]"
-		>
-			<span class="material-icons text-xl" aria-hidden="true">category</span>
-			Categorias
-		</a>
+				@if (estaExpandida(secao.id)) {
+					<div [id]="'secao-' + secao.id" class="mt-1 mb-1 flex flex-col gap-1">
+						@for (item of secao.itens; track item.rotulo) {
+							@if (item.rota) {
+								<a
+									[routerLink]="item.rota"
+									class="ml-6 flex items-center gap-3 rounded-xl px-4 py-2 text-[0.98rem] font-medium transition-colors"
+									[class]="
+										rotaAtiva() === item.rota
+											? 'bg-asmosul-navy text-white'
+											: 'text-asmosul-texto-secundario hover:bg-asmosul-fundo'
+									"
+									[attr.aria-current]="rotaAtiva() === item.rota ? 'page' : null"
+								>
+									<span class="material-icons text-lg" aria-hidden="true">{{ item.icone }}</span>
+									{{ item.rotulo }}
+								</a>
+							} @else {
+								<span
+									class="ml-6 flex cursor-not-allowed items-center gap-3 rounded-xl px-4 py-2 text-[0.98rem] font-medium text-asmosul-texto-secundario opacity-50"
+									title="Tela ainda não implementada"
+									aria-disabled="true"
+								>
+									<span class="material-icons text-lg" aria-hidden="true">{{ item.icone }}</span>
+									{{ item.rotulo }}
+								</span>
+							}
+						}
+					</div>
+				}
+			}
+		}
 	</nav>
 </aside>
