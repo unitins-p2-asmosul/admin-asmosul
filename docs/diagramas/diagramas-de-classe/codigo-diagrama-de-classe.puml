@@ -19,26 +19,27 @@ enum Escolaridade {
 }
 
 enum RendaFamiliar {
-  + MENOS_DE_MIL
-  + ENTRE_MIL_E_DOIS_MIL
-  + ENTRE_DOIS_MIL_E_TRES_MIL
-  + MAIOR_QUE_TRES_MIL
++ MENOS_DE_MIL
++ ENTRE_MIL_E_DOIS_MIL
++ ENTRE_DOIS_MIL_E_TRES_MIL
++ MAIOR_QUE_TRES_MIL
 }
 
-class Comorbidade {
+class  Comorbidade {
   - id: long
   - nome: String
   - cescricao : String
   - ativo: DateTime
 }
 
-class Categoria {
+class  Categoria {
   - id: long
   - nome: String
   - cescricao : String
   - ativo: DateTime
   - data_inativo: DateTime
 }
+
 
 class Pessoa {
   - id: long
@@ -60,6 +61,7 @@ class Pessoa {
   - tipo_pessoa: TipoPessoa
   - eh_doador: boolean
   - eh_beneficiario: boolean
+
 }
 
 enum Uf {
@@ -92,7 +94,7 @@ enum Uf {
   +TO
 }
 
-enum TipoPessoa {
+enum TipoPessoa{
   + FISICA
   + JURIDICA
 }
@@ -116,16 +118,16 @@ enum Perfil {
   GERENCIADOR_RELATORIOS
 }
 
-' Relacionamentos - Pessoas
+' Relacionamentos
 Pessoa "*" --> "1" Sexo : é
 Pessoa "*" --> "1" Escolaridade : possui
 Pessoa "*" --> "1" RendaFamiliar : possui
 
-Pessoa "*" --> "*" Categoria : é
-Pessoa "*" --> "*" Comorbidade : possui
+Pessoa "*" --> "*"Categoria : é
+Pessoa "*" --> "*"Comorbidade : possui
 
-Pessoa "*" --> "1" Uf : possui
-Pessoa "*" --> "1" TipoPessoa : é
+Pessoa "*" --> "1"Uf : possui
+Pessoa "*" --> "1"TipoPessoa : é
 
 ' Relacionamentos - Acesso
 Conta "1" --> "1" Pessoa : pessoa_id
