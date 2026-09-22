@@ -1,20 +1,20 @@
 import { Component, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
-import { MatIconModule } from '@angular/material/icon';
 import { catchError, finalize, map, of, switchMap, tap } from 'rxjs';
 import { DialogoConfirmacaoService } from '@features/shared/services/dialogo-confirmacao.service';
 import { NotificacaoService } from '@features/shared/services/notificacao.service';
 import { CategoriaFiltroData, CategoriaFiltroDialogComponent } from '../../components/categoria-filtro-dialog/categoria-filtro-dialog.component';
+import { AlternarEstadoCategoriaEvento, CategoriaTabelaComponent } from '../../components/categoria-tabela/categoria-tabela.component';
 import { CategoriaConsultaParametros } from '../../models/categoria.model';
 import { CategoriaService } from '../../services/categoria.service';
+import { PaginaGerenciamentoComponent } from '@features/shared/components/pagina-gerenciamento/pagina-gerenciamento.component';
 
 @Component({
   selector: 'app-categoria-lista-page',
   standalone: true,
-  imports: [MatButtonModule, MatIconModule],
+  imports: [PaginaGerenciamentoComponent, CategoriaTabelaComponent],
   templateUrl: './categoria-lista-page.component.html',
 })
 export class CategoriaListaPageComponent {
@@ -30,7 +30,7 @@ export class CategoriaListaPageComponent {
     map(
       (params): CategoriaConsultaParametros => ({
         page: params['page'] ? Number(params['page']) : 0,
-        size: params['size'] ? Number(params['size']) : 5,
+        size: 20,
         sort: params['sort'] || 'nome,asc',
         incluirInativos: params['incluirInativos'] === 'true',
         apenasDesativados: params['apenasDesativados'] === 'true',
@@ -40,7 +40,7 @@ export class CategoriaListaPageComponent {
   );
 
   protected readonly parametrosAtuais = toSignal(this.parametros$, {
-    initialValue: { page: 0, size: 5, sort: 'nome,asc', incluirInativos: false, apenasDesativados: false },
+    initialValue: { page: 0, size: 20, sort: 'nome,asc', incluirInativos: false, apenasDesativados: false },
   });
   protected readonly resposta = toSignal(
     this.parametros$.pipe(
@@ -54,19 +54,28 @@ export class CategoriaListaPageComponent {
         ),
       ),
     ),
-    { initialValue: { dados: [], paginaAtual: 0, tamanhoPagina: 5, totalElementos: 0, totalPaginas: 0 } },
+    { initialValue: { dados: [], paginaAtual: 0, tamanhoPagina: 20, totalElementos: 0, totalPaginas: 0 } },
   );
 
   protected adicionar(): void {
-    this.router.navigate(['adicionar'], { relativeTo: this.route });
+    this.router.navigate(['adicionar'], {
+      relativeTo: this.route,
+      queryParams: this.route.snapshot.queryParams,
+    });
   }
 
   protected visualizar(id: number): void {
-    this.router.navigate([id], { relativeTo: this.route });
+    this.router.navigate([id], {
+      relativeTo: this.route,
+      queryParams: this.route.snapshot.queryParams,
+    });
   }
 
   protected editar(id: number): void {
-    this.router.navigate([id, 'editar'], { relativeTo: this.route });
+    this.router.navigate([id, 'editar'], {
+      relativeTo: this.route,
+      queryParams: this.route.snapshot.queryParams,
+    });
   }
 
   protected abrirFiltros(): void {
@@ -107,7 +116,8 @@ export class CategoriaListaPageComponent {
     this.atualizarUrl({ page: 0, sort: `${campo},${direcao}` });
   }
 
-  protected async alternarEstado(id: number, ativo: boolean): Promise<void> {
+  protected async alternarEstado(evento: AlternarEstadoCategoriaEvento): Promise<void> {
+    const { id, ativo } = evento;
     const acao = ativo ? 'reativar' : 'desativar';
     const confirmou = await this.confirmacao.confirmar(
       `${ativo ? 'Reativar' : 'Desativar'} categoria`,

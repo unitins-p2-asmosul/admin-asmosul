@@ -1,0 +1,33 @@
+<section class="pagina-pessoas">
+  <header class="pagina-pessoas__header">
+    <div class="pagina-pessoas__title-wrap">
+      <span class="pagina-pessoas__title-icon" aria-hidden="true">
+        <mat-icon>{{ icone() }}</mat-icon>
+      </span>
+      <h1>{{ titulo() }}</h1>
+    </div>
+
+    <button mat-flat-button type="button" class="pagina-pessoas__add" (click)="aoAdicionar.emit()">
+      {{ rotuloAdicionar() }}
+      <mat-icon iconPositionEnd>add_circle_outline</mat-icon>
+    </button>
+  </header>
+
+  <div class="pagina-pessoas__toolbar">
+    <button
+      mat-stroked-button
+      type="button"
+      class="pagina-pessoas__filter"
+      [matTooltip]="filtrosAtivos() > 0 ? filtrosAtivos() + ' filtro(s) aplicado(s)' : 'Filtrar'"
+      aria-label="Abrir filtros"
+      (click)="aoFiltrar.emit()"
+    >
+      <mat-icon>filter_list</mat-icon>
+      @if (filtrosAtivos() > 0) {
+        <span>{{ filtrosAtivos() }}</span>
+      }
+    </button>
+  </div>
+
+  <ng-content />
+</section>

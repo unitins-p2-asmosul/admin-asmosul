@@ -1,34 +1,11 @@
-<section class="pagina-pessoas">
-  <header class="pagina-pessoas__header">
-    <div class="pagina-pessoas__title-wrap">
-      <span class="pagina-pessoas__title-icon" aria-hidden="true">
-        <mat-icon>groups</mat-icon>
-      </span>
-      <h1>Gerenciamento de Pessoas</h1>
-    </div>
-
-    <button mat-flat-button type="button" class="pagina-pessoas__add" (click)="irParaAdicionar()">
-      Adicionar Pessoa
-      <mat-icon iconPositionEnd>add_circle_outline</mat-icon>
-    </button>
-  </header>
-
-  <div class="pagina-pessoas__toolbar">
-    <button
-      mat-flat-button
-      type="button"
-      class="pagina-pessoas__filter"
-      [matTooltip]="filtrosAtivos > 0 ? filtrosAtivos + ' filtro(s) aplicado(s)' : 'Filtrar'"
-      aria-label="Abrir filtros"
-      (click)="abrirFiltros()"
-    >
-      <mat-icon>tune</mat-icon>
-      @if (filtrosAtivos > 0) {
-        <span>{{ filtrosAtivos }}</span>
-      }
-    </button>
-  </div>
-
+<app-pagina-gerenciamento
+  titulo="Gerenciamento de Pessoas"
+  icone="groups"
+  rotuloAdicionar="Adicionar Pessoa"
+  [filtrosAtivos]="filtrosAtivos"
+  (aoAdicionar)="irParaAdicionar()"
+  (aoFiltrar)="abrirFiltros()"
+>
   <app-pessoa-tabela
     [dados]="resposta().dados"
     [totalElementos]="resposta().totalElementos"
@@ -42,4 +19,4 @@
     (aoEditar)="editar($event)"
     (aoAlternarEstado)="alternarEstado($event)"
   />
-</section>
+</app-pagina-gerenciamento>

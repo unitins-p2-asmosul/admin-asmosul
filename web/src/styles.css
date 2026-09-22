@@ -95,8 +95,8 @@ html, body {
 
 .categoria-filtro-dialog .mat-mdc-dialog-container .mdc-dialog__surface {
   --mdc-dialog-container-color: #f7f7f7;
-  --mdc-dialog-container-shape: 76px;
-  border-radius: 76px;
+  --mdc-dialog-container-shape: 8px;
+  border-radius: 8px;
   box-shadow: none;
 }
 
@@ -114,8 +114,8 @@ html, body {
 
 .pessoa-filtro-dialog .mat-mdc-dialog-container .mdc-dialog__surface {
   --mdc-dialog-container-color: #f5f5f5;
-  --mdc-dialog-container-shape: 76px;
-  border-radius: 76px;
+  --mdc-dialog-container-shape: 8px;
+  border-radius: 8px;
   box-shadow: none;
 }
 
@@ -164,19 +164,19 @@ html, body {
   border-radius: 8px;
 }
 
-.pessoa-filtro__actions {
-  gap: 12px;
-  padding: 20px 48px 48px !important;
+.pessoa-filtro__form .mat-mdc-form-field.mat-focused .mdc-floating-label,
+.pessoa-filtro__form .mat-mdc-form-field.mat-focused .mat-mdc-select-arrow {
+  color: var(--color-asmosul-navy) !important;
 }
 
-.pessoa-filtro__button {
-  min-width: 96px !important;
-  height: 32px !important;
-  border-radius: 3px !important;
-  background: #0b3c5d !important;
-  color: #ffffff !important;
-  font-size: 12px !important;
-  font-weight: 700 !important;
+.pessoa-filtro__form .mat-mdc-form-field.mat-focused .mdc-notched-outline__leading,
+.pessoa-filtro__form .mat-mdc-form-field.mat-focused .mdc-notched-outline__notch,
+.pessoa-filtro__form .mat-mdc-form-field.mat-focused .mdc-notched-outline__trailing {
+  border-color: var(--color-asmosul-navy) !important;
+}
+
+.pessoa-filtro__actions {
+  padding: 20px 48px 48px !important;
 }
 
 .pessoa-filtro-dialog .mat-mdc-checkbox {
@@ -185,6 +185,47 @@ html, body {
   --mdc-checkbox-selected-hover-icon-color: #0b3c5d;
   --mdc-checkbox-selected-focus-icon-color: #0b3c5d;
   --mdc-checkbox-selected-pressed-icon-color: #0b3c5d;
+}
+
+.comorbidade-filtro-dialog .mat-mdc-dialog-container .mdc-dialog__surface {
+  --mdc-dialog-container-shape: 8px;
+  border-radius: 8px;
+}
+
+.comorbidade-filtro-dialog .mat-mdc-dialog-content {
+  max-height: none;
+  overflow: visible;
+}
+
+.tabela-asmosul th.mat-mdc-header-cell,
+.tabela-asmosul td.mat-mdc-cell {
+  vertical-align: middle;
+  text-align: center;
+}
+
+.tabela-asmosul th.mat-mdc-header-cell {
+  color: #1f2f45;
+  font-weight: 700;
+}
+
+.tabela-asmosul .mat-sort-header-container {
+  align-items: center;
+  justify-content: center;
+}
+
+.tabela-asmosul__status {
+  cursor: pointer;
+  outline: none;
+}
+
+.tabela-asmosul__status--ativo {
+  color: #ffffff !important;
+  background: #8bce68 !important;
+}
+
+.tabela-asmosul__status--inativo {
+  color: #ffffff !important;
+  background: #ed6b70 !important;
 }
 
 .pagina-pessoas {
@@ -233,6 +274,7 @@ html, body {
 }
 
 .pagina-pessoas__add {
+  height: 48px !important;
   min-height: 48px !important;
   border-radius: 10px !important;
   padding: 0 18px !important;
@@ -250,12 +292,36 @@ html, body {
 }
 
 .pagina-pessoas__filter {
+  position: relative !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 1px;
   min-width: 52px !important;
-  min-height: 44px !important;
+  height: 48px !important;
+  min-height: 48px !important;
   border-radius: 10px !important;
   padding: 0 16px !important;
   background: #0b3c5d !important;
   color: #fff !important;
+  border-color: #0b3c5d !important;
+}
+
+.pagina-pessoas__filter .mdc-button__label {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: auto;
+}
+
+.pagina-pessoas__filter .mat-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 !important;
 }
 
 .pessoa-tabela-shell {
@@ -277,6 +343,34 @@ html, body {
   border-spacing: 10px 18px !important;
 }
 
+.pessoa-table--apoio {
+  min-width: 900px;
+}
+
+.pessoa-table--apoio .mat-column-id {
+  width: 58px;
+  min-width: 58px;
+}
+
+.pessoa-table--apoio .mat-column-acoes {
+  width: 120px;
+  min-width: 120px;
+}
+
+.pessoa-table--apoio .mat-column-nome {
+  width: 260px;
+  min-width: 260px;
+}
+
+.pessoa-table--apoio .mat-column-descricao {
+  min-width: 320px;
+}
+
+.pessoa-table--apoio .mat-column-status {
+  width: 140px;
+  min-width: 140px;
+}
+
 .pessoa-table th.mat-mdc-header-cell {
   background: transparent;
   color: #1f2f45;
@@ -286,6 +380,11 @@ html, body {
   padding: 0 10px 10px;
   white-space: nowrap;
   text-align: center;
+}
+
+.pessoa-table .mat-sort-header-container {
+  align-items: center;
+  justify-content: center;
 }
 
 .pessoa-table td.mat-mdc-cell {
@@ -467,6 +566,7 @@ html, body {
 }
 
 .pagina-categorias__add {
+  height: 48px !important;
   min-height: 48px !important;
   border-radius: 10px !important;
   padding: 0 18px !important;
@@ -483,7 +583,8 @@ html, body {
 
 .pagina-categorias__filter {
   width: 52px !important;
-  height: 44px !important;
+  height: 48px !important;
+  min-height: 48px !important;
   border-radius: 10px !important;
   background: #0b3c5d !important;
   color: #ffffff !important;

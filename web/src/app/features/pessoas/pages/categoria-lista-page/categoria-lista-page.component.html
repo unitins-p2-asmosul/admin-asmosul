@@ -1,92 +1,21 @@
-<section class="pagina-categorias">
-  <header class="pagina-categorias__header">
-    <div class="pagina-categorias__title-wrap">
-      <span class="pagina-categorias__title-icon" aria-hidden="true">
-        <mat-icon>category</mat-icon>
-      </span>
-      <h1>Gerenciamento de Categorias</h1>
-    </div>
-
-    <button mat-flat-button type="button" class="pagina-categorias__add" (click)="adicionar()">
-        Adicionar Categoria
-        <mat-icon iconPositionEnd>add_circle_outline</mat-icon>
-    </button>
-  </header>
-
-  <div class="pagina-categorias__toolbar">
-    <button
-      mat-icon-button
-      type="button"
-      class="pagina-categorias__filter"
-      aria-label="Filtrar categorias"
-      (click)="abrirFiltros()"
-    >
-      <mat-icon>tune</mat-icon>
-    </button>
-  </div>
-
-  <div class="categoria-tabela-scroll">
-    <div class="categoria-table">
-      <div class="categoria-table__header">
-        <button type="button" (click)="ordenar('id')">#</button>
-        <span>Ações</span>
-        <button type="button" (click)="ordenar('nome')">Nome</button>
-        <span>Descrição</span>
-        <span>Status</span>
-      </div>
-
-      @if (carregando()) {
-        <p class="categoria-table__empty">Carregando categorias...</p>
-      } @else if (resposta().dados.length === 0) {
-        <p class="categoria-table__empty">Nenhuma categoria encontrada.</p>
-      } @else {
-        @for (categoria of resposta().dados; track categoria.id; let indice = $index) {
-          <div class="categoria-table__row">
-            <span class="categoria-table__cell categoria-table__index">
-              {{ resposta().paginaAtual * resposta().tamanhoPagina + indice + 1 }}
-            </span>
-            <div class="categoria-table__cell categoria-table__actions">
-              <button mat-icon-button type="button" aria-label="Visualizar categoria" (click)="visualizar(categoria.id)">
-                <span class="material-icons text-slate-400">visibility</span>
-              </button>
-              <button mat-icon-button type="button" aria-label="Editar categoria" (click)="editar(categoria.id)">
-                <span class="material-icons text-slate-400">edit</span>
-              </button>
-              <button mat-icon-button type="button" [attr.aria-label]="categoria.ativo ? 'Desativar categoria' : 'Reativar categoria'" (click)="alternarEstado(categoria.id, !categoria.ativo)">
-                <span class="material-icons text-slate-400">{{ categoria.ativo ? 'delete' : 'check_circle' }}</span>
-              </button>
-            </div>
-            <span class="categoria-table__cell categoria-table__name">
-              {{ categoria.nome }}
-            </span>
-            <span class="categoria-table__cell categoria-table__description">
-              {{ categoria.descricao || '-' }}
-            </span>
-            <button
-              type="button"
-              class="categoria-table__status"
-              [class.categoria-table__status--ativo]="categoria.ativo"
-              [class.categoria-table__status--inativo]="!categoria.ativo"
-              [attr.aria-label]="categoria.ativo ? 'Desativar categoria' : 'Reativar categoria'"
-              (click)="alternarEstado(categoria.id, !categoria.ativo)"
-            >
-              {{ categoria.ativo ? 'Ativo' : 'Desativado' }}
-            </button>
-          </div>
-        }
-      }
-
-      @if (resposta().totalPaginas > 0) {
-        <nav class="categoria-table__pagination" aria-label="Paginação de categorias">
-          <button type="button" [disabled]="resposta().paginaAtual === 0" (click)="irParaPagina(resposta().paginaAtual - 1)" aria-label="Página anterior">&lt;</button>
-          @for (pagina of paginas(); track pagina) {
-            <button type="button" class="categoria-table__page" [class.categoria-table__page--active]="pagina === resposta().paginaAtual" (click)="irParaPagina(pagina)">
-              {{ pagina + 1 }}
-            </button>
-          }
-          <button type="button" [disabled]="resposta().paginaAtual === resposta().totalPaginas - 1" (click)="irParaPagina(resposta().paginaAtual + 1)" aria-label="Próxima página">&gt;</button>
-        </nav>
-      }
-    </div>
-  </div>
-</section>
+<app-pagina-gerenciamento
+  titulo="Gerenciamento de Categorias"
+  icone="category"
+  rotuloAdicionar="Adicionar Categoria"
+  (aoAdicionar)="adicionar()"
+  (aoFiltrar)="abrirFiltros()"
+>
+  <app-categoria-tabela
+    [dados]="resposta().dados"
+    [totalElementos]="resposta().totalElementos"
+    [tamanhoPagina]="20"
+    [paginaAtual]="resposta().paginaAtual"
+    [carregando]="carregando()"
+    [ordenacao]="parametrosAtuais().sort ?? 'nome,asc'"
+    (aoMudarPagina)="irParaPagina($event.pageIndex)"
+    (aoMudarOrdem)="ordenar($event.active)"
+    (aoVisualizar)="visualizar($event)"
+    (aoEditar)="editar($event)"
+    (aoAlternarEstado)="alternarEstado($event)"
+  />
+</app-pagina-gerenciamento>
