@@ -99,6 +99,25 @@ enum TipoPessoa{
   + JURIDICA
 }
 
+' Adição de Acesso
+class Conta {
+  - id: Long
+  - pessoa: Pessoa
+  - nome_usuario: String
+  - senha_hash: String
+  - data_criacao: DateTime
+  - data_inativo: DateTime
+  - perfis: Set<Perfil>
+}
+
+enum Perfil {
+  GERENCIADOR_PESSOAS
+  GERENCIADOR_DOACOES
+  GERENCIADOR_CAPACITACOES
+  GERENCIADOR_ACESSO
+  GERENCIADOR_RELATORIOS
+}
+
 ' Relacionamentos
 Pessoa "*" --> "1" Sexo : é
 Pessoa "*" --> "1" Escolaridade : possui
@@ -110,6 +129,8 @@ Pessoa "*" --> "*"Comorbidade : possui
 Pessoa "*" --> "1"Uf : possui
 Pessoa "*" --> "1"TipoPessoa : é
 
+' Relacionamentos - Acesso
+Conta "1" --> "1" Pessoa : pessoa_id
+Conta "1" *-- "*" Perfil : contas_perfis
 
 @enduml
-
