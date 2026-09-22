@@ -1,5 +1,5 @@
 ' Copiar e colar no PlantUML: https://www.planttext.com/
-' Referente ao Diagrama de Classes do Projeto (Módulos de Pessoas e Acesso)
+' Referente a sprint 2
 
 @startuml
 
@@ -7,14 +7,13 @@ enum Sexo {
   + FEMININO
   + MASCULINO
   + PREFIRO_NAO_INFORMAR
-  + OUTRO
 }
 
 enum Escolaridade {
   + FUNDAMENTAL_INCOMPLETO
   + FUNDAMENTAL_COMPLETO
   + MEDIO_INCOMPLETO
-  + MEDIO_COMPLETO
+  + MEDIO_INCOMPLETO
   + SUPERIOR_INCOMPLETO
   + SUPERIOR_COMPLETO
 }
@@ -26,34 +25,71 @@ enum RendaFamiliar {
   + MAIOR_QUE_TRES_MIL
 }
 
+class Comorbidade {
+  - id: long
+  - nome: String
+  - cescricao : String
+  - ativo: DateTime
+}
+
+class Categoria {
+  - id: long
+  - nome: String
+  - cescricao : String
+  - ativo: DateTime
+  - data_inativo: DateTime
+}
+
+class Pessoa {
+  - id: long
+  - nome: String
+  - cpf_cpnj: String
+  - data_nascimento: date
+  - telefone: String
+  - email: String
+  - profissao: String
+  - descricao: String
+  - data_inativo: DateTime
+  - cep: String
+  - uf: Uf
+  - cidade: String
+  - bairro: String
+  - logradouro: String
+  - complemento_endereco: String
+  - quant_coabitantes: int
+  - tipo_pessoa: TipoPessoa
+  - eh_doador: boolean
+  - eh_beneficiario: boolean
+}
+
 enum Uf {
-  + AC
-  + AL
-  + AM
-  + AP
-  + BA
-  + CE
-  + DF
-  + ES
-  + GO
-  + MA
-  + MG
-  + MS
-  + MT
-  + PA
-  + PB
-  + PE
-  + PI
-  + PR
-  + RJ
-  + RN
-  + RO
-  + RR
-  + RS
-  + SC
-  + SE
-  + SP
-  + TO
+  +AC
+  +AL
+  +AM
+  +AP
+  +BA
+  +CE
+  +DF
+  +ES
+  +GO
+  +MA
+  +MG
+  +MS
+  +MT
+  +PA
+  +PB
+  +PE
+  +PI
+  +PR
+  +RJ
+  +RN
+  +RO
+  +RR
+  +RS
+  +SC
+  +SE
+  +SP
+  +TO
 }
 
 enum TipoPessoa {
@@ -61,71 +97,38 @@ enum TipoPessoa {
   + JURIDICA
 }
 
-enum Perfil {
-  + GERENCIADOR_PESSOAS
-  + GERENCIADOR_DOACOES
-  + GERENCIADOR_CAPACITACOES
-  + GERENCIADOR_ACESSO
-  + GERENCIADOR_RELATORIOS
-}
-
-class Comorbidade {
-  - id: Long
-  - nome: String
-  - descricao: String
-  - dataInativo: LocalDateTime
-}
-
-class Categoria {
-  - id: Long
-  - nome: String
-  - descricao: String
-  - dataInativo: LocalDateTime
-}
-
-class Pessoa {
-  - id: Long
-  - nome: String
-  - cpfCnpj: String
-  - dataNascimento: LocalDate
-  - telefone: String
-  - email: String
-  - profissao: String
-  - descricao: String
-  - dataInativo: LocalDateTime
-  - cep: String
-  - uf: Uf
-  - cidade: String
-  - bairro: String
-  - logradouro: String
-  - complementoEndereco: String
-  - quantCoabitantes: Integer
-  - tipoPessoa: TipoPessoa
-  - ehDoador: Boolean
-  - ehBeneficiario: Boolean
-}
-
+' Adição de Acesso
 class Conta {
   - id: Long
   - pessoa: Pessoa
-  - nomeUsuario: String
-  - senhaHash: String
-  - dataCriacao: LocalDateTime
-  - dataInativo: LocalDateTime
+  - nome_usuario: String
+  - senha_hash: String
+  - data_criacao: DateTime
+  - data_inativo: DateTime
   - perfis: Set<Perfil>
 }
 
-' Relacionamentos - Módulo de Pessoas
-Pessoa "*" --> "0..1" Sexo : possui
-Pessoa "*" --> "0..1" Escolaridade : possui
-Pessoa "*" --> "0..1" RendaFamiliar : possui
-Pessoa "*" --> "*" Categoria : possui
-Pessoa "*" --> "*" Comorbidade : possui
-Pessoa "*" --> "0..1" Uf : reside em
-Pessoa "*" --> "1" TipoPessoa : e do tipo
+enum Perfil {
+  GERENCIADOR_PESSOAS
+  GERENCIADOR_DOACOES
+  GERENCIADOR_CAPACITACOES
+  GERENCIADOR_ACESSO
+  GERENCIADOR_RELATORIOS
+}
 
-' Relacionamentos - Módulo de Acesso
-Conta "1" --> "1" Pessoa : vincula (pessoa_id)
-Conta "1" *-- "*" Perfil : possui (contas_perfis)
+' Relacionamentos - Pessoas
+Pessoa "*" --> "1" Sexo : é
+Pessoa "*" --> "1" Escolaridade : possui
+Pessoa "*" --> "1" RendaFamiliar : possui
+
+Pessoa "*" --> "*" Categoria : é
+Pessoa "*" --> "*" Comorbidade : possui
+
+Pessoa "*" --> "1" Uf : possui
+Pessoa "*" --> "1" TipoPessoa : é
+
+' Relacionamentos - Acesso
+Conta "1" --> "1" Pessoa : pessoa_id
+Conta "1" *-- "*" Perfil : contas_perfis
 
 @enduml
