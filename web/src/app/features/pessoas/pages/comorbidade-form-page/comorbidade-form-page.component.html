@@ -1,25 +1,38 @@
 <section class="pagina-formulario mx-auto max-w-4xl">
   <div class="mb-8">
-    <div class="flex flex-wrap items-center gap-4">
-      <h1 class="text-[2rem] font-bold">
-        @if (modoVisualizacao()) {
-          Detalhes da Comorbidade
-        } @else if (modoEdicao()) {
-          Editar Comorbidade
-        } @else {
-          Cadastro de Comorbidade
-        }
-      </h1>
+    <div class="mb-4 flex flex-wrap items-center gap-3">
+      <button
+        mat-icon-button
+        type="button"
+        color="primary"
+        aria-label="Voltar"
+        (click)="voltar()"
+        class="shrink-0"
+      >
+        <mat-icon>arrow_back</mat-icon>
+      </button>
 
-      @if (modoVisualizacao() && registro()?.ativo !== undefined) {
-        <span
-          class="rounded-full px-5 py-1 text-sm font-semibold text-white"
-          [class.bg-green-400]="registro()?.ativo"
-          [class.bg-gray-400]="!registro()?.ativo"
-        >
-          {{ registro()?.ativo ? 'Ativo' : 'Inativo' }}
-        </span>
-      }
+      <div class="flex flex-wrap items-center gap-4">
+        <h1 class="text-[2rem] font-bold">
+          @if (modoVisualizacao()) {
+            Detalhes da Comorbidade
+          } @else if (modoEdicao()) {
+            Editar Comorbidade
+          } @else {
+            Cadastro de Comorbidade
+          }
+        </h1>
+
+        @if (modoVisualizacao() && registro()?.ativo !== undefined) {
+          <span
+            class="rounded-full px-5 py-1 text-sm font-semibold text-white"
+            [class.bg-green-400]="registro()?.ativo"
+            [class.bg-gray-400]="!registro()?.ativo"
+          >
+            {{ registro()?.ativo ? 'Ativo' : 'Inativo' }}
+          </span>
+        }
+      </div>
     </div>
 
     @if (modoCriacao()) {

@@ -5,6 +5,7 @@ import { effect, input } from '@angular/core';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { Router } from '@angular/router';
 import { ErroApi } from '@features/shared/models/erro-api.model';
@@ -16,7 +17,7 @@ import { CategoriaRequisicao } from '@features/pessoas/models/categoria.model';
 @Component({
   selector: 'app-categoria-cadastro-page',
   standalone: true,
-  imports: [ReactiveFormsModule, MatButtonModule, MatFormFieldModule, MatInputModule],
+  imports: [ReactiveFormsModule, MatButtonModule, MatFormFieldModule, MatIconModule, MatInputModule],
   templateUrl: './categoria-cadastro-page.component.html',
 })
 export class CategoriaCadastroPageComponent {
