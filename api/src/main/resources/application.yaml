@@ -36,6 +36,14 @@ spring:
     problemdetails:
       enabled: true
 
+
+# Segurança / JWT
+app:
+  security:
+    jwt:
+      secret: ${JWT_SECRET:asmosul-dev-secret-key-change-in-production-2026}
+      expiracao-minutos: ${JWT_EXPIRACAO_MINUTOS:120}
+
 # OpenAPI / Swagger
 springdoc:
   use-fqn: true
