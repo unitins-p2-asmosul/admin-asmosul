@@ -1,3 +1,4 @@
+import { Location } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, inject, signal, viewChild } from '@angular/core';
 import { finalize } from 'rxjs';
@@ -12,6 +13,7 @@ import {
 import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
@@ -43,6 +45,7 @@ import {
     MatButtonModule,
     MatCheckboxModule,
     MatFormFieldModule,
+    MatIconModule,
     MatInputModule,
     MatSelectModule,
     MatProgressSpinnerModule,
@@ -51,6 +54,7 @@ import {
 })
 export class PessoaFormPageComponent {
   private readonly fb = inject(NonNullableFormBuilder);
+  private readonly location = inject(Location);
   private readonly router = inject(Router);
   private readonly pessoaService = inject(PessoaService);
   private readonly categoriaService = inject(CategoriaService);
@@ -163,9 +167,13 @@ export class PessoaFormPageComponent {
     });
   }
 
+  protected voltar(): void {
+    this.location.back();
+  }
+
   protected cancelar(): void {
     this.limparFormulario();
-    this.router.navigate(['/pessoas']);
+    this.voltar();
   }
 
   private limparFormulario(): void {

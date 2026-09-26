@@ -1,12 +1,36 @@
 <section class="pagina-formulario mx-auto max-w-6xl">
   <div class="mb-8">
     @if (visualizacao()) {
-      <div class="flex items-center gap-4">
-        <h1 class="text-[2rem] font-bold">Detalhes da Categoria</h1>
-        <span class="rounded-full bg-[#8bce68] px-12 py-2 font-bold text-white">Ativo</span>
+      <div class="mb-4 flex items-center gap-3">
+        <button
+          mat-icon-button
+          type="button"
+          color="primary"
+          aria-label="Voltar"
+          (click)="cancelar()"
+          class="shrink-0"
+        >
+          <mat-icon>arrow_back</mat-icon>
+        </button>
+
+        <div class="flex items-center gap-4">
+          <h1 class="text-[2rem] font-bold">Detalhes da Categoria</h1>
+          <span class="rounded-full bg-[#8bce68] px-12 py-2 font-bold text-white">Ativo</span>
+        </div>
       </div>
     } @else {
-      <div class="flex items-center gap-4">
+      <div class="mb-4 flex items-center gap-3">
+        <button
+          mat-icon-button
+          type="button"
+          color="primary"
+          aria-label="Voltar"
+          (click)="cancelar()"
+          class="shrink-0"
+        >
+          <mat-icon>arrow_back</mat-icon>
+        </button>
+
         <h1 class="text-[2rem] font-bold">{{ titulo }}</h1>
       </div>
     }
