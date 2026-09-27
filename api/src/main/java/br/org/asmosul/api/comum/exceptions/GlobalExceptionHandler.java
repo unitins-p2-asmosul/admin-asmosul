@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -51,6 +52,19 @@ public class GlobalExceptionHandler {
         problemDetail.setTitle("Recurso Não Encontrado");
         problemDetail.setType(
                 URI.create("https://api.asmosul.org.br/erros/recurso-nao-encontrado"));
+
+        return problemDetail;
+    }
+
+
+    @ExceptionHandler(AuthenticationException.class)
+    public ProblemDetail tratarAuthenticationException(AuthenticationException ex) {
+        ProblemDetail problemDetail =
+                ProblemDetail.forStatusAndDetail(
+                        HttpStatus.UNAUTHORIZED, "Credenciais inválidas ou conta inativa.");
+
+        problemDetail.setTitle("Não Autorizado");
+        problemDetail.setType(URI.create("https://api.asmosul.org.br/erros/nao-autorizado"));
 
         return problemDetail;
     }

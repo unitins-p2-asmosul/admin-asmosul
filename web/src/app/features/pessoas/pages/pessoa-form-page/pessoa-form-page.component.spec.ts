@@ -26,6 +26,8 @@ describe('PessoaFormPageComponent', () => {
   let fixture: ComponentFixture<PessoaFormPageComponent>;
   let pessoaServiceMock: {
     cadastrar: ReturnType<typeof vi.fn>;
+    atualizar: ReturnType<typeof vi.fn>;
+    buscarPorId: ReturnType<typeof vi.fn>;
     consultarCep: ReturnType<typeof vi.fn>;
     listarComorbidades: ReturnType<typeof vi.fn>;
     listarCategorias: ReturnType<typeof vi.fn>;
@@ -41,6 +43,8 @@ describe('PessoaFormPageComponent', () => {
   beforeEach(async () => {
     pessoaServiceMock = {
       cadastrar: vi.fn().mockReturnValue(of({ id: 1 })),
+      atualizar: vi.fn().mockReturnValue(of({ id: 1 })),
+      buscarPorId: vi.fn(),
       consultarCep: vi.fn().mockReturnValue(
         of({
           cep: '77001-000',
@@ -98,6 +102,33 @@ describe('PessoaFormPageComponent', () => {
     expect(comorbidadeServiceMock.listarTodas).toHaveBeenCalledWith(false);
     expect(component['categorias']().length).toBe(1);
     expect(component['comorbidades']().length).toBe(1);
+  });
+
+  it('deve carregar os dados e desabilitar os campos no modo de visualização', () => {
+    pessoaServiceMock.buscarPorId.mockReturnValue(
+      of({
+        id: 7,
+        nome: 'Maria da Silva',
+        cpfCnpj: '52998224725',
+        tipoPessoa: TipoPessoa.FISICA,
+        dataNascimento: '1995-08-19',
+        telefone: '63999998888',
+        ativo: true,
+        comorbidades: [{ id: 2, nome: 'Hipertensão' }],
+        categorias: [{ id: 3, nome: 'Associada' }],
+      }),
+    );
+    fixture.componentRef.setInput('id', '7');
+    fixture.componentRef.setInput('visualizacao', true);
+    fixture.detectChanges();
+
+    expect(pessoaServiceMock.buscarPorId).toHaveBeenCalledWith(7);
+    expect(component['visualizacao']()).toBe(true);
+    expect(component['form'].controls.nome.value).toBe('Maria da Silva');
+    expect(component['form'].controls.dataNascimento.value).toBe('19/08/1995');
+    expect(component['form'].disabled).toBe(true);
+    expect(component['comorbidades']()).toContainEqual({ id: 2, nome: 'Hipertensão' });
+    expect(component['categorias']()).toContainEqual({ id: 3, nome: 'Associada' });
   });
 
   it('deve alternar para Pessoa Jurídica ao marcar o checkbox', () => {

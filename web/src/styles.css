@@ -44,6 +44,9 @@ html, body {
 }
 
 .pagina-formulario {
+  width: calc(100% - 48px);
+  max-width: 72rem;
+  margin: 32px auto 48px;
   --mat-form-field-container-height: 48px;
   --mat-form-field-container-vertical-padding: 12px;
   --mat-form-field-outlined-container-shape: 8px;
@@ -53,6 +56,54 @@ html, body {
 
   --mat-button-filled-container-shape: 8px;
   --mat-button-filled-container-height: 44px;
+}
+
+.pagina-formulario label,
+.pagina-formulario .mat-mdc-input-element,
+.pagina-formulario .mat-mdc-select-value,
+.pagina-formulario .mat-mdc-select-value-text {
+  font-size: 14px;
+}
+
+.pagina-formulario__visualizacao .mat-mdc-form-field.mat-form-field-disabled {
+  --mat-form-field-outlined-disabled-outline-color: #e5e7eb;
+  --mat-form-field-outlined-disabled-input-text-color: #374151;
+  --mat-form-field-outlined-disabled-label-text-color: #374151;
+}
+
+.pagina-formulario__visualizacao .mat-mdc-form-field.mat-form-field-disabled .mat-mdc-text-field-wrapper {
+  background: #f8fafc;
+}
+
+.pagina-formulario__visualizacao .mat-mdc-input-element:disabled,
+.pagina-formulario__visualizacao .mat-mdc-select-disabled .mat-mdc-select-value,
+.pagina-formulario__visualizacao .mat-mdc-checkbox-disabled .mdc-label {
+  color: #374151;
+  -webkit-text-fill-color: #374151;
+  opacity: 1;
+}
+
+.pagina-formulario__status {
+  border-radius: 9999px;
+  padding: 4px 16px;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.pagina-formulario__status--ativo {
+  background: #8bce68;
+}
+
+.pagina-formulario__status--inativo {
+  background: #9ca3af;
+}
+
+@media (max-width: 640px) {
+  .pagina-formulario {
+    width: calc(100% - 32px);
+    margin-block: 24px 40px;
+  }
 }
 
 .pagina-formulario h1,
