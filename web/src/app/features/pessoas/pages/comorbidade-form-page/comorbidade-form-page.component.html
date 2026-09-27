@@ -1,4 +1,7 @@
-<section class="pagina-formulario mx-auto max-w-4xl">
+<section
+  class="pagina-formulario"
+  [class.pagina-formulario__visualizacao]="modoVisualizacao()"
+>
   <div class="mb-8">
     <div class="mb-4 flex flex-wrap items-center gap-3">
       <button
@@ -25,9 +28,9 @@
 
         @if (modoVisualizacao() && registro()?.ativo !== undefined) {
           <span
-            class="rounded-full px-5 py-1 text-sm font-semibold text-white"
-            [class.bg-green-400]="registro()?.ativo"
-            [class.bg-gray-400]="!registro()?.ativo"
+            class="pagina-formulario__status"
+            [class.pagina-formulario__status--ativo]="registro()?.ativo"
+            [class.pagina-formulario__status--inativo]="!registro()?.ativo"
           >
             {{ registro()?.ativo ? 'Ativo' : 'Inativo' }}
           </span>
