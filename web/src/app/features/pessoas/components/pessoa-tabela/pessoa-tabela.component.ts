@@ -5,7 +5,9 @@ import { PageEvent } from '@angular/material/paginator';
 import { MatSortModule, Sort } from '@angular/material/sort';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { PessoaResumo } from '../../models/pessoa.model';
+import { ItemRelacionadoResumo, PessoaResumo, TipoPessoa} from '../../models/pessoa.model';
+import { CpfCnpjPipe } from '@features/shared/pipes/cpf-cnpj.pipe';
+import { TelefonePipe } from '@features/shared/pipes/telefone.pipe';
 
 export interface AlternarEstadoPessoaEvento {
   id: number;
@@ -21,6 +23,8 @@ export interface AlternarEstadoPessoaEvento {
     MatIconModule,
     MatButtonModule,
     MatTooltipModule,
+    CpfCnpjPipe,
+    TelefonePipe,
   ],
   templateUrl: './pessoa-tabela.component.html',
 })
@@ -106,5 +110,20 @@ export class PessoaTabelaComponent {
 
     tabela.scrollLeft += deslocamento;
     evento.preventDefault();
+  }
+
+  protected ehPessoaJuridica(item: PessoaResumo): boolean {
+    const documento = (item.cpfCnpj ?? '').replace(/\D/g, '');
+
+    return item.tipoPessoa === TipoPessoa.JURIDICA
+      || documento.length === 14;
+  }
+
+  protected nomesRelacionados(itens?: ItemRelacionadoResumo[]): string {
+    if (!itens?.length) {
+      return '-';
+    }
+
+    return itens.map((item) => item.nome).join(', ');
   }
 }

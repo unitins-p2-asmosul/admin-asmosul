@@ -15,6 +15,12 @@ public interface ComorbidadeRepository extends JpaRepository<Comorbidade, Long> 
 
     List<Comorbidade> findAllByDataInativoIsNull();
 
+    Page<Comorbidade> findByNomeContainingIgnoreCase(
+            String nome, Pageable pageable);
+
+    Page<Comorbidade> findByNomeContainingIgnoreCaseAndDataInativoIsNull(
+            String nome, Pageable pageable);
+
     boolean existsByNome(String nome);
 
     boolean existsByNomeAndIdNot(String nome, Long id);
