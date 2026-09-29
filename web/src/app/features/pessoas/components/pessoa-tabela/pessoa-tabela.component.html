@@ -54,20 +54,18 @@
       </ng-container>
 
       <ng-container matColumnDef="cpf">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header="cpf">CPF/CNPJ</th>
-        <td mat-cell *matCellDef="let item" class="pessoa-table__texto">{{ item.cpfCnpj || item.cpf }}</td>
+        <th mat-header-cell *matHeaderCellDef mat-sort-header="cpfCnpj">CPF/CNPJ</th>
+        <td mat-cell *matCellDef="let item" class="pessoa-table__texto">{{ item.cpfCnpj | cpfCnpj }}</td>
       </ng-container>
 
       <ng-container matColumnDef="telefone">
         <th mat-header-cell *matHeaderCellDef>Telefone</th>
-        <td mat-cell *matCellDef="let item" class="pessoa-table__texto">{{ item.telefone }}</td>
+        <td mat-cell *matCellDef="let item" class="pessoa-table__texto">{{ item.telefone | telefone }}</td>
       </ng-container>
 
       <ng-container matColumnDef="tipoPessoa">
         <th mat-header-cell *matHeaderCellDef>Tipo de<br />Pessoa</th>
-        <td mat-cell *matCellDef="let item" class="pessoa-table__texto">
-          {{ item.tipoPessoa === 'JURIDICA' ? 'Jurídica' : 'Física' }}
-        </td>
+        <td mat-cell *matCellDef="let item" class="pessoa-table__texto">{{ ehPessoaJuridica(item) ? 'Jurídica' : 'Física' }}</td>
       </ng-container>
 
       <ng-container matColumnDef="dataNascimento">
@@ -109,15 +107,13 @@
 
       <ng-container matColumnDef="comorbidades">
         <th mat-header-cell *matHeaderCellDef>Comorbidade</th>
-        <td mat-cell *matCellDef="let item" class="pessoa-table__texto">
-          {{ item.comorbidades?.length ? item.comorbidades.length : '-' }}
-        </td>
+        <td mat-cell *matCellDef="let item" class="pessoa-table__texto">{{ nomesRelacionados(item.comorbidades) }}</td>
       </ng-container>
 
       <ng-container matColumnDef="categorias">
         <th mat-header-cell *matHeaderCellDef>Categorias</th>
         <td mat-cell *matCellDef="let item" class="pessoa-table__texto">
-          {{ item.categorias?.length ? item.categorias.length : '-' }}
+          {{ nomesRelacionados(item.categorias) }}
         </td>
       </ng-container>
 

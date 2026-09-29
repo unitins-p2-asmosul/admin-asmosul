@@ -38,19 +38,37 @@ public class CategoriaService {
 
     @Transactional(readOnly = true)
     public RespostaPaginada<CategoriaDTO.Resumo> listar(
-            Pageable paginacao, boolean incluirInativos) {
-        Pageable paginacaoSanitizada =
-                br.org.asmosul.api.comum.utils.PaginacaoUtils.sanitizarPaginacao(
-                        paginacao, CAMPOS_ORDENACAO_VALIDOS, "nome");
+                Pageable paginacao, boolean incluirInativos, String nome) {
 
-        Page<Categoria> pagina =
-                incluirInativos
-                        ? categoriaRepository.findAll(paginacaoSanitizada)
-                        : categoriaRepository.findAllByDataInativoIsNull(paginacaoSanitizada);
+                Pageable paginacaoSanitizada =
+                        br.org.asmosul.api.comum.utils.PaginacaoUtils.sanitizarPaginacao(
+                                paginacao, CAMPOS_ORDENACAO_VALIDOS, "nome");
 
-        Page<CategoriaDTO.Resumo> paginaDtos = pagina.map(CategoriaDTO.Resumo::deEntidade);
-        return RespostaPaginada.dePage(paginaDtos);
-    }
+        String nomeNormalizado = nome == null ? "" : nome.trim();
+
+        Page<Categoria> pagina;
+
+        if (!nomeNormalizado.isBlank()) {
+                pagina =
+                        incluirInativos
+                                ? categoriaRepository.findByNomeContainingIgnoreCase(
+                                        nomeNormalizado, paginacaoSanitizada)
+                                : categoriaRepository
+                                        .findByNomeContainingIgnoreCaseAndDataInativoIsNull(
+                                                nomeNormalizado, paginacaoSanitizada);
+            } else {
+                pagina =
+                        incluirInativos
+                                ? categoriaRepository.findAll(paginacaoSanitizada)
+                                : categoriaRepository.findAllByDataInativoIsNull(
+                                        paginacaoSanitizada);
+            }
+
+            Page<CategoriaDTO.Resumo> paginaDtos =
+                    pagina.map(CategoriaDTO.Resumo::deEntidade);
+
+            return RespostaPaginada.dePage(paginaDtos);
+        }
 
     @Transactional(readOnly = true)
     public java.util.List<CategoriaDTO.Resumo> listarTodas(boolean incluirInativos) {
