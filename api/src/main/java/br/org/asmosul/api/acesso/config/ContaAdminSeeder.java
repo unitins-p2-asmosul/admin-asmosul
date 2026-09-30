@@ -16,6 +16,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 @Component
+@Profile("!test")
 public class ContaAdminSeeder implements CommandLineRunner {
 
     private static final Logger log = LoggerFactory.getLogger(ContaAdminSeeder.class);
