@@ -9,3 +9,16 @@ https://drawsql.app/teams/asmosuk/diagrams/diagrama-sprint-1
 - `descricao`: TEXT NULL
 - `data_inativo`: DATETIME DEFAULT NULL
 
+### Tabela: `endereco_doacao`
+- `id`: BIGINT AUTO_INCREMENT PRIMARY KEY
+- `nome`: VARCHAR(100) NOT NULL UNIQUE
+- `cep`: VARCHAR(9) NOT NULL
+- `uf`: ENUM(27 UFs) NOT NULL
+- `cidade`: VARCHAR(100) NOT NULL
+- `bairro`: VARCHAR(50) NOT NULL
+- `logradouro`: VARCHAR(100) NOT NULL
+- `numero`: VARCHAR(20) NOT NULL
+- `complemento`: VARCHAR(100) NULL
+- `informacoes_adicionais`: TEXT NULL
+- `data_inativo`: DATETIME DEFAULT NULL
+
