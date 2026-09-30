@@ -30,13 +30,14 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.test.context.support.WithAnonymousUser;
-import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
+// As anotações @WithMockUser e @WithAnonymousUser não têm efeito nas requisições do MockMvc
+// deste projeto: falta o spring-boot-starter-security-test, que integra o contexto de
+// segurança de teste ao MockMvc. Por isso, quando a rota precisa de um usuário autenticado,
+// ele é informado explicitamente na requisição com .with(user(...)) ou com um token real.
 @DisplayName("Testes de Integração - ContaController")
-@WithMockUser(roles = "GERENCIADOR_ACESSO")
 class ContaControllerTest extends BaseAPITest {
 
     private static final String SENHA = "Senha@123";
@@ -540,7 +541,6 @@ class ContaControllerTest extends BaseAPITest {
         }
 
         @Test
-        @WithAnonymousUser
         @DisplayName("Deve trocar a senha usando o token obtido em login real")
         void alterarMinhaSenha_comTokenDeLoginReal_retornaStatus204() throws Exception {
             Conta conta = criarConta(pessoaFisica, "maria.silva", Set.of(Perfil.GERENCIADOR_PESSOAS));
@@ -1004,7 +1004,6 @@ class ContaControllerTest extends BaseAPITest {
         }
 
         @Test
-        @WithAnonymousUser
         @DisplayName("Login real e troca de senha não devem expor hash nem senha")
         void loginEMinhaSenha_naoExpoemHashNemSenha() throws Exception {
             Conta conta = criarConta(pessoaFisica, "maria.silva", Set.of(Perfil.GERENCIADOR_PESSOAS));
