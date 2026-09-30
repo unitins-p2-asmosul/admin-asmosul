@@ -16,6 +16,7 @@ import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
+import org.hibernate.annotations.BatchSize;
 
 @Entity
 @Table(name = "conta")
@@ -34,6 +35,10 @@ public class Conta extends EntidadeInativavel {
     @Column(name = "data_criacao", nullable = false, updatable = false)
     private LocalDateTime dataCriacao;
 
+    @Column(name = "redefinir_senha", nullable = false)
+    private boolean redefinirSenha = true;
+
+    @BatchSize(size = 25)
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "conta_perfil", joinColumns = @JoinColumn(name = "id_conta"))
     @Enumerated(EnumType.STRING)
@@ -48,6 +53,7 @@ public class Conta extends EntidadeInativavel {
         this.senhaHash = senhaHash;
         this.perfis = perfis != null ? new HashSet<>(perfis) : new HashSet<>();
         this.dataCriacao = LocalDateTime.now();
+        this.redefinirSenha = true;
     }
 
     @PrePersist
@@ -57,43 +63,59 @@ public class Conta extends EntidadeInativavel {
         }
     }
 
-    public Pessoa getPessoa() {
-        return pessoa;
+    // RN019 - A pessoa vinculada não pode ser alterada, apenas o nome de usuário
+    public void alterarNomeUsuario(String nomeUsuario) {
+        this.nomeUsuario = nomeUsuario;
     }
 
-    public void setPessoa(Pessoa pessoa) {
-        this.pessoa = pessoa;
+    // US-43 / US-59 - Senha temporária definida pelo Gerenciador de Acesso
+    public void definirSenhaTemporaria(String senhaHash) {
+        this.senhaHash = senhaHash;
+        this.redefinirSenha = true;
+    }
+
+    // US-46 - Senha definitiva escolhida pelo próprio usuário
+    public void definirSenhaDefinitiva(String senhaHash) {
+        this.senhaHash = senhaHash;
+        this.redefinirSenha = false;
+    }
+
+    public void atualizarPerfis(Set<Perfil> perfis) {
+        this.perfis.clear();
+        if (perfis != null) {
+            this.perfis.addAll(perfis);
+        }
+    }
+
+    public void desativar() {
+        this.setDataInativo(LocalDateTime.now());
+    }
+
+    public void reativar() {
+        this.setDataInativo(null);
+    }
+
+    public Pessoa getPessoa() {
+        return pessoa;
     }
 
     public String getNomeUsuario() {
         return nomeUsuario;
     }
 
-    public void setNomeUsuario(String nomeUsuario) {
-        this.nomeUsuario = nomeUsuario;
-    }
-
     public String getSenhaHash() {
         return senhaHash;
-    }
-
-    public void setSenhaHash(String senhaHash) {
-        this.senhaHash = senhaHash;
     }
 
     public LocalDateTime getDataCriacao() {
         return dataCriacao;
     }
 
-    public void setDataCriacao(LocalDateTime dataCriacao) {
-        this.dataCriacao = dataCriacao;
+    public boolean isRedefinirSenha() {
+        return redefinirSenha;
     }
 
     public Set<Perfil> getPerfis() {
         return perfis;
-    }
-
-    public void setPerfis(Set<Perfil> perfis) {
-        this.perfis = perfis != null ? new HashSet<>(perfis) : new HashSet<>();
     }
 }
