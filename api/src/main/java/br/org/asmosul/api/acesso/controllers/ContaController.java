@@ -16,6 +16,7 @@ import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -171,10 +172,12 @@ public class ContaController {
                         description =
                                 "Senha atual incorreta, campos em branco ou nova senha acima de 72"
                                         + " bytes"),
+                @ApiResponse(responseCode = "401", description = "Usuário não autenticado"),
                 @ApiResponse(
                         responseCode = "404",
                         description = "Conta ativa não encontrada para o usuário autenticado")
             })
+    @PreAuthorize("isAuthenticated()")
     @PatchMapping("/minha-senha")
     public ResponseEntity<Void> alterarMinhaSenha(
             @RequestBody @Valid ContaDTO.RedefinirSenhaPropria requisicao,

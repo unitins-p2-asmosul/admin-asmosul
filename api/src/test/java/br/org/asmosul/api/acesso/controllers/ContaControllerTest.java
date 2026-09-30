@@ -570,6 +570,35 @@ class ContaControllerTest extends BaseAPITest {
         }
 
         @Test
+        @DisplayName("Deve retornar 401 quando não houver usuário autenticado")
+        void alterarMinhaSenha_semUsuarioAutenticado_retornaStatus401() throws Exception {
+            Conta conta = criarConta(pessoaFisica, "maria.silva", Set.of(Perfil.GERENCIADOR_PESSOAS));
+
+            mockMvc.perform(
+                            patch("/contas/minha-senha")
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(CORPO_VALIDO))
+                    .andExpect(status().isUnauthorized())
+                    .andExpect(jsonPath("$.status").value(401))
+                    .andExpect(jsonPath("$.title").value("Não Autorizado"));
+
+            assertThat(contaRepository.findById(conta.getId()).orElseThrow().isRedefinirSenha()).isTrue();
+        }
+
+        @Test
+        @DisplayName("Deve retornar 401 quando o token for inválido")
+        void alterarMinhaSenha_comTokenInvalido_retornaStatus401() throws Exception {
+            criarConta(pessoaFisica, "maria.silva", Set.of(Perfil.GERENCIADOR_PESSOAS));
+
+            mockMvc.perform(
+                            patch("/contas/minha-senha")
+                                    .header("Authorization", "Bearer token-invalido")
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(CORPO_VALIDO))
+                    .andExpect(status().isUnauthorized());
+        }
+
+        @Test
         @DisplayName("Deve retornar 400 quando a senha atual estiver incorreta")
         void alterarMinhaSenha_comSenhaAtualIncorreta_retornaStatus400() throws Exception {
             Conta conta = criarConta(pessoaFisica, "maria.silva", Set.of(Perfil.GERENCIADOR_PESSOAS));
