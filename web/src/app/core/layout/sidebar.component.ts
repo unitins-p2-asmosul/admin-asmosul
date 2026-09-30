@@ -83,8 +83,8 @@ export class SidebarComponent {
 			titulo: 'Acesso',
 			icone: 'badge',
 			itens: [
-				{ rotulo: 'Contas', icone: 'manage_accounts' },
-				{ rotulo: 'Perfis', icone: 'admin_panel_settings' },
+				{ rotulo: 'Contas', icone: 'manage_accounts', rota: '/acessos' },
+				{ rotulo: 'Perfis', icone: 'admin_panel_settings', rota: '/acessos/perfis' },
 			],
 		},
 	]);

@@ -12,7 +12,9 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 export class PaginaGerenciamentoComponent {
   readonly titulo = input.required<string>();
   readonly icone = input.required<string>();
+  readonly iconeAdicionar = input('add_circle_outline');
   readonly rotuloAdicionar = input.required<string>();
+  readonly adicionarNaToolbar = input(false);
   readonly filtrosAtivos = input(0);
 
   readonly aoAdicionar = output<void>();
