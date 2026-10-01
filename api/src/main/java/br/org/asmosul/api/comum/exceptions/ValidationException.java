@@ -17,6 +17,14 @@ public class ValidationException extends RuntimeException {
         return new ValidationException("Dados inválidos", List.of(new CampoErro(campo, mensagem)));
     }
 
+    public static ConflitoDadosException ofConflito(String mensagem) {
+        return new ConflitoDadosException(mensagem);
+    }
+
+    public static ConflitoDadosException ofConflito(String campo, String mensagem) {
+        return new ConflitoDadosException(mensagem);
+    }
+
     public List<CampoErro> getErros() {
         return erros;
     }

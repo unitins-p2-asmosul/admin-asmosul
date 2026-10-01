@@ -1,2 +1,11 @@
 Link para acessar o diagramar de entidade relacionamento da sprint 1:
 https://drawsql.app/teams/asmosuk/diagrams/diagrama-sprint-1
+
+## Módulo Doações
+
+### Tabela: `categoria_doacao`
+- `id`: BIGINT AUTO_INCREMENT PRIMARY KEY
+- `nome`: VARCHAR(50) NOT NULL UNIQUE
+- `descricao`: TEXT NULL
+- `data_inativo`: DATETIME DEFAULT NULL
+

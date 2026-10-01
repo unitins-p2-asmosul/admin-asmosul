@@ -133,4 +133,19 @@ Pessoa "*" --> "1"TipoPessoa : é
 Conta "1" --> "1" Pessoa : pessoa_id
 Conta "1" *-- "*" Perfil : contas_perfis
 
+' Módulo Doações
+abstract class EntidadeInativavel {
+  - data_inativo: DateTime
+  + isAtivo(): boolean
+}
+
+class CategoriaDoacao {
+  - id: Long
+  - nome: String
+  - descricao: String
+  - data_inativo: DateTime
+}
+
+CategoriaDoacao --|> EntidadeInativavel
+
 @enduml
