@@ -181,6 +181,32 @@ public class Pessoa extends EntidadeInativavel {
         this.ehDoador = ehDoador;
     }
 
+    // Métdo estático para criar pessoa com os campos obrigatórios
+    public static Pessoa criarMinima(String nome, String cpfCnpj, TipoPessoa tipoPessoa, String telefone) {
+        return new Pessoa(
+            nome,
+            cpfCnpj,
+            tipoPessoa,
+            null,
+            null,
+            telefone,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            0,
+            false,
+            false
+        );
+    }
+
     public void desativar() {
         this.setDataInativo(LocalDateTime.now());
     }

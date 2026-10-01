@@ -170,6 +170,10 @@ html, body {
   box-shadow: none;
 }
 
+.mat-mdc-dialog-container .mat-mdc-dialog-title + .mat-mdc-dialog-content{
+  padding-top: 15px !important;
+}
+
 .pessoa-filtro-dialog .mat-mdc-dialog-content {
   max-height: 65vh;
   overflow: auto;
@@ -342,6 +346,15 @@ html, body {
   margin-bottom: 16px;
 }
 
+.pagina-pessoas__toolbar--distribuida {
+  align-items: center;
+  justify-content: space-between;
+}
+
+.pagina-pessoas__toolbar--distribuida .pagina-pessoas__add {
+  font-weight: 500 !important;
+}
+
 .pagina-pessoas__filter {
   position: relative !important;
   display: inline-flex !important;
@@ -356,6 +369,10 @@ html, body {
   background: #0b3c5d !important;
   color: #fff !important;
   border-color: #0b3c5d !important;
+}
+
+.conta-lista__status-toggle {
+  min-width: 190px !important;
 }
 
 .pagina-pessoas__filter .mdc-button__label {
