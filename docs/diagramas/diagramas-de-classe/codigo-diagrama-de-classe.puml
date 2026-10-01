@@ -148,4 +148,21 @@ class CategoriaDoacao {
 
 CategoriaDoacao --|> EntidadeInativavel
 
+class EnderecoDoacao {
+  - id: Long
+  - nome: String
+  - cep: String
+  - uf: Uf
+  - cidade: String
+  - bairro: String
+  - logradouro: String
+  - numero: String
+  - complemento: String
+  - informacoes_adicionais: String
+  - data_inativo: DateTime
+}
+
+EnderecoDoacao --|> EntidadeInativavel
+EnderecoDoacao "*" --> "1" Uf : localiza-se em
+
 @enduml
