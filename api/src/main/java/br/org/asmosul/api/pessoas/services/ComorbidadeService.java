@@ -38,17 +38,35 @@ public class ComorbidadeService {
 
     @Transactional(readOnly = true)
     public RespostaPaginada<ComorbidadeDTO.Resumo> listar(
-            Pageable paginacao, boolean incluirInativos) {
+        Pageable paginacao, boolean incluirInativos, String nome) {
+
         Pageable paginacaoSanitizada =
                 br.org.asmosul.api.comum.utils.PaginacaoUtils.sanitizarPaginacao(
-                        paginacao, CAMPOS_ORDENACAO_VALIDOS, "nome");
+                paginacao, CAMPOS_ORDENACAO_VALIDOS, "nome");
 
-        Page<Comorbidade> pagina =
-                incluirInativos
-                        ? comorbidadeRepository.findAll(paginacaoSanitizada)
-                        : comorbidadeRepository.findAllByDataInativoIsNull(paginacaoSanitizada);
+            String nomeNormalizado = nome == null ? "" : nome.trim();
 
-        Page<ComorbidadeDTO.Resumo> paginaDtos = pagina.map(ComorbidadeDTO.Resumo::deEntidade);
+            Page<Comorbidade> pagina;
+
+            if (!nomeNormalizado.isBlank()) {
+                pagina =
+                        incluirInativos
+                                ? comorbidadeRepository.findByNomeContainingIgnoreCase(
+                                        nomeNormalizado, paginacaoSanitizada)
+                                : comorbidadeRepository
+                                        .findByNomeContainingIgnoreCaseAndDataInativoIsNull(
+                                                nomeNormalizado, paginacaoSanitizada);
+            } else {
+                pagina =
+                        incluirInativos
+                                ? comorbidadeRepository.findAll(paginacaoSanitizada)
+                                : comorbidadeRepository.findAllByDataInativoIsNull(
+                                        paginacaoSanitizada);
+            }
+
+        Page<ComorbidadeDTO.Resumo> paginaDtos =
+            pagina.map(ComorbidadeDTO.Resumo::deEntidade);
+
         return RespostaPaginada.dePage(paginaDtos);
     }
 

@@ -1,11 +1,8 @@
 import { Component, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
-import { MatIconModule } from '@angular/material/icon';
 import { PageEvent } from '@angular/material/paginator';
 import { Sort } from '@angular/material/sort';
-import { MatTooltipModule } from '@angular/material/tooltip';
 import { ActivatedRoute, Router } from '@angular/router';
 import { RespostaPaginada } from '@features/shared/models/resposta-paginada.model';
 import { DialogoConfirmacaoService } from '@features/shared/services/dialogo-confirmacao.service';
@@ -23,9 +20,10 @@ import {
   ComorbidadeResumo,
 } from '../../models/comorbidade.model';
 import { ComorbidadeService } from '../../services/comorbidade.service';
+import { PaginaGerenciamentoComponent } from '@features/shared/components/pagina-gerenciamento/pagina-gerenciamento.component';
 
 const ORDENACAO_PADRAO = 'nome,asc';
-const TAMANHO_PAGINA_PADRAO = 10;
+const TAMANHO_PAGINA_PADRAO = 20;
 
 const PARAMETROS_PADRAO: ComorbidadeConsultaParametros = {
   page: 0,
@@ -44,7 +42,7 @@ const RESPOSTA_VAZIA: RespostaPaginada<ComorbidadeResumo> = {
 @Component({
   selector: 'app-comorbidade-lista-page',
   standalone: true,
-  imports: [ComorbidadeTabelaComponent, MatButtonModule, MatIconModule, MatTooltipModule],
+  imports: [PaginaGerenciamentoComponent, ComorbidadeTabelaComponent],
   templateUrl: './comorbidade-lista-page.component.html',
 })
 export class ComorbidadeListaPageComponent {
@@ -61,7 +59,7 @@ export class ComorbidadeListaPageComponent {
   private readonly parametros$ = this.route.queryParams.pipe(
     map((params): ComorbidadeConsultaParametros => ({
       page: params['page'] ? Number(params['page']) : 0,
-      size: params['size'] ? Number(params['size']) : TAMANHO_PAGINA_PADRAO,
+      size: TAMANHO_PAGINA_PADRAO,
       sort: params['sort'] || ORDENACAO_PADRAO,
       incluirInativos: params['incluirInativos'] === 'true',
       apenasInativos: params['apenasInativos'] === 'true',
@@ -91,19 +89,25 @@ export class ComorbidadeListaPageComponent {
   }
 
   protected irParaAdicionar(): void {
-    this.router.navigate(['/pessoas/comorbidades/adicionar']);
+    this.router.navigate(['/pessoas/comorbidades/adicionar'], {
+      queryParams: this.route.snapshot.queryParams,
+    });
   }
 
   protected visualizar(id: number): void {
-    this.router.navigate(['/pessoas/comorbidades', id]);
+    this.router.navigate(['/pessoas/comorbidades', id], {
+      queryParams: this.route.snapshot.queryParams,
+    });
   }
 
   protected editar(id: number): void {
-    this.router.navigate(['/pessoas/comorbidades', id, 'editar']);
+    this.router.navigate(['/pessoas/comorbidades', id, 'editar'], {
+      queryParams: this.route.snapshot.queryParams,
+    });
   }
 
   protected mudarPagina(evento: PageEvent): void {
-    this.atualizarUrl({ page: evento.pageIndex, size: evento.pageSize });
+    this.atualizarUrl({ page: evento.pageIndex, size: TAMANHO_PAGINA_PADRAO });
   }
 
   protected mudarOrdem(evento: Sort): void {
@@ -119,7 +123,9 @@ export class ComorbidadeListaPageComponent {
       ComorbidadeFiltros,
       ComorbidadeFiltros
     >(ComorbidadeFiltroDialogComponent, {
-      width: '440px',
+      width: '740px',
+      maxWidth: 'calc(100vw - 32px)',
+      panelClass: 'comorbidade-filtro-dialog',
       data: { nome, apenasInativos },
     });
 

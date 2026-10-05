@@ -1,0 +1,32 @@
+<div class="pagina-formulario !my-0 !w-full !max-w-none">
+  <h2 mat-dialog-title class="!text-2xl !font-bold">Redefinir senha temporária</h2>
+  <mat-dialog-content>
+    <p class="mb-5 text-sm text-gray-600">
+      {{ data.nomePessoa }} <span class="text-gray-400">({{ data.nomeUsuario }})</span>
+    </p>
+    <form [formGroup]="form" class="grid gap-2">
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>Nova senha temporária</mat-label>
+        <input matInput type="password" autocomplete="new-password" formControlName="novaSenhaTemporaria" />
+        @if (form.controls.novaSenhaTemporaria.hasError('required') && form.controls.novaSenhaTemporaria.touched) {
+          <mat-error>Informe a nova senha temporária.</mat-error>
+        }
+      </mat-form-field>
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>Confirmação da senha</mat-label>
+        <input matInput type="password" autocomplete="new-password" formControlName="confirmarNovaSenha" />
+        @if (form.controls.confirmarNovaSenha.hasError('required') && form.controls.confirmarNovaSenha.touched) {
+          <mat-error>Confirme a nova senha.</mat-error>
+        } @else if (form.hasError('senhasDiferentes') && form.controls.confirmarNovaSenha.touched) {
+          <mat-error>As senhas não coincidem.</mat-error>
+        }
+      </mat-form-field>
+    </form>
+  </mat-dialog-content>
+  <mat-dialog-actions align="end" class="gap-2 !px-6 !pb-5">
+    <button mat-button mat-dialog-close type="button" [disabled]="enviando()">Cancelar</button>
+    <button mat-flat-button type="button" [disabled]="form.invalid || enviando()" (click)="confirmar()">
+      @if (enviando()) { Enviando... } @else { Redefinir senha }
+    </button>
+  </mat-dialog-actions>
+</div>

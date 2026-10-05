@@ -1,4 +1,5 @@
-<div class="overflow-x-auto">
+<div class="pessoa-tabela-shell">
+<div class="pessoa-tabela-scroll">
   <table
     mat-table
     [dataSource]="dados()"
@@ -7,17 +8,17 @@
     [matSortDirection]="direcaoOrdenada"
     matSortDisableClear
     (matSortChange)="aoMudarOrdem.emit($event)"
-    class="tabela-asmosul w-full"
+    class="pessoa-table pessoa-table--apoio"
   >
     <ng-container matColumnDef="id">
       <th mat-header-cell *matHeaderCellDef mat-sort-header="id" class="w-20">#</th>
-      <td mat-cell *matCellDef="let item" class="w-20">{{ item.id }}</td>
+      <td mat-cell *matCellDef="let item" class="pessoa-table__numero">{{ item.id }}</td>
     </ng-container>
 
     <ng-container matColumnDef="acoes">
       <th mat-header-cell *matHeaderCellDef class="w-40">Ações</th>
-      <td mat-cell *matCellDef="let item" class="w-40">
-        <div class="flex items-center justify-center gap-1">
+      <td mat-cell *matCellDef="let item" class="pessoa-table__acoes">
+        <div class="pessoa-table__acoes-inner">
           <button
             mat-icon-button
             type="button"
@@ -65,24 +66,30 @@
 
     <ng-container matColumnDef="nome">
       <th mat-header-cell *matHeaderCellDef mat-sort-header="nome">Nome</th>
-      <td mat-cell *matCellDef="let item" class="font-medium">{{ item.nome }}</td>
+      <td mat-cell *matCellDef="let item" class="pessoa-table__texto">{{ item.nome }}</td>
     </ng-container>
 
     <ng-container matColumnDef="descricao">
       <th mat-header-cell *matHeaderCellDef>Descrição</th>
-      <td mat-cell *matCellDef="let item" class="text-sm">{{ item.descricao || '-' }}</td>
+      <td mat-cell *matCellDef="let item" class="pessoa-table__texto">{{ item.descricao || '-' }}</td>
     </ng-container>
 
     <ng-container matColumnDef="status">
       <th mat-header-cell *matHeaderCellDef class="w-44">Status</th>
-      <td mat-cell *matCellDef="let item" class="status w-44">
-        <span
-          class="block rounded-lg px-4 py-2 text-center font-semibold text-white"
-          [class.bg-asmosul-sucesso]="item.ativo"
-          [class.bg-gray-400]="!item.ativo"
-        >
-          {{ item.ativo ? 'Ativo' : 'Inativo' }}
-        </span>
+      <td
+        mat-cell
+        *matCellDef="let item"
+        class="pessoa-table__status-cell pessoa-table__status-button"
+        [class.pessoa-table__status-button--ativo]="item.ativo"
+        [class.pessoa-table__status-button--inativo]="!item.ativo"
+        role="button"
+        tabindex="0"
+        [attr.aria-label]="item.ativo ? 'Desativar comorbidade' : 'Reativar comorbidade'"
+        (click)="aoAlternarEstado.emit({ id: item.id, ativo: !item.ativo })"
+        (keydown.enter)="aoAlternarEstado.emit({ id: item.id, ativo: !item.ativo })"
+        (keydown.space)="$event.preventDefault(); aoAlternarEstado.emit({ id: item.id, ativo: !item.ativo })"
+      >
+        {{ item.ativo ? 'Ativo' : 'Desativado' }}
       </td>
     </ng-container>
 
@@ -100,15 +107,18 @@
     </tr>
   </table>
 </div>
+</div>
 
-<mat-paginator
-  [length]="totalElementos()"
-  [pageSize]="tamanhoPagina()"
-  [pageIndex]="paginaAtual()"
-  [pageSizeOptions]="[5, 10, 25, 50]"
-  [showFirstLastButtons]="true"
-  (page)="aoMudarPagina.emit($event)"
-  aria-label="Selecione a página"
-  class="mt-2 bg-transparent"
->
-</mat-paginator>
+<nav class="pessoa-tabela__paginacao" aria-label="Paginação de comorbidades">
+  <button type="button" class="pessoa-tabela__pagina-seta" [disabled]="paginaAtual() === 0" aria-label="Página anterior" (click)="mudarPagina(paginaAtual() - 1)">
+    &lt;
+  </button>
+  @for (pagina of paginas; track pagina) {
+    <button type="button" class="pessoa-tabela__pagina" [class.pessoa-tabela__pagina--ativa]="pagina === paginaAtual()" [attr.aria-current]="pagina === paginaAtual() ? 'page' : null" (click)="mudarPagina(pagina)">
+      {{ pagina + 1 }}
+    </button>
+  }
+  <button type="button" class="pessoa-tabela__pagina-seta" [disabled]="paginaAtual() >= totalPaginas - 1" aria-label="Próxima página" (click)="mudarPagina(paginaAtual() + 1)">
+    &gt;
+  </button>
+</nav>

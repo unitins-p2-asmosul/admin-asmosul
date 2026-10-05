@@ -1,0 +1,179 @@
+<section
+  class="pagina-formulario !my-0 !w-[calc(100%-32px)] !max-w-[1280px] pt-7 pb-10 sm:!w-[calc(100%-64px)]"
+  [class.pagina-formulario__visualizacao]="visualizacao()"
+>
+  <header class="mb-10">
+    <div class="flex flex-wrap items-center gap-3">
+      @if (!modoCriacao()) {
+        <button mat-icon-button type="button" aria-label="Voltar" (click)="voltar()">
+          <mat-icon>arrow_back</mat-icon>
+        </button>
+      }
+      <div>
+        <h1 class="m-0 text-[2.5rem] leading-tight font-bold text-[#0b3c5d]">{{ titulo }}</h1>
+        <p class="mt-2 text-lg font-semibold text-[#8298a9]">{{ descricao }}</p>
+      </div>
+      @if (visualizacao() && registro()) {
+        <span
+          class="pagina-formulario__status"
+          [class.pagina-formulario__status--ativo]="registro()?.ativo"
+          [class.pagina-formulario__status--inativo]="!registro()?.ativo"
+        >
+          {{ registro()?.ativo ? 'Ativo' : 'Inativo' }}
+        </span>
+      }
+    </div>
+  </header>
+
+  <form
+    [formGroup]="form"
+    (ngSubmit)="salvar()"
+    class="rounded-xl border border-[#dfe4ea] bg-white px-5 pt-7 pb-12 shadow-none sm:px-7 sm:pt-8"
+  >
+    @if (visualizacao() && registro()) {
+      <div class="mb-7 grid gap-x-6 gap-y-2 border-b border-gray-200 pb-6 sm:grid-cols-2">
+        <p><span class="font-semibold">Pessoa:</span> {{ registro()?.nomePessoa }}</p>
+        <p><span class="font-semibold">E-mail:</span> {{ registro()?.email || '-' }}</p>
+        <p><span class="font-semibold">Criada em:</span> {{ registro()?.dataCriacao }}</p>
+        @if (registro()?.dataInativo) {
+          <p><span class="font-semibold">Inativada em:</span> {{ registro()?.dataInativo }}</p>
+        }
+        <p><span class="font-semibold">Redefinição de senha:</span> {{ registro()?.redefinirSenha ? 'Pendente' : 'Não pendente' }}</p>
+      </div>
+    }
+
+    <div class="grid grid-cols-1 gap-y-3">
+      @if (modoCriacao()) {
+        <div>
+          <label for="pessoaId" class="mb-2 block text-sm font-semibold text-[#344054]">Pessoa *</label>
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-select id="pessoaId" formControlName="pessoaId" placeholder="Selecione uma pessoa">
+              @for (pessoa of pessoas(); track pessoa.id) {
+                <mat-option [value]="pessoa.id">{{ pessoa.nome }} @if (pessoa.email) { ({{ pessoa.email }}) }</mat-option>
+              }
+            </mat-select>
+            @if (form.controls.pessoaId.hasError('required') || form.controls.pessoaId.hasError('min')) {
+              <mat-error>Selecione uma pessoa física ativa.</mat-error>
+            }
+            @if (form.controls.pessoaId.hasError('backend')) {
+              <mat-error>{{ form.controls.pessoaId.getError('backend') }}</mat-error>
+            }
+          </mat-form-field>
+        </div>
+      }
+
+      <div>
+        <label for="nomeUsuario" class="mb-2 block text-sm font-semibold text-[#344054]">Nome de usuário *</label>
+        <mat-form-field appearance="outline" class="w-full">
+          <input
+            id="nomeUsuario"
+            matInput
+            formControlName="nomeUsuario"
+            maxlength="100"
+            autocomplete="username"
+            placeholder="Digite seu nome de usuário"
+          />
+          @if (form.controls.nomeUsuario.hasError('required') || form.controls.nomeUsuario.hasError('pattern')) {
+            <mat-error>Informe o nome de usuário.</mat-error>
+          } @else if (form.controls.nomeUsuario.hasError('maxlength')) {
+            <mat-error>O nome de usuário deve conter no máximo 100 caracteres.</mat-error>
+          } @else if (form.controls.nomeUsuario.hasError('backend')) {
+            <mat-error>{{ form.controls.nomeUsuario.getError('backend') }}</mat-error>
+          }
+        </mat-form-field>
+      </div>
+
+      @if (modoCriacao()) {
+        <div class="grid grid-cols-1 gap-x-6 sm:grid-cols-2">
+          <div>
+            <label for="senhaTemporaria" class="mb-2 block text-sm font-semibold text-[#344054]">Senha temporária *</label>
+            <mat-form-field appearance="outline" class="w-full">
+              <input
+                id="senhaTemporaria"
+                matInput
+                type="password"
+                autocomplete="new-password"
+                formControlName="senhaTemporaria"
+                placeholder="Digite a senha temporária"
+              />
+              @if (form.controls.senhaTemporaria.hasError('required') && form.controls.senhaTemporaria.touched) {
+                <mat-error>Informe a senha temporária.</mat-error>
+              }
+            </mat-form-field>
+          </div>
+          <div>
+            <label for="confirmarSenha" class="mb-2 block text-sm font-semibold text-[#344054]">Confirmação de senha *</label>
+            <mat-form-field appearance="outline" class="w-full">
+              <input
+                id="confirmarSenha"
+                matInput
+                type="password"
+                [errorStateMatcher]="confirmarSenhaErrorStateMatcher"
+                autocomplete="new-password"
+                formControlName="confirmarSenha"
+                placeholder="Confirme a senha temporária"
+              />
+              @if (form.controls.confirmarSenha.hasError('required') && form.controls.confirmarSenha.touched) {
+                <mat-error>Confirme a senha temporária.</mat-error>
+              } @else if (form.hasError('senhasDiferentes') && form.controls.confirmarSenha.touched) {
+                <mat-error>As senhas não coincidem.</mat-error>
+              }
+            </mat-form-field>
+          </div>
+        </div>
+      }
+
+      <div>
+        <label for="perfis" class="mb-2 block text-sm font-semibold text-[#344054]">Perfis *</label>
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-select id="perfis" formControlName="perfis" multiple placeholder="Selecione os perfis">
+            @for (perfil of perfis(); track perfil.codigo) {
+              <mat-option [value]="perfil.codigo">{{ perfil.descricao }}</mat-option>
+            }
+          </mat-select>
+          @if (form.controls.perfis.hasError('required') && form.controls.perfis.touched) {
+            <mat-error>Selecione ao menos um perfil de acesso.</mat-error>
+          }
+        </mat-form-field>
+      </div>
+    </div>
+
+    @if (visualizacao() && registro()) {
+      <div class="mt-10 flex flex-wrap justify-center gap-4 pb-5">
+        @if (registro()?.ativo) {
+          <button mat-flat-button type="button" class="!min-w-40" (click)="redefinirSenha()">
+            <mat-icon>lock_reset</mat-icon>
+            Redefinir senha temporária
+          </button>
+        }
+        <button mat-flat-button type="button" class="!min-w-40" (click)="editar()">
+          <mat-icon>edit</mat-icon>
+          Editar conta
+        </button>
+        <button mat-flat-button type="button" class="!min-w-40" (click)="alternarEstado()">
+          <mat-icon>{{ registro()?.ativo ? 'person_off' : 'person_check' }}</mat-icon>
+          {{ registro()?.ativo ? 'Desativar conta' : 'Reativar conta' }}
+        </button>
+      </div>
+    } @else {
+      <div class="mt-10 flex flex-wrap justify-center gap-4 pb-5">
+        <button
+          mat-flat-button
+          type="button"
+          class="!min-w-40 !bg-[#0b3c5d] !text-white"
+          (click)="voltar()"
+        >
+          Cancelar
+        </button>
+        <button
+          mat-flat-button
+          type="submit"
+          class="!min-w-40 !bg-[#0b3c5d] !text-white"
+          [disabled]="carregando()"
+        >
+          @if (carregando()) { Salvando... } @else if (modoCriacao()) { Criar conta } @else { Salvar alterações }
+        </button>
+      </div>
+    }
+  </form>
+</section>

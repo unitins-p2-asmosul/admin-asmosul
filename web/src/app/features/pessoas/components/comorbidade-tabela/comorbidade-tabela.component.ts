@@ -1,7 +1,7 @@
 import { Component, input, output } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
+import { PageEvent } from '@angular/material/paginator';
 import { MatSortModule, Sort } from '@angular/material/sort';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
@@ -17,7 +17,6 @@ export interface AlternarEstadoEvento {
   standalone: true,
   imports: [
     MatTableModule,
-    MatPaginatorModule,
     MatSortModule,
     MatIconModule,
     MatButtonModule,
@@ -48,5 +47,26 @@ export class ComorbidadeTabelaComponent {
 
   protected get direcaoOrdenada(): 'asc' | 'desc' {
     return this.ordenacao().split(',')[1] === 'desc' ? 'desc' : 'asc';
+  }
+
+  protected get totalPaginas(): number {
+    return Math.max(1, Math.ceil(this.totalElementos() / 20));
+  }
+
+  protected get paginas(): number[] {
+    return Array.from({ length: this.totalPaginas }, (_, indice) => indice);
+  }
+
+  protected mudarPagina(pagina: number): void {
+    if (pagina < 0 || pagina >= this.totalPaginas || pagina === this.paginaAtual()) {
+      return;
+    }
+
+    this.aoMudarPagina.emit({
+      pageIndex: pagina,
+      pageSize: 20,
+      length: this.totalElementos(),
+      previousPageIndex: this.paginaAtual(),
+    });
   }
 }

@@ -11,6 +11,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { MatIconModule } from '@angular/material/icon';
 
 export interface CategoriaFiltroData {
   nome?: string;
@@ -29,6 +30,7 @@ export interface CategoriaFiltroData {
     MatCheckboxModule,
     MatFormFieldModule,
     MatInputModule,
+    MatIconModule,
   ],
   templateUrl: './categoria-filtro-dialog.component.html',
 })

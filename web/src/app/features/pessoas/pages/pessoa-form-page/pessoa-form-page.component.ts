@@ -1,5 +1,6 @@
+import { Location } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, inject, signal, viewChild } from '@angular/core';
+import { Component, computed, effect, inject, input, signal, viewChild } from '@angular/core';
 import { finalize } from 'rxjs';
 import {
   AbstractControl,
@@ -12,6 +13,7 @@ import {
 import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
@@ -25,11 +27,13 @@ import {
   ESCOLARIDADE_OPCOES,
   EscolaridadeCodigo,
   ItemRelacionadoResumo,
+  PessoaDetalhe,
   PessoaRequisicao,
   RENDA_FAMILIAR_OPCOES,
   RendaFamiliarCodigo,
   SEXO_OPCOES,
   SexoCodigo,
+  TipoPessoa,
   TipoPessoaCodigo,
   UF_OPCOES,
   UfCodigo,
@@ -43,6 +47,7 @@ import {
     MatButtonModule,
     MatCheckboxModule,
     MatFormFieldModule,
+    MatIconModule,
     MatInputModule,
     MatSelectModule,
     MatProgressSpinnerModule,
@@ -51,12 +56,16 @@ import {
 })
 export class PessoaFormPageComponent {
   private readonly fb = inject(NonNullableFormBuilder);
+  private readonly location = inject(Location);
   private readonly router = inject(Router);
   private readonly pessoaService = inject(PessoaService);
   private readonly categoriaService = inject(CategoriaService);
   private readonly comorbidadeService = inject(ComorbidadeService);
   private readonly notificacaoService = inject(NotificacaoService);
   private readonly formDirective = viewChild(FormGroupDirective);
+
+  readonly id = input<string>();
+  readonly visualizacao = input(false);
 
   protected readonly sexoOpcoes = SEXO_OPCOES;
   protected readonly escolaridadeOpcoes = ESCOLARIDADE_OPCOES;
@@ -68,6 +77,8 @@ export class PessoaFormPageComponent {
   protected readonly categorias = signal<ItemRelacionadoResumo[]>([]);
   protected readonly carregando = signal<boolean>(false);
   protected readonly buscandoCep = signal<boolean>(false);
+  protected readonly registro = signal<PessoaDetalhe | null>(null);
+  protected readonly modoEdicao = computed(() => !!this.id() && !this.visualizacao());
 
   private ultimoCepBuscado = '';
 
@@ -100,6 +111,11 @@ export class PessoaFormPageComponent {
   constructor() {
     this.carregarOpcoes();
     this.configurarAlternanciaTipoPessoa();
+    effect(() => {
+      const idPessoa = this.id();
+      const somenteLeitura = this.visualizacao();
+      if (idPessoa) this.carregarDados(Number(idPessoa), somenteLeitura);
+    });
   }
 
   private configurarAlternanciaTipoPessoa(): void {
@@ -144,6 +160,8 @@ export class PessoaFormPageComponent {
   }
 
   protected salvar(): void {
+    if (this.visualizacao()) return;
+
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       this.notificacaoService.alerta('Verifique os campos destacados antes de salvar.');
@@ -151,10 +169,20 @@ export class PessoaFormPageComponent {
     }
 
     this.carregando.set(true);
-    this.pessoaService.cadastrar(this.montarRequisicao()).subscribe({
+    const requisicao$ = this.modoEdicao()
+      ? this.pessoaService.atualizar(Number(this.id()), this.montarRequisicao())
+      : this.pessoaService.cadastrar(this.montarRequisicao());
+
+    requisicao$.subscribe({
       next: () => {
         const tipoDesc = this.ehPessoaJuridica() ? 'Pessoa Jurídica' : 'Pessoa';
-        this.notificacaoService.sucesso(`${tipoDesc} cadastrada com sucesso!`);
+        this.notificacaoService.sucesso(
+          this.modoEdicao() ? `${tipoDesc} atualizada com sucesso!` : `${tipoDesc} cadastrada com sucesso!`,
+        );
+        if (this.modoEdicao()) {
+          this.voltar();
+          return;
+        }
         this.limparFormulario();
         this.router.navigate(['/pessoas']);
       },
@@ -163,9 +191,17 @@ export class PessoaFormPageComponent {
     });
   }
 
+  protected voltar(): void {
+    this.location.back();
+  }
+
   protected cancelar(): void {
     this.limparFormulario();
-    this.router.navigate(['/pessoas']);
+    this.voltar();
+  }
+
+  protected irParaEdicao(): void {
+    this.router.navigate(['/pessoas', this.id(), 'editar']);
   }
 
   private limparFormulario(): void {
@@ -299,7 +335,10 @@ export class PessoaFormPageComponent {
 
   private carregarOpcoes(): void {
     this.comorbidadeService.listarTodas(false).subscribe({
-      next: (itens) => this.comorbidades.set(itens.map((i) => ({ id: i.id, nome: i.nome }))),
+      next: (itens) =>
+        this.comorbidades.set(
+          mesclarRelacionados(itens.map((i) => ({ id: i.id, nome: i.nome })), this.registro()?.comorbidades),
+        ),
       error: () => {
         this.pessoaService.listarComorbidades().subscribe({
           next: (itens) => this.comorbidades.set(itens),
@@ -308,12 +347,55 @@ export class PessoaFormPageComponent {
     });
 
     this.categoriaService.listarTodas(false).subscribe({
-      next: (itens) => this.categorias.set(itens.map((i) => ({ id: i.id, nome: i.nome }))),
+      next: (itens) =>
+        this.categorias.set(
+          mesclarRelacionados(itens.map((i) => ({ id: i.id, nome: i.nome })), this.registro()?.categorias),
+        ),
       error: () => {
         this.pessoaService.listarCategorias().subscribe({
           next: (itens) => this.categorias.set(itens),
         });
       },
+    });
+  }
+
+  private carregarDados(id: number, somenteLeitura: boolean): void {
+    this.carregando.set(true);
+    this.pessoaService.buscarPorId(id).subscribe({
+      next: (pessoa) => {
+        this.registro.set(pessoa);
+        this.comorbidades.update((itens) => mesclarRelacionados(itens, pessoa.comorbidades));
+        this.categorias.update((itens) => mesclarRelacionados(itens, pessoa.categorias));
+        const ehPessoaJuridica = pessoa.tipoPessoa === TipoPessoa.JURIDICA;
+        this.form.controls.ehPessoaJuridica.setValue(ehPessoaJuridica);
+        this.form.patchValue({
+          nome: pessoa.nome,
+          cpfCnpj: pessoa.cpfCnpj,
+          dataNascimento: formatarDataParaCampo(pessoa.dataNascimento),
+          sexo: pessoa.sexo?.codigo ?? null,
+          telefone: pessoa.telefone,
+          email: pessoa.email ?? '',
+          escolaridade: pessoa.escolaridade?.codigo ?? null,
+          profissao: pessoa.profissao ?? '',
+          rendaFamiliar: pessoa.rendaFamiliar?.codigo ?? null,
+          comorbidades: pessoa.comorbidades?.map(({ id: itemId }) => itemId) ?? [],
+          categorias: pessoa.categorias?.map(({ id: itemId }) => itemId) ?? [],
+          descricao: pessoa.descricao ?? '',
+          cep: pessoa.cep ?? '',
+          uf: typeof pessoa.uf === 'object' && pessoa.uf ? pessoa.uf.codigo : pessoa.uf ?? null,
+          cidade: pessoa.cidade ?? '',
+          bairro: pessoa.bairro ?? '',
+          logradouro: pessoa.logradouro ?? '',
+          complementoEndereco: pessoa.complementoEndereco ?? '',
+          quantidadeCoabitantes: pessoa.quantidadeCoabitantes ?? null,
+          ehBeneficiario: pessoa.ehBeneficiario ?? false,
+          ehDoador: pessoa.ehDoador ?? false,
+        });
+
+        if (somenteLeitura) this.form.disable({ emitEvent: false });
+      },
+      error: () => this.voltar(),
+      complete: () => this.carregando.set(false),
     });
   }
 
@@ -389,6 +471,23 @@ export class PessoaFormPageComponent {
 
 export function somenteDigitos(valor: string | null | undefined): string {
   return String(valor ?? '').replace(/\D/g, '');
+}
+
+function formatarDataParaCampo(valor?: string): string {
+  if (!valor) return '';
+  const partes = /^(\d{4})-(\d{2})-(\d{2})/.exec(valor);
+  return partes ? `${partes[3]}/${partes[2]}/${partes[1]}` : valor;
+}
+
+function mesclarRelacionados(
+  opcoes: ItemRelacionadoResumo[],
+  relacionados: ItemRelacionadoResumo[] = [],
+): ItemRelacionadoResumo[] {
+  const idsExistentes = new Set(opcoes.map(({ id }) => id));
+  return [
+    ...opcoes,
+    ...relacionados.filter(({ id }) => !idsExistentes.has(id)),
+  ];
 }
 
 export function cpfValido(control: AbstractControl): ValidationErrors | null {

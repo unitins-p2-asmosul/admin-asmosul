@@ -1,21 +1,54 @@
-<section class="pagina-formulario mx-auto max-w-4xl">
+<section
+  class="pagina-formulario"
+  [class.pagina-formulario__visualizacao]="visualizacao()"
+>
   <div class="mb-8">
-    <h1 class="text-[2rem] font-bold">
-      @if (ehPessoaJuridica()) {
-        Cadastro de Pessoa Jurídica
-      } @else {
-        Cadastro de Pessoa
-      }
-    </h1>
-    <p class="mt-2 text-base font-medium text-slate-500">
-      Preencha os dados abaixo para cadastrar
-      @if (ehPessoaJuridica()) {
-        uma nova pessoa jurídica
-      } @else {
-        uma nova pessoa
-      }
-      .
-    </p>
+    <div class="mb-4 flex items-center gap-3">
+      <button
+        mat-icon-button
+        type="button"
+        color="primary"
+        aria-label="Voltar"
+        (click)="voltar()"
+        class="shrink-0"
+      >
+        <mat-icon>arrow_back</mat-icon>
+      </button>
+
+      <div class="flex flex-wrap items-center gap-4">
+        <h1 class="text-[2rem] font-bold">
+          @if (visualizacao()) {
+            Detalhes da Pessoa
+          } @else if (modoEdicao()) {
+            Editar Pessoa
+          } @else if (ehPessoaJuridica()) {
+            Cadastro de Pessoa Jurídica
+          } @else {
+            Cadastro de Pessoa
+          }
+        </h1>
+        @if (visualizacao() && registro()?.ativo !== undefined) {
+          <span
+            class="pagina-formulario__status"
+            [class.pagina-formulario__status--ativo]="registro()?.ativo"
+            [class.pagina-formulario__status--inativo]="!registro()?.ativo"
+          >
+            {{ registro()?.ativo ? 'Ativo' : 'Inativo' }}
+          </span>
+        }
+      </div>
+    </div>
+
+    @if (!visualizacao()) {
+      <p class="mt-2 text-base font-medium text-slate-500">
+        @if (modoEdicao()) {
+          Altere os dados abaixo e salve para atualizar o cadastro.
+        } @else {
+          Preencha os dados abaixo para cadastrar
+          @if (ehPessoaJuridica()) { uma nova pessoa jurídica } @else { uma nova pessoa }.
+        }
+      </p>
+    }
   </div>
 
   <form
@@ -520,16 +553,34 @@
     <div
       class="mt-4 flex flex-col-reverse justify-center gap-3 border-t border-gray-100 pt-7 sm:flex-row sm:gap-10"
     >
-      <button mat-flat-button type="button" (click)="cancelar()" [disabled]="carregando()">
-        Cancelar
-      </button>
-      <button mat-flat-button color="primary" type="submit" [disabled]="carregando()">
-        @if (carregando()) {
-          Cadastrando...
-        } @else {
-          {{ ehPessoaJuridica() ? 'Cadastrar Pessoa Jurídica' : 'Cadastrar Pessoa' }}
-        }
-      </button>
+      @if (visualizacao()) {
+        <button mat-flat-button type="button" (click)="voltar()" [disabled]="carregando()">
+          Voltar
+        </button>
+        <button
+          mat-flat-button
+          type="button"
+          class="acao-primaria"
+          (click)="irParaEdicao()"
+          [disabled]="carregando()"
+        >
+          <mat-icon>edit</mat-icon>
+          Editar
+        </button>
+      } @else {
+        <button mat-flat-button type="button" (click)="cancelar()" [disabled]="carregando()">
+          Cancelar
+        </button>
+        <button mat-flat-button color="primary" type="submit" [disabled]="carregando()">
+          @if (carregando()) {
+            Salvando...
+          } @else if (modoEdicao()) {
+            Salvar Alterações
+          } @else {
+            {{ ehPessoaJuridica() ? 'Cadastrar Pessoa Jurídica' : 'Cadastrar Pessoa' }}
+          }
+        </button>
+      }
     </div>
   </form>
 </section>
