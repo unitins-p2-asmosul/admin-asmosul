@@ -6,6 +6,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -18,4 +20,11 @@ public interface ItemRepository extends JpaRepository<Item, Long>, JpaSpecificat
     Optional<Item> findByIdAndDataInativoIsNull(Long id);
 
     Page<Item> findByNomeContainingIgnoreCase(String nome, Pageable pageable);
+
+    @Query("""
+        SELECT COALESCE(SUM(m.quantidade), 0.0) 
+        FROM MovimentacaoEstoque m 
+        WHERE m.item.id = :itemId
+    """)
+    Double calcularEstoqueAtual(@Param("itemId") Long itemId);
 }
