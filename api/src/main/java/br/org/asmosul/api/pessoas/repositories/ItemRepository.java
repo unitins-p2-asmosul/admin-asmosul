@@ -1,6 +1,8 @@
 package br.org.asmosul.api.pessoas.repositories;
 
 import br.org.asmosul.api.pessoas.models.Item;
+
+import java.util.List;
 import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -20,6 +22,8 @@ public interface ItemRepository extends JpaRepository<Item, Long>, JpaSpecificat
     Optional<Item> findByIdAndDataInativoIsNull(Long id);
 
     Page<Item> findByNomeContainingIgnoreCase(String nome, Pageable pageable);
+
+    List<Item> findAllByDataInativoIsNull();
 
     @Query("SELECT 0.0")
     Double calcularEstoqueAtual(@Param("itemId") Long itemId);
