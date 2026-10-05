@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.net.URI;
+import java.util.List;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -25,9 +26,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.util.UriComponentsBuilder;
 
-@Tag(name = "Itens", description = "Endpoints para gerenciamento de itens e estoque")
+@Tag(name = "Itens de Doação", description = "Endpoints para gerenciamento de itens e estoque de doações")
 @RestController
-@RequestMapping("/itens")
+@RequestMapping("/doacoes/itens")
 public class ItemController {
 
     private final ItemService itemService;
@@ -43,23 +44,19 @@ public class ItemController {
             value = {
                 @ApiResponse(responseCode = "201", description = "Item cadastrado com sucesso"),
                 @ApiResponse(responseCode = "400", description = "Dados de entrada inválidos"),
-                @ApiResponse(
-                        responseCode = "404",
-                        description = "Categoria informada não encontrada"),
-                @ApiResponse(
-                        responseCode = "409",
-                        description = "Já existe um item cadastrado com esse nome")
+                @ApiResponse(responseCode = "404", description = "Categoria informada não encontrada"),
+                @ApiResponse(responseCode = "409", description = "Já existe um item cadastrado com esse nome")
             })
     @PostMapping
     public ResponseEntity<ItemDTO.Detalhe> cadastrar(
             @RequestBody @Valid ItemDTO.Requisicao requisicao, UriComponentsBuilder uriBuilder) {
         ItemDTO.Detalhe detalhe = itemService.cadastrar(requisicao);
-        URI uri = uriBuilder.path("/itens/{id}").buildAndExpand(detalhe.id()).toUri();
+        URI uri = uriBuilder.path("/doacoes/itens/{id}").buildAndExpand(detalhe.id()).toUri();
         return ResponseEntity.created(uri).body(detalhe);
     }
 
     @Operation(
-            summary = "Listar itens",
+            summary = "Listar itens paginados",
             description = "Retorna uma listagem paginada e filtrada de itens e seus saldos de estoque")
     @ApiResponses(
             value = {
@@ -70,8 +67,21 @@ public class ItemController {
             @ParameterObject ItemFiltroDTO filtro,
             @ParameterObject @PageableDefault(size = 10, sort = "nome") Pageable paginacao,
             @RequestParam(defaultValue = "false") boolean incluirInativos) {
-        RespostaPaginada<ItemDTO.Resumo> resposta =
-                itemService.listar(filtro, paginacao, incluirInativos);
+        RespostaPaginada<ItemDTO.Resumo> resposta = itemService.listar(filtro, paginacao, incluirInativos);
+        return ResponseEntity.ok(resposta);
+    }
+
+    @Operation(
+            summary = "Listar todos os itens",
+            description = "Retorna uma lista completa e sem paginação de todos os itens cadastrados")
+    @ApiResponses(
+            value = {
+                @ApiResponse(responseCode = "200", description = "Listagem completa retornada com sucesso")
+            })
+    @GetMapping("/todos")
+    public ResponseEntity<List<ItemDTO.Resumo>> listarTodos(
+            @RequestParam(defaultValue = "false") boolean incluirInativos) {
+        List<ItemDTO.Resumo> resposta = itemService.listarTodos(incluirInativos);
         return ResponseEntity.ok(resposta);
     }
 
@@ -96,12 +106,8 @@ public class ItemController {
             value = {
                 @ApiResponse(responseCode = "200", description = "Dados atualizados com sucesso"),
                 @ApiResponse(responseCode = "400", description = "Dados inválidos"),
-                @ApiResponse(
-                        responseCode = "404",
-                        description = "Item ou Categoria não encontrada"),
-                @ApiResponse(
-                        responseCode = "409",
-                        description = "Já existe outro item cadastrado com esse mesmo nome")
+                @ApiResponse(responseCode = "404", description = "Item ou Categoria não encontrada"),
+                @ApiResponse(responseCode = "409", description = "Já existe outro item cadastrado com esse mesmo nome")
             })
     @PutMapping("/{id}")
     public ResponseEntity<ItemDTO.Detalhe> atualizar(
@@ -116,9 +122,7 @@ public class ItemController {
     @ApiResponses(
             value = {
                 @ApiResponse(responseCode = "204", description = "Item desativado com sucesso"),
-                @ApiResponse(
-                        responseCode = "404",
-                        description = "Item não encontrado ou já inativo")
+                @ApiResponse(responseCode = "404", description = "Item não encontrado ou já inativo")
             })
     @PatchMapping("/{id}/desativar")
     public ResponseEntity<Void> desativar(@PathVariable Long id) {

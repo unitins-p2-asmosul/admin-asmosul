@@ -16,6 +16,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import br.org.asmosul.api.comum.config.BaseAPITest;
 import br.org.asmosul.api.comum.dtos.RespostaPaginada;
+import br.org.asmosul.api.comum.exceptions.ConflitoDadosException;
 import br.org.asmosul.api.comum.exceptions.EntidadeNaoEncontradaException;
 import br.org.asmosul.api.pessoas.dtos.CategoriaDTO;
 import br.org.asmosul.api.pessoas.dtos.ItemDTO;
@@ -35,7 +36,7 @@ import org.springframework.test.web.servlet.MockMvc;
 @DisplayName("Testes do ItemController")
 class ItemControllerTest extends BaseAPITest {
 
-    private static final String URL_BASE = "/itens";
+    private static final String URL_BASE = "/doacoes/itens";
 
     @Autowired private MockMvc mockMvc;
 
@@ -72,7 +73,7 @@ class ItemControllerTest extends BaseAPITest {
     }
 
     @Nested
-    @DisplayName("POST /itens - Cadastrar item")
+    @DisplayName("POST /doacoes/itens - Cadastrar item")
     class Cadastrar {
 
         @Test
@@ -90,7 +91,7 @@ class ItemControllerTest extends BaseAPITest {
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(objectMapper.writeValueAsString(requisicao)))
                     .andExpect(status().isCreated())
-                    .andExpect(header().string("Location", containsString("/itens/10")))
+                    .andExpect(header().string("Location", containsString("/doacoes/itens/10")))
                     .andExpect(jsonPath("$.id").value(10L))
                     .andExpect(jsonPath("$.nome").value("Feijão Carioca 1kg"));
         }
@@ -106,10 +107,27 @@ class ItemControllerTest extends BaseAPITest {
                                     .content(objectMapper.writeValueAsString(requisicao)))
                     .andExpect(status().isBadRequest());
         }
+
+        @Test
+        @DisplayName("Deve retornar 409 ao cadastrar item com nome já existente")
+        void cadastrarItem_comNomeDuplicado_retorna409() throws Exception {
+            var requisicao =
+                    new ItemDTO.Requisicao(
+                            "Feijão Carioca 1kg", 1L, 8.50, UnidadeMedida.KG, "Descrição");
+
+            when(itemService.cadastrar(any(ItemDTO.Requisicao.class)))
+                    .thenThrow(new ConflitoDadosException("Já existe um item cadastrado com esse nome"));
+
+            mockMvc.perform(
+                            post(URL_BASE)
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(objectMapper.writeValueAsString(requisicao)))
+                    .andExpect(status().isConflict());
+        }
     }
 
     @Nested
-    @DisplayName("PUT /itens/{id} - Atualizar item")
+    @DisplayName("PUT /doacoes/itens/{id} - Atualizar item")
     class Atualizar {
 
         @Test
@@ -146,10 +164,26 @@ class ItemControllerTest extends BaseAPITest {
                                     .content(objectMapper.writeValueAsString(atualizacao)))
                     .andExpect(status().isNotFound());
         }
+
+        @Test
+        @DisplayName("Deve retornar 409 ao atualizar item para um nome que já pertence a outro item")
+        void atualizarItem_comNomeDuplicado_retorna409() throws Exception {
+            var atualizacao =
+                    new ItemDTO.Atualizacao("Arroz Branco 5kg", 1L, 25.0, UnidadeMedida.KG, "Descrição");
+
+            when(itemService.atualizar(eq(1L), any(ItemDTO.Atualizacao.class)))
+                    .thenThrow(new ConflitoDadosException("Já existe outro item com esse mesmo nome"));
+
+            mockMvc.perform(
+                            put(URL_BASE + "/{id}", 1L)
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(objectMapper.writeValueAsString(atualizacao)))
+                    .andExpect(status().isConflict());
+        }
     }
 
     @Nested
-    @DisplayName("GET /itens/{id} - Buscar por id")
+    @DisplayName("GET /doacoes/itens/{id} - Buscar por id")
     class BuscarPorId {
 
         @Test
@@ -177,7 +211,7 @@ class ItemControllerTest extends BaseAPITest {
     }
 
     @Nested
-    @DisplayName("GET /itens - Listar e filtrar")
+    @DisplayName("GET /doacoes/itens - Listar e filtrar")
     class Listar {
 
         @Test
@@ -194,10 +228,24 @@ class ItemControllerTest extends BaseAPITest {
                     .andExpect(jsonPath("$.dados", hasSize(2)))
                     .andExpect(jsonPath("$.totalElementos").value(2));
         }
+
+        @Test
+        @DisplayName("Deve retornar lista completa de itens não paginada (GET /doacoes/itens/todos)")
+        void listarTodosItens_retorna200ELista() throws Exception {
+            var item1 = criarResumoExemplo(1L, "Leite Integral 1L");
+            var item2 = criarResumoExemplo(2L, "Açúcar 1kg");
+
+            when(itemService.listarTodos(eq(false))).thenReturn(List.of(item1, item2));
+
+            mockMvc.perform(get(URL_BASE + "/todos"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$", hasSize(2)))
+                    .andExpect(jsonPath("$[0].nome").value("Leite Integral 1L"));
+        }
     }
 
     @Nested
-    @DisplayName("PATCH /itens/{id} - Desativar e reativar")
+    @DisplayName("PATCH /doacoes/itens/{id} - Desativar e reativar")
     class DesativarEReativar {
 
         @Test

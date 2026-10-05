@@ -1,6 +1,8 @@
 package br.org.asmosul.api.pessoas.services;
 
 import br.org.asmosul.api.comum.dtos.RespostaPaginada;
+import br.org.asmosul.api.comum.exceptions.ConflitoDadosException;
+import br.org.asmosul.api.comum.exceptions.EntidadeNaoEncontradaException;
 import br.org.asmosul.api.pessoas.dtos.ItemDTO;
 import br.org.asmosul.api.pessoas.dtos.ItemFiltroDTO;
 import br.org.asmosul.api.pessoas.models.Categoria;
@@ -8,7 +10,8 @@ import br.org.asmosul.api.pessoas.models.Item;
 import br.org.asmosul.api.pessoas.repositories.CategoriaRepository;
 import br.org.asmosul.api.pessoas.repositories.ItemRepository;
 import br.org.asmosul.api.pessoas.repositories.ItemSpecification;
-import jakarta.persistence.EntityNotFoundException;
+import java.time.LocalDateTime;
+import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -28,8 +31,10 @@ public class ItemService {
 
     @Transactional
     public ItemDTO.Detalhe cadastrar(ItemDTO.Requisicao dto) {
+        validarUnicidadeNome(dto.nome(), null);
+
         Categoria categoria = categoriaRepository.findById(dto.categoriaId())
-                .orElseThrow(() -> new EntityNotFoundException("Categoria não encontrada"));
+                .orElseThrow(() -> new EntidadeNaoEncontradaException("Categoria não encontrada com ID: " + dto.categoriaId()));
 
         Item item = dto.paraEntidade(categoria);
         Item itemSalvo = itemRepository.save(item);
@@ -49,9 +54,20 @@ public class ItemService {
     }
 
     @Transactional(readOnly = true)
+    public List<ItemDTO.Resumo> listarTodos(boolean incluirInativos) {
+        List<Item> itens = incluirInativos 
+                ? itemRepository.findAll() 
+                : itemRepository.findAllByDataInativoIsNull();
+
+        return itens.stream()
+                .map(item -> ItemDTO.Resumo.deEntidade(item, calcularEstoque(item.getId())))
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
     public ItemDTO.Detalhe buscarPorId(Long id) {
         Item item = itemRepository.findByIdAndDataInativoIsNull(id)
-                .orElseThrow(() -> new EntityNotFoundException("Item não encontrado"));
+                .orElseThrow(() -> new EntidadeNaoEncontradaException("Item não encontrado ou inativo com ID: " + id));
 
         Double estoque = calcularEstoque(item.getId());
         return ItemDTO.Detalhe.deEntidade(item, estoque);
@@ -60,10 +76,12 @@ public class ItemService {
     @Transactional
     public ItemDTO.Detalhe atualizar(Long id, ItemDTO.Atualizacao dto) {
         Item item = itemRepository.findByIdAndDataInativoIsNull(id)
-                .orElseThrow(() -> new EntityNotFoundException("Item não encontrado"));
+                .orElseThrow(() -> new EntidadeNaoEncontradaException("Item não encontrado ou inativo com ID: " + id));
+
+        validarUnicidadeNome(dto.nome(), id);
 
         Categoria categoria = categoriaRepository.findById(dto.categoriaId())
-                .orElseThrow(() -> new EntityNotFoundException("Categoria não encontrada"));
+                .orElseThrow(() -> new EntidadeNaoEncontradaException("Categoria não encontrada com ID: " + dto.categoriaId()));
 
         item.setNome(dto.nome());
         item.setCategoria(categoria);
@@ -79,22 +97,33 @@ public class ItemService {
     @Transactional
     public void inativar(Long id) {
         Item item = itemRepository.findByIdAndDataInativoIsNull(id)
-                .orElseThrow(() -> new EntityNotFoundException("Item não encontrado"));
+                .orElseThrow(() -> new EntidadeNaoEncontradaException("Item não encontrado ou já inativo com ID: " + id));
 
-        item.setDataInativo(java.time.LocalDateTime.now());
+        item.setDataInativo(LocalDateTime.now());
         itemRepository.save(item);
     }
 
     @Transactional
     public void reativar(Long id) {
         Item item = itemRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Item não encontrado"));
+                .orElseThrow(() -> new EntidadeNaoEncontradaException("Item não encontrado com ID: " + id));
 
         item.setDataInativo(null);
         itemRepository.save(item);
     }
 
     private Double calcularEstoque(Long itemId) {
-        return itemRepository.calcularEstoqueAtual(itemId);
+        Double estoque = itemRepository.calcularEstoqueAtual(itemId);
+        return estoque != null ? estoque : 0.0;
+    }
+
+    private void validarUnicidadeNome(String nome, Long id) {
+        boolean existe = (id == null)
+                ? itemRepository.existsByNomeIgnoreCase(nome)
+                : itemRepository.existsByNomeIgnoreCaseAndIdNot(nome, id);
+
+        if (existe) {
+            throw new ConflitoDadosException("Já existe um item cadastrado com o nome: " + nome);
+        }
     }
 }
