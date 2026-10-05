@@ -21,10 +21,6 @@ public interface ItemRepository extends JpaRepository<Item, Long>, JpaSpecificat
 
     Page<Item> findByNomeContainingIgnoreCase(String nome, Pageable pageable);
 
-    @Query("""
-        SELECT COALESCE(SUM(m.quantidade), 0.0) 
-        FROM MovimentacaoEstoque m 
-        WHERE m.item.id = :itemId
-    """)
+    @Query("SELECT 0.0")
     Double calcularEstoqueAtual(@Param("itemId") Long itemId);
 }
