@@ -157,7 +157,7 @@ describe('AuthService', () => {
         concluido = true;
       });
 
-    const req = httpTesting.expectOne('contas/minha-senha');
+    const req = httpTesting.expectOne('acessos/contas/minha-senha');
     expect(req.request.method).toBe('PATCH');
     expect(req.request.body).toEqual({ senhaAtual: 'Senha@123', novaSenha: 'NovaSenha@456' });
     req.flush(null, { status: 204, statusText: 'No Content' });
