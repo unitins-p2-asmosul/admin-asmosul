@@ -1,5 +1,5 @@
 import { inject, Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { BehaviorSubject, catchError, map, Observable, of, switchMap, tap } from 'rxjs';
 import { jwtDecode } from 'jwt-decode';
 import {
@@ -24,19 +24,26 @@ export class AuthService {
   readonly usuarioAtual$ = this.usuarioAtualSubject.asObservable();
 
   constructor() {
-    this.restaurarSessao();
+    const token = this.obterToken();
+    if (!token) return;
+
+    const usuario = this.extrairUsuarioDoToken(token);
+    if (usuario && !this.tokenExpirado(usuario.expiracao)) {
+      this.usuarioAtualSubject.next(usuario);
+    } else {
+      this.removerToken();
+    }
   }
 
   login(credenciais: CredenciaisLogin): Observable<LoginResposta> {
     return this.http.post<LoginResposta>(this.endpoint, credenciais).pipe(
       tap((resposta) => {
         this.salvarToken(resposta.token);
+        this.usuarioAtualSubject.next(this.extrairUsuarioDoToken(resposta.token));
       }),
       switchMap((resposta) =>
-        this.obterMinhaConta().pipe(
-          map(() => resposta)
-        )
-      )
+        this.obterMinhaConta().pipe(map(() => resposta)),
+      ),
     );
   }
 
@@ -135,21 +142,16 @@ export class AuthService {
     }
   }
 
-  private restaurarSessao(): void {
-    const token = this.obterToken();
-    if (!token) {
-      return;
-    }
+  restaurarSessao(): void {
+    if (!this.obterUsuarioAtual()) return;
 
-    const usuario = this.extrairUsuarioDoToken(token);
-    if (usuario && !this.tokenExpirado(usuario.expiracao)) {
-      this.usuarioAtualSubject.next(usuario);
-      this.obterMinhaConta().subscribe({
-        error: () => this.logout()
-      });
-    } else {
-      this.removerToken();
-    }
+    this.obterMinhaConta().subscribe({
+      error: (erro: HttpErrorResponse) => {
+        if (erro.status === 401) {
+          this.logout();
+        }
+      },
+    });
   }
 
   private salvarToken(token: string): void {
