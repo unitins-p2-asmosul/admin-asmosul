@@ -304,6 +304,28 @@ class EnderecoDoacaoControllerTest extends BaseAPITest {
                                     .content(objectMapper.writeValueAsString(requisicao)))
                     .andExpect(status().isConflict());
         }
+
+        @Test
+        @DisplayName("Deve retornar status 404 ao tentar atualizar endereço inexistente")
+        void atualizar_comIdInexistente_retornaStatus404() throws Exception {
+            var requisicao =
+                    new EnderecoDoacaoDTO.Atualizacao(
+                            "Depósito Teste",
+                            "77000-000",
+                            Uf.TO,
+                            "Palmas",
+                            "Centro",
+                            "Av. JK",
+                            "100",
+                            null,
+                            null);
+
+            mockMvc.perform(
+                            put("/doacoes/enderecos/{id}", 99999L)
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(objectMapper.writeValueAsString(requisicao)))
+                    .andExpect(status().isNotFound());
+        }
     }
 
     @Nested
