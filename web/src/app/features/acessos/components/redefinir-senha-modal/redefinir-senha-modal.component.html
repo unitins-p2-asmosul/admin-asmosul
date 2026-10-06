@@ -1,0 +1,212 @@
+<div
+  class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 overflow-y-auto"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="titulo-redefinir-senha"
+>
+  <div
+    class="relative w-full max-w-md rounded-2xl bg-white p-6 sm:p-8 shadow-2xl border border-asmosul-borda"
+  >
+    <!-- Cabeçalho -->
+    <div class="mb-6 text-center">
+      <div
+        class="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50 text-asmosul-navy"
+      >
+        <span class="material-icons text-3xl" aria-hidden="true">lock_reset</span>
+      </div>
+      <h2 id="titulo-redefinir-senha" class="text-xl sm:text-2xl font-bold text-asmosul-navy">
+        Redefinir Senha
+      </h2>
+      <p class="mt-2 text-sm text-asmosul-texto-secundario leading-relaxed">
+        Por motivos de segurança, é necessário definir uma nova senha permanente para concluir seu
+        primeiro acesso.
+      </p>
+    </div>
+
+    <!-- Mensagem de Erro -->
+    @if (mensagemErro()) {
+      <div
+        class="mb-5 flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700"
+        role="alert"
+      >
+        <span class="material-icons text-lg shrink-0 text-red-600" aria-hidden="true"
+          >error_outline</span
+        >
+        <span class="flex-1">{{ mensagemErro() }}</span>
+      </div>
+    }
+
+    <!-- Formulário -->
+    <form [formGroup]="form" (ngSubmit)="salvarNovaSenha()" class="space-y-4">
+      <!-- Senha Atual -->
+      <div>
+        <label
+          for="senhaAtual"
+          class="block text-xs font-semibold text-asmosul-texto mb-1.5 uppercase tracking-wider"
+        >
+          Senha Atual (temporária) <span class="text-red-500">*</span>
+        </label>
+        <div class="relative">
+          <input
+            id="senhaAtual"
+            [type]="mostrarSenhaAtual() ? 'text' : 'password'"
+            autocomplete="current-password"
+            formControlName="senhaAtual"
+            placeholder="Digite a senha atual"
+            class="w-full rounded-xl border border-asmosul-borda bg-white px-3.5 py-2.5 pr-11 text-sm text-asmosul-texto placeholder-gray-400 transition focus:border-asmosul-navy focus:outline-none focus:ring-2 focus:ring-asmosul-navy/20"
+            [class.border-red-400]="
+              form.controls.senhaAtual.invalid && form.controls.senhaAtual.touched
+            "
+          />
+          <button
+            type="button"
+            (click)="alternarVisibilidadeSenhaAtual()"
+            class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-asmosul-navy transition focus:outline-none"
+            [attr.aria-label]="mostrarSenhaAtual() ? 'Ocultar senha atual' : 'Mostrar senha atual'"
+          >
+            <span class="material-icons text-xl" aria-hidden="true">
+              {{ mostrarSenhaAtual() ? 'visibility_off' : 'visibility' }}
+            </span>
+          </button>
+        </div>
+        @if (form.controls.senhaAtual.hasError('required') && form.controls.senhaAtual.touched) {
+          <p class="mt-1 text-xs text-red-600 flex items-center gap-1">
+            <span class="material-icons text-xs" aria-hidden="true">error</span>
+            Informe a senha atual recebida.
+          </p>
+        }
+      </div>
+
+      <!-- Nova Senha -->
+      <div>
+        <label
+          for="novaSenha"
+          class="block text-xs font-semibold text-asmosul-texto mb-1.5 uppercase tracking-wider"
+        >
+          Nova Senha <span class="text-red-500">*</span>
+        </label>
+        <div class="relative">
+          <input
+            id="novaSenha"
+            [type]="mostrarNovaSenha() ? 'text' : 'password'"
+            autocomplete="new-password"
+            formControlName="novaSenha"
+            placeholder="Digite sua nova senha"
+            class="w-full rounded-xl border border-asmosul-borda bg-white px-3.5 py-2.5 pr-11 text-sm text-asmosul-texto placeholder-gray-400 transition focus:border-asmosul-navy focus:outline-none focus:ring-2 focus:ring-asmosul-navy/20"
+            [class.border-red-400]="
+              form.controls.novaSenha.invalid && form.controls.novaSenha.touched
+            "
+          />
+          <button
+            type="button"
+            (click)="alternarVisibilidadeNovaSenha()"
+            class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-asmosul-navy transition focus:outline-none"
+            [attr.aria-label]="mostrarNovaSenha() ? 'Ocultar nova senha' : 'Mostrar nova senha'"
+          >
+            <span class="material-icons text-xl" aria-hidden="true">
+              {{ mostrarNovaSenha() ? 'visibility_off' : 'visibility' }}
+            </span>
+          </button>
+        </div>
+        @if (form.controls.novaSenha.hasError('required') && form.controls.novaSenha.touched) {
+          <p class="mt-1 text-xs text-red-600 flex items-center gap-1">
+            <span class="material-icons text-xs" aria-hidden="true">error</span>
+            Informe a nova senha.
+          </p>
+        } @else if (
+          form.controls.novaSenha.hasError('maxlength') && form.controls.novaSenha.touched
+        ) {
+          <p class="mt-1 text-xs text-red-600 flex items-center gap-1">
+            <span class="material-icons text-xs" aria-hidden="true">error</span>
+            A senha deve conter no máximo 72 caracteres.
+          </p>
+        }
+      </div>
+
+      <!-- Confirmar Nova Senha -->
+      <div>
+        <label
+          for="confirmarNovaSenha"
+          class="block text-xs font-semibold text-asmosul-texto mb-1.5 uppercase tracking-wider"
+        >
+          Confirmar Nova Senha <span class="text-red-500">*</span>
+        </label>
+        <div class="relative">
+          <input
+            id="confirmarNovaSenha"
+            [type]="mostrarConfirmarNovaSenha() ? 'text' : 'password'"
+            autocomplete="new-password"
+            formControlName="confirmarNovaSenha"
+            placeholder="Confirme sua nova senha"
+            class="w-full rounded-xl border border-asmosul-borda bg-white px-3.5 py-2.5 pr-11 text-sm text-asmosul-texto placeholder-gray-400 transition focus:border-asmosul-navy focus:outline-none focus:ring-2 focus:ring-asmosul-navy/20"
+            [class.border-red-400]="
+              (form.controls.confirmarNovaSenha.invalid || form.hasError('senhasDiferentes')) &&
+              form.controls.confirmarNovaSenha.touched
+            "
+          />
+          <button
+            type="button"
+            (click)="alternarVisibilidadeConfirmarNovaSenha()"
+            class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-asmosul-navy transition focus:outline-none"
+            [attr.aria-label]="
+              mostrarConfirmarNovaSenha()
+                ? 'Ocultar confirmação de senha'
+                : 'Mostrar confirmação de senha'
+            "
+          >
+            <span class="material-icons text-xl" aria-hidden="true">
+              {{ mostrarConfirmarNovaSenha() ? 'visibility_off' : 'visibility' }}
+            </span>
+          </button>
+        </div>
+        @if (
+          form.controls.confirmarNovaSenha.hasError('required') &&
+          form.controls.confirmarNovaSenha.touched
+        ) {
+          <p class="mt-1 text-xs text-red-600 flex items-center gap-1">
+            <span class="material-icons text-xs" aria-hidden="true">error</span>
+            Confirme a nova senha.
+          </p>
+        } @else if (form.hasError('senhasDiferentes') && form.controls.confirmarNovaSenha.touched) {
+          <p class="mt-1 text-xs text-red-600 flex items-center gap-1">
+            <span class="material-icons text-xs" aria-hidden="true">error</span>
+            A confirmação não coincide com a nova senha.
+          </p>
+        }
+      </div>
+
+      <!-- Botão de Submissão -->
+      <div class="pt-2">
+        <button
+          type="submit"
+          [disabled]="form.invalid || enviando()"
+          class="flex w-full items-center justify-center gap-2 rounded-xl bg-asmosul-navy px-5 py-3 text-sm font-semibold text-white shadow-md transition hover:bg-[#082d47] focus:outline-none focus:ring-2 focus:ring-asmosul-navy focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          @if (enviando()) {
+            <svg
+              class="h-4 w-4 animate-spin text-white"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <circle
+                class="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                stroke-width="4"
+              ></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+            </svg>
+            <span>Salvando nova senha...</span>
+          } @else {
+            <span class="material-icons text-lg" aria-hidden="true">check</span>
+            <span>Confirmar nova senha</span>
+          }
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

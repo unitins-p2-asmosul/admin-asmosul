@@ -1,0 +1,160 @@
+<div
+  class="fixed inset-0 z-40 flex min-h-screen items-center justify-center bg-[#f5f7fa] p-4 sm:p-6 overflow-y-auto"
+>
+  <div class="w-full max-w-md">
+    <!-- Card Principal de Login -->
+    <div class="rounded-3xl bg-white p-8 sm:p-10 shadow-xl border border-asmosul-borda">
+      <!-- Identificação do Sistema Asmosul -->
+      <div class="mb-8 text-center">
+        <div
+          class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-asmosul-navy text-white shadow-md"
+        >
+          <span class="material-icons text-3xl" aria-hidden="true">admin_panel_settings</span>
+        </div>
+        <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-asmosul-navy">
+          ASMOSUL
+        </h1>
+        <p class="mt-1.5 text-sm font-medium text-asmosul-texto-secundario">
+          Painel de Gestão e Administração
+        </p>
+      </div>
+
+      <!-- Alerta de Erro -->
+      @if (mensagemErro()) {
+        <div
+          class="mb-6 flex items-start gap-3 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700"
+          role="alert"
+        >
+          <span class="material-icons text-xl shrink-0 text-red-600" aria-hidden="true"
+            >error_outline</span
+          >
+          <span class="flex-1 leading-snug">{{ mensagemErro() }}</span>
+        </div>
+      }
+
+      <!-- Formulário de Login -->
+      <form [formGroup]="form" (ngSubmit)="entrar()" class="space-y-5">
+        <!-- Nome de Usuário -->
+        <div>
+          <label
+            for="nomeUsuario"
+            class="block text-xs font-bold uppercase tracking-wider text-asmosul-texto mb-1.5"
+          >
+            Nome de Usuário <span class="text-red-500">*</span>
+          </label>
+          <div class="relative">
+            <span
+              class="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-gray-400"
+            >
+              <span class="material-icons text-xl" aria-hidden="true">person</span>
+            </span>
+            <input
+              id="nomeUsuario"
+              type="text"
+              autocomplete="username"
+              formControlName="nomeUsuario"
+              placeholder="Digite seu usuário"
+              class="w-full rounded-xl border border-asmosul-borda bg-white pl-11 pr-4 py-3 text-sm text-asmosul-texto placeholder-gray-400 transition focus:border-asmosul-navy focus:outline-none focus:ring-2 focus:ring-asmosul-navy/20"
+              [class.border-red-400]="
+                form.controls.nomeUsuario.invalid && form.controls.nomeUsuario.touched
+              "
+            />
+          </div>
+          @if (
+            form.controls.nomeUsuario.hasError('required') && form.controls.nomeUsuario.touched
+          ) {
+            <p class="mt-1 text-xs text-red-600 flex items-center gap-1">
+              <span class="material-icons text-xs" aria-hidden="true">error</span>
+              Informe o nome de usuário.
+            </p>
+          }
+        </div>
+
+        <!-- Senha -->
+        <div>
+          <label
+            for="senha"
+            class="block text-xs font-bold uppercase tracking-wider text-asmosul-texto mb-1.5"
+          >
+            Senha <span class="text-red-500">*</span>
+          </label>
+          <div class="relative">
+            <span
+              class="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-gray-400"
+            >
+              <span class="material-icons text-xl" aria-hidden="true">lock</span>
+            </span>
+            <input
+              id="senha"
+              [type]="mostrarSenha() ? 'text' : 'password'"
+              autocomplete="current-password"
+              formControlName="senha"
+              placeholder="Digite sua senha"
+              class="w-full rounded-xl border border-asmosul-borda bg-white pl-11 pr-11 py-3 text-sm text-asmosul-texto placeholder-gray-400 transition focus:border-asmosul-navy focus:outline-none focus:ring-2 focus:ring-asmosul-navy/20"
+              [class.border-red-400]="form.controls.senha.invalid && form.controls.senha.touched"
+            />
+            <button
+              type="button"
+              (click)="alternarVisibilidadeSenha()"
+              class="absolute inset-y-0 right-0 flex items-center pr-3.5 text-gray-400 hover:text-asmosul-navy transition focus:outline-none"
+              [attr.aria-label]="mostrarSenha() ? 'Ocultar senha' : 'Exibir senha'"
+            >
+              <span class="material-icons text-xl" aria-hidden="true">
+                {{ mostrarSenha() ? 'visibility_off' : 'visibility' }}
+              </span>
+            </button>
+          </div>
+          @if (form.controls.senha.hasError('required') && form.controls.senha.touched) {
+            <p class="mt-1 text-xs text-red-600 flex items-center gap-1">
+              <span class="material-icons text-xs" aria-hidden="true">error</span>
+              Informe a senha.
+            </p>
+          }
+        </div>
+
+        <!-- Botão Entrar -->
+        <div class="pt-2">
+          <button
+            type="submit"
+            [disabled]="form.invalid || carregando()"
+            class="flex w-full items-center justify-center gap-2 rounded-xl bg-asmosul-navy px-5 py-3.5 text-sm font-bold text-white shadow-md transition hover:bg-[#082d47] focus:outline-none focus:ring-2 focus:ring-asmosul-navy focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            @if (carregando()) {
+              <svg
+                class="h-4 w-4 animate-spin text-white"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+              >
+                <circle
+                  class="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  stroke-width="4"
+                ></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+              </svg>
+              <span>Entrando...</span>
+            } @else {
+              <span class="material-icons text-lg" aria-hidden="true">login</span>
+              <span>Entrar</span>
+            }
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Rodapé Sutil -->
+    <div class="mt-6 text-center text-xs text-gray-400">
+      &copy; Asmosul — Associação dos Moradores do Sul
+    </div>
+  </div>
+
+  <!-- Modal Obrigatório de Redefinição de Senha para Primeiro Acesso -->
+  @if (exibirModalRedefinir()) {
+    <app-redefinir-senha-modal (sucesso)="aoConcluirRedefinicao()" />
+  }
+</div>

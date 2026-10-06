@@ -1,11 +1,12 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject, Observable, tap } from 'rxjs';
+import { BehaviorSubject, catchError, map, Observable, of, tap } from 'rxjs';
 import { jwtDecode } from 'jwt-decode';
 import {
   CredenciaisLogin,
   LoginResposta,
   Perfil,
+  RedefinirMinhaSenhaRequisicao,
   TokenJwtPayload,
   UsuarioAutenticado,
 } from '../models/auth.model';
@@ -30,6 +31,9 @@ export class AuthService {
       tap((resposta) => {
         this.salvarToken(resposta.token);
         const usuario = this.extrairUsuarioDoToken(resposta.token);
+        if (usuario && resposta.redefinirSenha !== undefined) {
+          usuario.redefinirSenha = resposta.redefinirSenha;
+        }
         this.usuarioAtualSubject.next(usuario);
       }),
     );
@@ -80,6 +84,43 @@ export class AuthService {
     return usuario.perfis.includes(perfil);
   }
 
+  consultarRedefinirSenha(): Observable<boolean> {
+    const usuario = this.obterUsuarioAtual();
+    if (usuario?.redefinirSenha !== undefined) {
+      return of(usuario.redefinirSenha);
+    }
+    if (!usuario?.id) {
+      return of(false);
+    }
+
+    return this.http.get<{ redefinirSenha?: boolean }>(`contas/${usuario.id}`).pipe(
+      map((conta) => {
+        const flag = !!conta.redefinirSenha;
+        this.atualizarStatusRedefinirSenha(flag);
+        return flag;
+      }),
+      catchError(() => of(false)),
+    );
+  }
+
+  alterarMinhaSenha(dados: RedefinirMinhaSenhaRequisicao): Observable<void> {
+    return this.http.patch<void>('contas/minha-senha', dados).pipe(
+      tap(() => {
+        this.atualizarStatusRedefinirSenha(false);
+      }),
+    );
+  }
+
+  atualizarStatusRedefinirSenha(redefinirSenha: boolean): void {
+    const usuario = this.obterUsuarioAtual();
+    if (usuario) {
+      this.usuarioAtualSubject.next({
+        ...usuario,
+        redefinirSenha,
+      });
+    }
+  }
+
   private restaurarSessao(): void {
     const token = this.obterToken();
     if (!token) {
@@ -122,6 +163,7 @@ export class AuthService {
         nomeUsuario: payload.sub,
         perfis: payload.perfis ?? [],
         expiracao: payload.exp,
+        redefinirSenha: payload.redefinirSenha,
       };
     } catch {
       return null;

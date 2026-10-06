@@ -113,4 +113,56 @@ describe('AuthService', () => {
     expect(service.obterUsuarioAtual()).toBeNull();
     expect(localStorage.getItem('@asmosul:token')).toBeNull();
   });
+
+  it('deve consultar flag redefinirSenha no endpoint de contas quando não estiver no usuário', () => {
+    localStorage.setItem('@asmosul:token', TOKEN_VALIDO);
+    service['restaurarSessao']();
+
+    let resultado: boolean | undefined;
+    service.consultarRedefinirSenha().subscribe((val) => {
+      resultado = val;
+    });
+
+    const req = httpTesting.expectOne('contas/10');
+    expect(req.request.method).toBe('GET');
+    req.flush({ id: 10, redefinirSenha: true });
+
+    expect(resultado).toBe(true);
+    expect(service.obterUsuarioAtual()?.redefinirSenha).toBe(true);
+  });
+
+  it('deve retornar a flag redefinirSenha diretamente quando já conhecida no usuário', () => {
+    localStorage.setItem('@asmosul:token', TOKEN_VALIDO);
+    service['restaurarSessao']();
+    service.atualizarStatusRedefinirSenha(false);
+
+    let resultado: boolean | undefined;
+    service.consultarRedefinirSenha().subscribe((val) => {
+      resultado = val;
+    });
+
+    httpTesting.expectNone('contas/10');
+    expect(resultado).toBe(false);
+  });
+
+  it('deve executar PATCH contas/minha-senha e atualizar status local para false', () => {
+    localStorage.setItem('@asmosul:token', TOKEN_VALIDO);
+    service['restaurarSessao']();
+    service.atualizarStatusRedefinirSenha(true);
+
+    let concluido = false;
+    service
+      .alterarMinhaSenha({ senhaAtual: 'Senha@123', novaSenha: 'NovaSenha@456' })
+      .subscribe(() => {
+        concluido = true;
+      });
+
+    const req = httpTesting.expectOne('contas/minha-senha');
+    expect(req.request.method).toBe('PATCH');
+    expect(req.request.body).toEqual({ senhaAtual: 'Senha@123', novaSenha: 'NovaSenha@456' });
+    req.flush(null, { status: 204, statusText: 'No Content' });
+
+    expect(concluido).toBe(true);
+    expect(service.obterUsuarioAtual()?.redefinirSenha).toBe(false);
+  });
 });
