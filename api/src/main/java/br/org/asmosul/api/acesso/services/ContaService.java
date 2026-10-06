@@ -196,6 +196,19 @@ public class ContaService {
         return List.of(Perfil.values());
     }
 
+    @Transactional(readOnly = true)
+    public ContaDTO.Detalhe buscarPorNomeUsuario(String nomeUsuario) {
+        Conta conta =
+            contaRepository
+                .findByNomeUsuarioAndDataInativoIsNull(nomeUsuario)
+                .orElseThrow(
+                    () ->
+                        new EntidadeNaoEncontradaException(
+                            "Conta ativa não encontrada para o usuário autenticado."));
+
+        return ContaDTO.Detalhe.deEntidade(conta);
+    }
+
     private Conta buscarContaAtiva(Long id) {
         return contaRepository
                 .findByIdAndDataInativoIsNull(id)

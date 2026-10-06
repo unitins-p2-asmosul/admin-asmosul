@@ -160,6 +160,22 @@ public class ContaController {
     }
 
     @Operation(
+        summary = "Obter dados da própria conta",
+        description = "Retorna os detalhes da conta do usuário autenticado no token")
+    @ApiResponses(
+        value = {
+            @ApiResponse(responseCode = "200", description = "Dados da conta retornados com sucesso"),
+            @ApiResponse(responseCode = "401", description = "Usuário não autenticado"),
+            @ApiResponse(responseCode = "404", description = "Conta não encontrada ou inativa")
+        })
+
+    @GetMapping("/eu")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ContaDTO.Detalhe> obterMinhaConta(Authentication autenticacao) {
+        return ResponseEntity.ok(contaService.buscarPorNomeUsuario(autenticacao.getName()));
+    }
+
+    @Operation(
             summary = "Alterar a própria senha",
             description =
                     "O usuário autenticado informa a senha atual e define a nova senha. A conta"
