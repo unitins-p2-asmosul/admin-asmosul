@@ -29,6 +29,12 @@ export const erroInterceptorFn: HttpInterceptorFn = (req, next) => {
           }
           break;
 
+        case 401:
+          if (!req.url.includes('auth/login')) {
+            notificacao.alerta('Sua sessão expirou. Faça login novamente.');
+          }
+          break;
+
         case 403:
           notificacao.erro('Você não tem permissão para realizar esta operação.');
           break;
