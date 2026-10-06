@@ -22,6 +22,7 @@ export interface LoginResposta {
   expiracao: string;
   nomeUsuario: string;
   perfis: PerfilResposta[] | Perfil[] | string[];
+  redefinirSenha?: boolean;
 }
 
 export interface UsuarioAutenticado {
@@ -29,6 +30,7 @@ export interface UsuarioAutenticado {
   nomeUsuario: string;
   perfis: Perfil[];
   expiracao: number;
+  redefinirSenha?: boolean;
 }
 
 export interface TokenJwtPayload {
@@ -38,4 +40,10 @@ export interface TokenJwtPayload {
   exp: number;
   iss?: string;
   iat?: number;
+  redefinirSenha?: boolean;
+}
+
+export interface RedefinirMinhaSenhaRequisicao {
+  senhaAtual: string;
+  novaSenha: string;
 }

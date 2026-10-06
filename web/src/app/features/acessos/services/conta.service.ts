@@ -68,6 +68,10 @@ export class ContaService {
     return this.http.patch<void>(`${this.endpoint}/${id}/redefinir-senha`, requisicao);
   }
 
+  alterarMinhaSenha(dados: { senhaAtual: string; novaSenha: string }): Observable<void> {
+    return this.http.patch<void>(`${this.endpoint}/minha-senha`, dados);
+  }
+
   desativar(id: number): Observable<void> {
     return this.http.patch<void>(`${this.endpoint}/${id}/desativar`, null);
   }
