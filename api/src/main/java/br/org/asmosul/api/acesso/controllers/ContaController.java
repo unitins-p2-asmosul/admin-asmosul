@@ -30,7 +30,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 @Tag(name = "Contas", description = "Endpoints para gerenciamento de contas de acesso e perfis")
 @RestController
-@RequestMapping("/contas")
+@RequestMapping("/acessos/contas")
 public class ContaController {
 
     private final ContaService contaService;
@@ -157,6 +157,22 @@ public class ContaController {
             @PathVariable Long id, @RequestBody @Valid ContaDTO.RedefinirSenhaAdmin requisicao) {
         contaService.redefinirSenhaAdmin(id, requisicao);
         return ResponseEntity.noContent().build();
+    }
+
+    @Operation(
+        summary = "Obter dados da própria conta",
+        description = "Retorna os detalhes da conta do usuário autenticado no token")
+    @ApiResponses(
+        value = {
+            @ApiResponse(responseCode = "200", description = "Dados da conta retornados com sucesso"),
+            @ApiResponse(responseCode = "401", description = "Usuário não autenticado"),
+            @ApiResponse(responseCode = "404", description = "Conta não encontrada ou inativa")
+        })
+
+    @GetMapping("/eu")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ContaDTO.Detalhe> obterMinhaConta(Authentication autenticacao) {
+        return ResponseEntity.ok(contaService.buscarPorNomeUsuario(autenticacao.getName()));
     }
 
     @Operation(

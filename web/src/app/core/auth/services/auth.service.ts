@@ -1,6 +1,6 @@
 import { inject, Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject, catchError, map, Observable, of, tap } from 'rxjs';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { BehaviorSubject, catchError, map, Observable, of, switchMap, tap } from 'rxjs';
 import { jwtDecode } from 'jwt-decode';
 import {
   CredenciaisLogin,
@@ -10,6 +10,7 @@ import {
   TokenJwtPayload,
   UsuarioAutenticado,
 } from '../models/auth.model';
+import { ContaDetalhe } from "@features/acessos/models/conta.model";
 
 @Injectable({
   providedIn: 'root',
@@ -23,19 +24,26 @@ export class AuthService {
   readonly usuarioAtual$ = this.usuarioAtualSubject.asObservable();
 
   constructor() {
-    this.restaurarSessao();
+    const token = this.obterToken();
+    if (!token) return;
+
+    const usuario = this.extrairUsuarioDoToken(token);
+    if (usuario && !this.tokenExpirado(usuario.expiracao)) {
+      this.usuarioAtualSubject.next(usuario);
+    } else {
+      this.removerToken();
+    }
   }
 
   login(credenciais: CredenciaisLogin): Observable<LoginResposta> {
     return this.http.post<LoginResposta>(this.endpoint, credenciais).pipe(
       tap((resposta) => {
         this.salvarToken(resposta.token);
-        const usuario = this.extrairUsuarioDoToken(resposta.token);
-        if (usuario && resposta.redefinirSenha !== undefined) {
-          usuario.redefinirSenha = resposta.redefinirSenha;
-        }
-        this.usuarioAtualSubject.next(usuario);
+        this.usuarioAtualSubject.next(this.extrairUsuarioDoToken(resposta.token));
       }),
+      switchMap((resposta) =>
+        this.obterMinhaConta().pipe(map(() => resposta)),
+      ),
     );
   }
 
@@ -89,11 +97,8 @@ export class AuthService {
     if (usuario?.redefinirSenha !== undefined) {
       return of(usuario.redefinirSenha);
     }
-    if (!usuario?.id) {
-      return of(false);
-    }
 
-    return this.http.get<{ redefinirSenha?: boolean }>(`contas/${usuario.id}`).pipe(
+    return this.http.get<{ redefinirSenha?: boolean }>('acessos/contas/eu').pipe(
       map((conta) => {
         const flag = !!conta.redefinirSenha;
         this.atualizarStatusRedefinirSenha(flag);
@@ -104,10 +109,26 @@ export class AuthService {
   }
 
   alterarMinhaSenha(dados: RedefinirMinhaSenhaRequisicao): Observable<void> {
-    return this.http.patch<void>('contas/minha-senha', dados).pipe(
+    return this.http.patch<void>('acessos/contas/minha-senha', dados).pipe(
       tap(() => {
         this.atualizarStatusRedefinirSenha(false);
       }),
+    );
+  }
+
+  obterMinhaConta(): Observable<ContaDetalhe> {
+    return this.http.get<ContaDetalhe>('acessos/contas/eu').pipe(
+      tap((conta) => {
+        const usuarioAtual = this.obterUsuarioAtual();
+        if (usuarioAtual) {
+          this.usuarioAtualSubject.next({
+            ...usuarioAtual,
+            id: conta.id,
+            redefinirSenha: conta.redefinirSenha,
+            perfis: conta.perfis?.map(p => (typeof p === 'string' ? p : p.codigo) as Perfil) ?? usuarioAtual.perfis,
+          });
+        }
+      })
     );
   }
 
@@ -121,18 +142,16 @@ export class AuthService {
     }
   }
 
-  private restaurarSessao(): void {
-    const token = this.obterToken();
-    if (!token) {
-      return;
-    }
+  restaurarSessao(): void {
+    if (!this.obterUsuarioAtual()) return;
 
-    const usuario = this.extrairUsuarioDoToken(token);
-    if (usuario && !this.tokenExpirado(usuario.expiracao)) {
-      this.usuarioAtualSubject.next(usuario);
-    } else {
-      this.removerToken();
-    }
+    this.obterMinhaConta().subscribe({
+      error: (erro: HttpErrorResponse) => {
+        if (erro.status === 401) {
+          this.logout();
+        }
+      },
+    });
   }
 
   private salvarToken(token: string): void {

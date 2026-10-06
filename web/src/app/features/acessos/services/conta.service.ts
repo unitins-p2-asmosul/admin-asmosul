@@ -15,7 +15,7 @@ import {
 @Injectable({ providedIn: 'root' })
 export class ContaService {
   private readonly http = inject(HttpClient);
-  private readonly endpoint = 'contas';
+  private readonly endpoint = 'acessos/contas';
 
   listar(parametros: ContaConsultaParametros): Observable<RespostaPaginada<ContaResumo>> {
     let params = new HttpParams()

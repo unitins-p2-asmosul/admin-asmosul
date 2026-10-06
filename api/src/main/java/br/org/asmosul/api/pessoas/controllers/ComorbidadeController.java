@@ -25,7 +25,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 @Tag(name = "Comorbidades", description = "Endpoints para gerenciamento de comorbidades")
 @RestController
-@RequestMapping("/comorbidades")
+@RequestMapping("/pessoas/comorbidades")
 public class ComorbidadeController {
 
     private final ComorbidadeService comorbidadeService;

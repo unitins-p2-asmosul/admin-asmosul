@@ -25,7 +25,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 @Tag(name = "Categorias", description = "Endpoints para gerenciamento de categorias")
 @RestController
-@RequestMapping("/categorias")
+@RequestMapping("/pessoas/categorias")
 public class CategoriaController {
 
     private final CategoriaService categoriaService;

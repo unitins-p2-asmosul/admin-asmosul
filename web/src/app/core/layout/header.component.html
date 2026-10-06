@@ -1,3 +1,50 @@
 <header class="app-header">
   <h1>ASMOSUL</h1>
+
+  @if (usuario(); as u) {
+    <div class="ml-auto">
+      <button
+        type="button"
+        class="flex cursor-pointer items-center gap-3 rounded-[10px] px-3 py-1.5 hover:bg-asmosul-fundo"
+        [matMenuTriggerFor]="menuUsuario"
+        aria-label="Menu do usuário"
+      >
+        <span
+          class="flex h-9 w-9 items-center justify-center rounded-full bg-asmosul-navy text-sm font-bold text-white"
+        >
+          {{ iniciais() }}
+        </span>
+
+        <span class="hidden flex-col items-start text-left sm:flex">
+          <span class="text-sm font-semibold text-asmosul-texto">{{ u.nomeUsuario }}</span>
+          <span class="text-xs text-asmosul-cinza">
+            {{ perfis().length }} {{ perfis().length === 1 ? 'perfil' : 'perfis' }}
+          </span>
+        </span>
+
+        <mat-icon class="text-asmosul-cinza">expand_more</mat-icon>
+      </button>
+
+      <mat-menu #menuUsuario="matMenu" xPosition="before">
+        <div class="min-w-60 border-b border-asmosul-borda px-4 py-3">
+          <p class="m-0 text-sm font-semibold text-asmosul-navy">{{ u.nomeUsuario }}</p>
+
+          <ul class="m-0 mt-2 flex list-none flex-wrap gap-1 p-0">
+            @for (perfil of perfis(); track perfil) {
+              <li class="rounded-full bg-asmosul-fundo px-2 py-0.5 text-xs text-asmosul-texto-secundario">
+                {{ perfil }}
+              </li>
+            } @empty {
+              <li class="text-xs text-asmosul-cinza">Sem perfis atribuídos</li>
+            }
+          </ul>
+        </div>
+
+        <button mat-menu-item type="button" (click)="sair()">
+          <mat-icon>logout</mat-icon>
+          <span>Sair</span>
+        </button>
+      </mat-menu>
+    </div>
+  }
 </header>
