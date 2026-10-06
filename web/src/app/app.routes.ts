@@ -10,4 +10,9 @@ export const routes: Routes = [
 		loadChildren: () =>
 			import('@features/pessoas/pessoas.routes').then((modulo) => modulo.PESSOAS_ROUTES),
 	},
+	{
+		path: 'acessos',
+		loadChildren: () =>
+			import('@features/acessos/contas.routes').then((modulo) => modulo.CONTAS_ROUTES),
+	},
 ];

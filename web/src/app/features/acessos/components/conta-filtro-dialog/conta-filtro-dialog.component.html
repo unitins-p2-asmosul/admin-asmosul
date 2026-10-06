@@ -1,0 +1,48 @@
+<div class="pagina-formulario !my-0 !w-full !max-w-none">
+  <h2 mat-dialog-title class="!text-2xl !font-bold !text-[#0b3c5d]">Filtrar contas</h2>
+  <mat-dialog-content>
+    <form [formGroup]="form" class="grid gap-x-5 gap-y-2 sm:grid-cols-2">
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>Nome da pessoa</mat-label>
+        <input matInput formControlName="nomePessoa" />
+      </mat-form-field>
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>Nome de usuário</mat-label>
+        <input matInput formControlName="nomeUsuario" />
+      </mat-form-field>
+      <mat-form-field appearance="outline" class="w-full sm:col-span-2">
+        <mat-label>E-mail</mat-label>
+        <input matInput type="email" formControlName="email" />
+      </mat-form-field>
+      <mat-form-field appearance="outline" class="w-full sm:col-span-2">
+        <mat-label>Perfis</mat-label>
+        <mat-select formControlName="perfis" multiple>
+          @for (perfil of perfis(); track perfil.codigo) {
+            <mat-option [value]="perfil.codigo">{{ perfil.descricao }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>Redefinir senha</mat-label>
+        <mat-select formControlName="redefinirSenha">
+          <mat-option value="">Todos</mat-option>
+          @for (opcao of opcoesRedefinirSenha; track opcao.valor) {
+            <mat-option [value]="opcao.valor">{{ opcao.rotulo }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>Data de criação</mat-label>
+        <input matInput type="date" formControlName="dataCriacao" />
+      </mat-form-field>
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>Data de inativação</mat-label>
+        <input matInput type="date" formControlName="dataInativo" />
+      </mat-form-field>
+    </form>
+  </mat-dialog-content>
+  <mat-dialog-actions align="center" class="pessoa-filtro__actions !gap-4 !pb-5">
+    <button mat-flat-button type="button" (click)="limpar()">Limpar</button>
+    <button mat-flat-button type="button" class="acao-primaria" (click)="aplicar()">Aplicar Filtros</button>
+  </mat-dialog-actions>
+</div>

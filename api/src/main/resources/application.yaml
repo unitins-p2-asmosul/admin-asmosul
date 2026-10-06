@@ -69,6 +69,10 @@ spring:
     password: root
     driver-class-name: com.mysql.cj.jdbc.Driver
 
+app:
+  cors:
+    allowed-origins: http://localhost:4200
+
 ---
 # ==========================================
 # 3. Profile: PROD (Produção)

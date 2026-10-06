@@ -5,11 +5,18 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.net.URI;
 import java.util.List;
 import java.util.Map;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.AuthorityUtils;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 @DisplayName("Testes Unitários - GlobalExceptionHandler")
 class GlobalExceptionHandlerTest {
@@ -19,6 +26,11 @@ class GlobalExceptionHandlerTest {
     @BeforeEach
     void setUp() {
         handler = new GlobalExceptionHandler();
+    }
+
+    @AfterEach
+    void limparContextoSeguranca() {
+        SecurityContextHolder.clearContext();
     }
 
     @Test
@@ -91,5 +103,55 @@ class GlobalExceptionHandlerTest {
                         "Ocorreu um erro interno inesperado. Por favor, tente novamente mais tarde.");
         assertThat(problemDetail.getType())
                 .isEqualTo(URI.create("https://api.asmosul.org.br/erros/erro-interno"));
+    }
+
+    @Test
+    @DisplayName("Deve retornar 403 Forbidden quando usuário autenticado não tiver permissão")
+    void deveTratarAccessDeniedComUsuarioAutenticadoComo403() {
+        SecurityContextHolder.getContext()
+                .setAuthentication(
+                        UsernamePasswordAuthenticationToken.authenticated(
+                                "maria.silva",
+                                null,
+                                AuthorityUtils.createAuthorityList("ROLE_GERENCIADOR_PESSOAS")));
+
+        ProblemDetail problemDetail =
+                handler.tratarAcessoNegado(new AccessDeniedException("Access Denied"));
+
+        assertThat(problemDetail.getStatus()).isEqualTo(HttpStatus.FORBIDDEN.value());
+        assertThat(problemDetail.getTitle()).isEqualTo("Acesso Negado");
+        assertThat(problemDetail.getType())
+                .isEqualTo(URI.create("https://api.asmosul.org.br/erros/acesso-negado"));
+    }
+
+    @Test
+    @DisplayName("Deve retornar 401 Unauthorized quando o usuário for anônimo")
+    void deveTratarAccessDeniedComUsuarioAnonimoComo401() {
+        SecurityContextHolder.getContext()
+                .setAuthentication(
+                        new AnonymousAuthenticationToken(
+                                "chave",
+                                "anonymousUser",
+                                AuthorityUtils.createAuthorityList("ROLE_ANONYMOUS")));
+
+        ProblemDetail problemDetail =
+                handler.tratarAcessoNegado(new AccessDeniedException("Access Denied"));
+
+        assertThat(problemDetail.getStatus()).isEqualTo(HttpStatus.UNAUTHORIZED.value());
+        assertThat(problemDetail.getTitle()).isEqualTo("Não Autorizado");
+        assertThat(problemDetail.getType())
+                .isEqualTo(URI.create("https://api.asmosul.org.br/erros/nao-autorizado"));
+    }
+
+    @Test
+    @DisplayName("Deve retornar 401 Unauthorized quando não houver autenticação no contexto")
+    void deveTratarCredenciaisAusentesComo401() {
+        ProblemDetail problemDetail =
+                handler.tratarAcessoNegado(
+                        new AuthenticationCredentialsNotFoundException(
+                                "An Authentication object was not found in the SecurityContext"));
+
+        assertThat(problemDetail.getStatus()).isEqualTo(HttpStatus.UNAUTHORIZED.value());
+        assertThat(problemDetail.getTitle()).isEqualTo("Não Autorizado");
     }
 }

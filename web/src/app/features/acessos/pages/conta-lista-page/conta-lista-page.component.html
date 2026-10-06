@@ -1,0 +1,44 @@
+<app-pagina-gerenciamento
+  titulo="Gerenciamento de Contas"
+  icone=""
+  iconeAdicionar="person_add_alt_1"
+  [adicionarNaToolbar]="true"
+  rotuloAdicionar="Adicionar Conta"
+  [filtrosAtivos]="filtrosAtivos"
+  (aoAdicionar)="irParaAdicionar()"
+  (aoFiltrar)="abrirFiltros()"
+>
+  <div toolbar-actions class="flex items-center gap-1">
+    <button
+      mat-flat-button
+      type="button"
+      class="pagina-pessoas__filter conta-lista__status-toggle"
+      [matTooltip]="parametrosAtuais().apenasInativos ? 'Exibir contas ativas' : 'Exibir contas inativas'"
+      [attr.aria-label]="parametrosAtuais().apenasInativos ? 'Exibir contas ativas' : 'Exibir contas inativas'"
+      (click)="alternarInativos()"
+    >
+      <mat-icon>{{ parametrosAtuais().apenasInativos ? 'group' : 'person_off' }}</mat-icon>
+      {{ parametrosAtuais().apenasInativos ? 'Exibir contas ativas' : 'Exibir contas inativas' }}
+    </button>
+    @if (filtrosAtivos > 0) {
+      <button mat-icon-button type="button" matTooltip="Limpar filtros" aria-label="Limpar filtros" (click)="limparFiltros()">
+        <mat-icon>filter_alt_off</mat-icon>
+      </button>
+    }
+  </div>
+
+  <app-conta-tabela
+    [dados]="resposta().dados"
+    [totalElementos]="resposta().totalElementos"
+    [tamanhoPagina]="resposta().tamanhoPagina"
+    [paginaAtual]="resposta().paginaAtual"
+    [carregando]="carregando()"
+    [ordenacao]="parametrosAtuais().sort"
+    (aoMudarPagina)="mudarPagina($event)"
+    (aoMudarOrdem)="mudarOrdem($event)"
+    (aoVisualizar)="visualizar($event)"
+    (aoEditar)="editar($event)"
+    (aoAlternarEstado)="alternarEstado($event)"
+    (aoRedefinirSenha)="redefinirSenha($event)"
+  />
+</app-pagina-gerenciamento>
