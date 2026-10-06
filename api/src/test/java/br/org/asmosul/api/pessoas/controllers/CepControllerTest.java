@@ -25,7 +25,6 @@ import org.springframework.test.web.servlet.MockMvc;
 @DisplayName("Testes do CepController (Mockando ViaCEP)")
 class CepControllerTest extends BaseAPITest {
 
-    @Autowired private MockMvc mockMvc;
 
     @MockitoBean private CepService cepService;
 

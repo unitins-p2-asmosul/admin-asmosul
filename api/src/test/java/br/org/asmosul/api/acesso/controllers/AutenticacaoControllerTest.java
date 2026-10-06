@@ -26,7 +26,6 @@ class AutenticacaoControllerTest extends BaseAPITest {
 
     private static final String SENHA = "Senha@123";
 
-    @Autowired private MockMvc mockMvc;
     @Autowired private PessoaRepository pessoaRepository;
     @Autowired private ContaRepository contaRepository;
     @Autowired private PasswordEncoder passwordEncoder;

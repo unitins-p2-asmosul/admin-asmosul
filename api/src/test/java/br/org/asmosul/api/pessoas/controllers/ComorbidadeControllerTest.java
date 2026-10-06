@@ -24,7 +24,6 @@ import org.springframework.test.web.servlet.MockMvc;
 @DisplayName("Testes de IntegraÃ§Ã£o - ComorbidadeController")
 class ComorbidadeControllerTest extends BaseAPITest {
 
-    @Autowired private MockMvc mockMvc;
 
     @Autowired private ComorbidadeRepository comorbidadeRepository;
 

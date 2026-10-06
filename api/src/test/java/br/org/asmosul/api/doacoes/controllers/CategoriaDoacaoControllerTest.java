@@ -24,8 +24,6 @@ import org.springframework.test.web.servlet.MockMvc;
 @DisplayName("Testes de Integração - CategoriaDoacaoController")
 class CategoriaDoacaoControllerTest extends BaseAPITest {
 
-    @Autowired private MockMvc mockMvc;
-
     @Autowired private CategoriaDoacaoRepository categoriaDoacaoRepository;
 
     private final ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();

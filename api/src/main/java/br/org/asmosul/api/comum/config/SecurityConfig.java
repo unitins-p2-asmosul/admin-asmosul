@@ -6,9 +6,11 @@ import br.org.asmosul.api.comum.security.FiltroAutenticacaoJwt;
 
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.ProviderManager;
@@ -28,6 +30,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.servlet.HandlerExceptionResolver;
 
 @Configuration
 @EnableMethodSecurity
@@ -85,14 +88,53 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(
-            HttpSecurity http, FiltroAutenticacaoJwt filtroAutenticacaoJwt) throws Exception {
+            HttpSecurity http,
+            FiltroAutenticacaoJwt filtroAutenticacaoJwt,
+            @Qualifier("handlerExceptionResolver") HandlerExceptionResolver resolver
+    ) throws Exception {
         http
             .cors(Customizer.withDefaults())
             .csrf(csrf -> csrf.disable())
             .sessionManagement(
                     session ->
                             session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
+            .exceptionHandling(ex -> ex
+                // anônimo / token inválido -> AuthenticationException -> 401
+                .authenticationEntryPoint(
+                    (request, response, authException) ->
+                        resolver.resolveException(request, response, null, authException))
+                // autenticado sem perfil -> AccessDeniedException -> 403
+                .accessDeniedHandler(
+                    (request, response, accessDeniedException) ->
+                        resolver.resolveException(request, response, null, accessDeniedException)))
+            .authorizeHttpRequests(auth -> auth
+                // Rotas Públicas
+                .requestMatchers("/auth/login").permitAll()
+                .requestMatchers(
+                    "/v3-docs/**",
+                    "/swagger-ui/**"
+                ).permitAll()
+
+                //Acessos
+                .requestMatchers(HttpMethod.GET, "/contas/eu").authenticated()
+                .requestMatchers(HttpMethod.PATCH, "/contas/minha-senha").authenticated()
+
+                // Exceções (para permitir que módulos consultem dados um do outro
+                .requestMatchers(HttpMethod.GET, "/pessoas").authenticated()
+                .requestMatchers(HttpMethod.GET, "/pessoas/categorias/**").authenticated()
+                .requestMatchers(HttpMethod.GET, "/pessoas/comorbidades/**").authenticated()
+
+                //Módulos
+                .requestMatchers("/acessos/**").hasAnyRole(Perfil.GERENCIADOR_ACESSO.name())
+                .requestMatchers("/doacoes/**").hasAnyRole(Perfil.GERENCIADOR_DOACOES.name())
+                .requestMatchers("/pessoas/**").hasAnyRole(Perfil.GERENCIADOR_PESSOAS.name())
+                .requestMatchers("/capacitacoes/**").hasAnyRole(Perfil.GERENCIADOR_CAPACITACOES.name())
+                .requestMatchers("/relatorios/**").hasAnyRole(Perfil.GERENCIADOR_RELATORIOS.name())
+
+                // Qualquer outro endpoint requer autenticação
+                .anyRequest().authenticated()
+
+            )
             .addFilterBefore(
                     filtroAutenticacaoJwt, UsernamePasswordAuthenticationFilter.class);
 

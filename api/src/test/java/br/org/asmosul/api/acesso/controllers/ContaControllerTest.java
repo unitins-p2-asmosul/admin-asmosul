@@ -33,20 +33,16 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
-// As anotações @WithMockUser e @WithAnonymousUser não têm efeito nas requisições do MockMvc
-// deste projeto: falta o spring-boot-starter-security-test, que integra o contexto de
-// segurança de teste ao MockMvc. Por isso, quando a rota precisa de um usuário autenticado,
-// ele é informado explicitamente na requisição com .with(user(...)) ou com um token real.
 @DisplayName("Testes de Integração - ContaController")
 class ContaControllerTest extends BaseAPITest {
 
     private static final String SENHA = "Senha@123";
     private static final DateTimeFormatter FORMATO_DATA = DateTimeFormatter.ofPattern("dd-MM-yyyy");
 
-    @Autowired private MockMvc mockMvc;
     @Autowired private ContaRepository contaRepository;
     @Autowired private PessoaRepository pessoaRepository;
     @Autowired private PasswordEncoder passwordEncoder;
+
 
     private Pessoa pessoaFisica;
 
@@ -546,7 +542,7 @@ class ContaControllerTest extends BaseAPITest {
             Conta conta = criarConta(pessoaFisica, "maria.silva", Set.of(Perfil.GERENCIADOR_PESSOAS));
 
             MvcResult login =
-                    mockMvc.perform(
+                    mockMvcSemAutenticacao.perform(
                                     post("/auth/login")
                                             .contentType(MediaType.APPLICATION_JSON)
                                             .content(
@@ -557,7 +553,7 @@ class ContaControllerTest extends BaseAPITest {
                             .andReturn();
             String token = JsonPath.read(login.getResponse().getContentAsString(), "$.token");
 
-            mockMvc.perform(
+            mockMvcSemAutenticacao.perform(
                             patch("/contas/minha-senha")
                                     .header("Authorization", "Bearer " + token)
                                     .contentType(MediaType.APPLICATION_JSON)
@@ -574,7 +570,7 @@ class ContaControllerTest extends BaseAPITest {
         void alterarMinhaSenha_semUsuarioAutenticado_retornaStatus401() throws Exception {
             Conta conta = criarConta(pessoaFisica, "maria.silva", Set.of(Perfil.GERENCIADOR_PESSOAS));
 
-            mockMvc.perform(
+            mockMvcSemAutenticacao.perform(
                             patch("/contas/minha-senha")
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(CORPO_VALIDO))
@@ -590,7 +586,7 @@ class ContaControllerTest extends BaseAPITest {
         void alterarMinhaSenha_comTokenInvalido_retornaStatus401() throws Exception {
             criarConta(pessoaFisica, "maria.silva", Set.of(Perfil.GERENCIADOR_PESSOAS));
 
-            mockMvc.perform(
+            mockMvcSemAutenticacao.perform(
                             patch("/contas/minha-senha")
                                     .header("Authorization", "Bearer token-invalido")
                                     .contentType(MediaType.APPLICATION_JSON)
@@ -1039,7 +1035,7 @@ class ContaControllerTest extends BaseAPITest {
             String hash = conta.getSenhaHash();
 
             MvcResult login =
-                    mockMvc.perform(
+                    mockMvcSemAutenticacao.perform(
                                     post("/auth/login")
                                             .contentType(MediaType.APPLICATION_JSON)
                                             .content(
@@ -1052,7 +1048,7 @@ class ContaControllerTest extends BaseAPITest {
             String token = JsonPath.read(login.getResponse().getContentAsString(), "$.token");
 
             MvcResult troca =
-                    mockMvc.perform(
+                    mockMvcSemAutenticacao.perform(
                                     patch("/contas/minha-senha")
                                             .header("Authorization", "Bearer " + token)
                                             .contentType(MediaType.APPLICATION_JSON)
