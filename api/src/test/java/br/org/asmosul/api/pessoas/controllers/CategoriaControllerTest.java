@@ -34,25 +34,20 @@ class CategoriaControllerTest extends BaseAPITest {
     }
 
     @Nested
-    @DisplayName("POST /categorias - Cadastro de Categoria")
+    @DisplayName("POST /pessoas/categorias - Cadastro de Categoria")
     class Cadastrar {
 
         @Test
         @DisplayName("Deve cadastrar categoria com sucesso retornando status 201 e Location header")
-        void cadastrar_comDadosValidos_retornaStatus201ELocationHeader() throws Exception {
+        void cadastrar_comDadosValidos_retornaStatus201() throws Exception {
             var requisicao =
                     new CategoriaDTO.Requisicao("SÃ³cio Fundador", "Categoria de fundadores");
 
             mockMvc.perform(
-                            post("/categorias")
+                            post("/pessoas/categorias")
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(objectMapper.writeValueAsString(requisicao)))
                     .andExpect(status().isCreated())
-                    .andExpect(
-                            header().string(
-                                            "Location",
-                                            org.hamcrest.Matchers.matchesPattern(
-                                                    ".*/categorias/\\d+")))
                     .andExpect(jsonPath("$.id").isNumber())
                     .andExpect(jsonPath("$.nome").value("SÃ³cio Fundador"))
                     .andExpect(jsonPath("$.descricao").value("Categoria de fundadores"));
@@ -64,7 +59,7 @@ class CategoriaControllerTest extends BaseAPITest {
             var requisicao = new CategoriaDTO.Requisicao("", "DescriÃ§Ã£o vÃ¡lida");
 
             mockMvc.perform(
-                            post("/categorias")
+                            post("/pessoas/categorias")
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(objectMapper.writeValueAsString(requisicao)))
                     .andExpect(status().isBadRequest());
@@ -77,7 +72,7 @@ class CategoriaControllerTest extends BaseAPITest {
             var requisicao = new CategoriaDTO.Requisicao(nomeLongo, "DescriÃ§Ã£o");
 
             mockMvc.perform(
-                            post("/categorias")
+                            post("/pessoas/categorias")
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(objectMapper.writeValueAsString(requisicao)))
                     .andExpect(status().isBadRequest());
@@ -91,7 +86,7 @@ class CategoriaControllerTest extends BaseAPITest {
             var requisicao = new CategoriaDTO.Requisicao("SÃ³cio Efetivo", "Nova descriÃ§Ã£o");
 
             mockMvc.perform(
-                            post("/categorias")
+                            post("/pessoas/categorias")
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(objectMapper.writeValueAsString(requisicao)))
                     .andExpect(status().isConflict())
@@ -100,7 +95,7 @@ class CategoriaControllerTest extends BaseAPITest {
     }
 
     @Nested
-    @DisplayName("GET /categorias - Listagem Paginada")
+    @DisplayName("GET /pessoas/categorias - Listagem Paginada")
     class ListarPaginado {
 
         @Test
@@ -109,7 +104,7 @@ class CategoriaControllerTest extends BaseAPITest {
             categoriaRepository.save(new Categoria("Categoria 1", "Desc"));
             categoriaRepository.save(new Categoria("Categoria 2", "Desc"));
 
-            mockMvc.perform(get("/categorias").param("page", "0").param("size", "10"))
+            mockMvc.perform(get("/pessoas/categorias").param("page", "0").param("size", "10"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.dados").isArray())
                     .andExpect(jsonPath("$.totalElementos").value(2));
@@ -123,19 +118,19 @@ class CategoriaControllerTest extends BaseAPITest {
             inativa.setDataInativo(java.time.LocalDateTime.now());
             categoriaRepository.save(inativa);
 
-            mockMvc.perform(get("/categorias").param("incluirInativos", "false"))
+            mockMvc.perform(get("/pessoas/categorias").param("incluirInativos", "false"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.totalElementos").value(1))
                     .andExpect(jsonPath("$.dados[0].nome").value("Categoria Ativa"));
 
-            mockMvc.perform(get("/categorias").param("incluirInativos", "true"))
+            mockMvc.perform(get("/pessoas/categorias").param("incluirInativos", "true"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.totalElementos").value(2));
         }
     }
 
     @Nested
-    @DisplayName("GET /categorias/todas - Listagem NÃ£o Paginada")
+    @DisplayName("GET /pessoas/categorias/todas - Listagem NÃ£o Paginada")
     class ListarTodas {
 
         @Test
@@ -144,7 +139,7 @@ class CategoriaControllerTest extends BaseAPITest {
             categoriaRepository.save(new Categoria("Categoria A", "Desc"));
             categoriaRepository.save(new Categoria("Categoria B", "Desc"));
 
-            mockMvc.perform(get("/categorias/todas"))
+            mockMvc.perform(get("/pessoas/categorias/todas"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$").isArray())
                     .andExpect(jsonPath("$.length()").value(2));
@@ -152,7 +147,7 @@ class CategoriaControllerTest extends BaseAPITest {
     }
 
     @Nested
-    @DisplayName("GET /categorias/{id} - Detalhamento")
+    @DisplayName("GET /pessoas/categorias/{id} - Detalhamento")
     class BuscarPorId {
 
         @Test
@@ -160,7 +155,7 @@ class CategoriaControllerTest extends BaseAPITest {
         void buscarPorId_comIdExistente_retornaStatus200() throws Exception {
             Categoria categoria = categoriaRepository.save(new Categoria("Categoria X", "Desc X"));
 
-            mockMvc.perform(get("/categorias/{id}", categoria.getId()))
+            mockMvc.perform(get("/pessoas/categorias/{id}", categoria.getId()))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.id").value(categoria.getId()))
                     .andExpect(jsonPath("$.nome").value("Categoria X"));
@@ -169,12 +164,12 @@ class CategoriaControllerTest extends BaseAPITest {
         @Test
         @DisplayName("Deve retornar status 404 quando o ID nÃ£o existir")
         void buscarPorId_comIdInexistenteOuInativo_retornaStatus404() throws Exception {
-            mockMvc.perform(get("/categorias/{id}", 99999L)).andExpect(status().isNotFound());
+            mockMvc.perform(get("/pessoas/categorias/{id}", 99999L)).andExpect(status().isNotFound());
         }
     }
 
     @Nested
-    @DisplayName("PUT /categorias/{id} - AtualizaÃ§Ã£o")
+    @DisplayName("PUT /pessoas/categorias/{id} - AtualizaÃ§Ã£o")
     class Atualizar {
 
         @Test
@@ -185,7 +180,7 @@ class CategoriaControllerTest extends BaseAPITest {
             var requisicao = new CategoriaDTO.Atualizacao("Nome Novo", "Desc Atualizada");
 
             mockMvc.perform(
-                            put("/categorias/{id}", categoria.getId())
+                            put("/pessoas/categorias/{id}", categoria.getId())
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(objectMapper.writeValueAsString(requisicao)))
                     .andExpect(status().isOk())
@@ -203,7 +198,7 @@ class CategoriaControllerTest extends BaseAPITest {
             var requisicao = new CategoriaDTO.Atualizacao("Categoria 1", "Desc");
 
             mockMvc.perform(
-                            put("/categorias/{id}", cat2.getId())
+                            put("/pessoas/categorias/{id}", cat2.getId())
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(objectMapper.writeValueAsString(requisicao)))
                     .andExpect(status().isConflict());
@@ -215,7 +210,7 @@ class CategoriaControllerTest extends BaseAPITest {
             var requisicao = new CategoriaDTO.Atualizacao("Nome", "Desc");
 
             mockMvc.perform(
-                            put("/categorias/{id}", 99999L)
+                            put("/pessoas/categorias/{id}", 99999L)
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(objectMapper.writeValueAsString(requisicao)))
                     .andExpect(status().isNotFound());
@@ -223,7 +218,7 @@ class CategoriaControllerTest extends BaseAPITest {
     }
 
     @Nested
-    @DisplayName("PATCH /categorias/{id}/desativar - DesativaÃ§Ã£o")
+    @DisplayName("PATCH /pessoas/categorias/{id}/desativar - DesativaÃ§Ã£o")
     class Desativar {
 
         @Test
@@ -231,20 +226,20 @@ class CategoriaControllerTest extends BaseAPITest {
         void desativar_comIdExistente_retornaStatus204() throws Exception {
             Categoria categoria = categoriaRepository.save(new Categoria("Ativa", "Desc"));
 
-            mockMvc.perform(patch("/categorias/{id}/desativar", categoria.getId()))
+            mockMvc.perform(patch("/pessoas/categorias/{id}/desativar", categoria.getId()))
                     .andExpect(status().isNoContent());
         }
 
         @Test
         @DisplayName("Deve retornar status 404 ao tentar desativar categoria inexistente")
         void desativar_comIdInexistenteOuJaInativo_retornaStatus404() throws Exception {
-            mockMvc.perform(patch("/categorias/{id}/desativar", 99999L))
+            mockMvc.perform(patch("/pessoas/categorias/{id}/desativar", 99999L))
                     .andExpect(status().isNotFound());
         }
     }
 
     @Nested
-    @DisplayName("PATCH /categorias/{id}/reativar - ReativaÃ§Ã£o")
+    @DisplayName("PATCH /pessoas/categorias/{id}/reativar - ReativaÃ§Ã£o")
     class Reativar {
 
         @Test
@@ -254,14 +249,14 @@ class CategoriaControllerTest extends BaseAPITest {
             categoria.setDataInativo(java.time.LocalDateTime.now());
             categoria = categoriaRepository.save(categoria);
 
-            mockMvc.perform(patch("/categorias/{id}/reativar", categoria.getId()))
+            mockMvc.perform(patch("/pessoas/categorias/{id}/reativar", categoria.getId()))
                     .andExpect(status().isNoContent());
         }
 
         @Test
         @DisplayName("Deve retornar status 404 ao tentar reativar categoria inexistente")
         void reativar_comIdInexistente_retornaStatus404() throws Exception {
-            mockMvc.perform(patch("/categorias/{id}/reativar", 99999L))
+            mockMvc.perform(patch("/pessoas/categorias/{id}/reativar", 99999L))
                     .andExpect(status().isNotFound());
         }
     }

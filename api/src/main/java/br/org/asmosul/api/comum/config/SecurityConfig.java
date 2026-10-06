@@ -116,8 +116,8 @@ public class SecurityConfig {
                 ).permitAll()
 
                 //Acessos
-                .requestMatchers(HttpMethod.GET, "/contas/eu").authenticated()
-                .requestMatchers(HttpMethod.PATCH, "/contas/minha-senha").authenticated()
+                .requestMatchers(HttpMethod.GET, "/acessos/contas/eu").authenticated()
+                .requestMatchers(HttpMethod.PATCH, "/acessos/contas/minha-senha").authenticated()
 
                 // Exceções (para permitir que módulos consultem dados um do outro
                 .requestMatchers(HttpMethod.GET, "/pessoas").authenticated()

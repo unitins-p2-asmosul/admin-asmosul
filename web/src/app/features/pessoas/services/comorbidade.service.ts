@@ -23,7 +23,7 @@ const TAMANHO_MAXIMO_NOME = 50;
 })
 export class ComorbidadeService {
   private readonly http = inject(HttpClient);
-  private readonly endpoint = 'comorbidades';
+  private readonly endpoint = 'pessoa/comorbidades';
 
   /** GET /comorbidades — listagem paginada, ordenada e filtrada. */
   listar(

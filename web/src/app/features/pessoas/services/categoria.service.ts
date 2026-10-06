@@ -18,7 +18,7 @@ import {
 })
 export class CategoriaService {
   private readonly http = inject(HttpClient);
-  private readonly endpoint = 'categorias';
+  private readonly endpoint = 'pessoas/categorias';
   private readonly categorias = [...MOCK_CATEGORIAS];
 
   listar(parametros: CategoriaConsultaParametros): Observable<RespostaPaginada<CategoriaResumo>> {

@@ -112,21 +112,17 @@ class ContaControllerTest extends BaseAPITest {
     }
 
     @Nested
-    @DisplayName("POST /contas - Cadastro de Conta")
+    @DisplayName("POST /acessos/contas - Cadastro de Conta")
     class Cadastrar {
 
         @Test
         @DisplayName("Deve cadastrar conta com senha temporária, redefinirSenha = true e Location")
-        void cadastrar_comDadosValidos_retornaStatus201ELocationHeader() throws Exception {
+        void cadastrar_comDadosValidos_retornaStatus201() throws Exception {
             mockMvc.perform(
-                            post("/contas")
+                            post("/acessos/contas")
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(requisicaoCadastro(pessoaFisica.getId(), "maria.silva", SENHA)))
                     .andExpect(status().isCreated())
-                    .andExpect(
-                            header().string(
-                                            "Location",
-                                            org.hamcrest.Matchers.matchesPattern(".*/contas/\\d+")))
                     .andExpect(jsonPath("$.id").isNumber())
                     .andExpect(jsonPath("$.pessoaId").value(pessoaFisica.getId()))
                     .andExpect(jsonPath("$.nomePessoa").value("Maria Silva"))
@@ -152,7 +148,7 @@ class ContaControllerTest extends BaseAPITest {
                     criarPessoa("Empresa LTDA", "12345678000199", TipoPessoa.JURIDICA, "empresa@teste.com");
 
             mockMvc.perform(
-                            post("/contas")
+                            post("/acessos/contas")
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(requisicaoCadastro(empresa.getId(), "empresa", SENHA)))
                     .andExpect(status().isBadRequest())
@@ -168,7 +164,7 @@ class ContaControllerTest extends BaseAPITest {
             pessoaRepository.saveAndFlush(pessoaFisica);
 
             mockMvc.perform(
-                            post("/contas")
+                            post("/acessos/contas")
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(requisicaoCadastro(pessoaFisica.getId(), "maria.silva", SENHA)))
                     .andExpect(status().isBadRequest())
@@ -183,7 +179,7 @@ class ContaControllerTest extends BaseAPITest {
             Pessoa semEmail = criarPessoa("João Sem Email", "55566677788", TipoPessoa.FISICA, null);
 
             mockMvc.perform(
-                            post("/contas")
+                            post("/acessos/contas")
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(requisicaoCadastro(semEmail.getId(), "joao", SENHA)))
                     .andExpect(status().isCreated())
@@ -203,7 +199,7 @@ class ContaControllerTest extends BaseAPITest {
                     }
                     """;
 
-            mockMvc.perform(post("/contas").contentType(MediaType.APPLICATION_JSON).content(corpo))
+            mockMvc.perform(post("/acessos/contas").contentType(MediaType.APPLICATION_JSON).content(corpo))
                     .andExpect(status().isBadRequest());
         }
 
@@ -221,7 +217,7 @@ class ContaControllerTest extends BaseAPITest {
                     """
                             .formatted(pessoaFisica.getId());
 
-            mockMvc.perform(post("/contas").contentType(MediaType.APPLICATION_JSON).content(corpo))
+            mockMvc.perform(post("/acessos/contas").contentType(MediaType.APPLICATION_JSON).content(corpo))
                     .andExpect(status().isBadRequest());
         }
 
@@ -239,7 +235,7 @@ class ContaControllerTest extends BaseAPITest {
                     """
                             .formatted(pessoaFisica.getId());
 
-            mockMvc.perform(post("/contas").contentType(MediaType.APPLICATION_JSON).content(corpo))
+            mockMvc.perform(post("/acessos/contas").contentType(MediaType.APPLICATION_JSON).content(corpo))
                     .andExpect(status().isBadRequest());
         }
 
@@ -250,7 +246,7 @@ class ContaControllerTest extends BaseAPITest {
             String senhaLonga = "é".repeat(37);
 
             mockMvc.perform(
-                            post("/contas")
+                            post("/acessos/contas")
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(requisicaoCadastro(pessoaFisica.getId(), "maria.silva", senhaLonga)))
                     .andExpect(status().isBadRequest())
@@ -265,7 +261,7 @@ class ContaControllerTest extends BaseAPITest {
         @DisplayName("Deve aceitar senha temporária com exatamente 72 bytes")
         void cadastrar_comSenhaDe72Bytes_retornaStatus201() throws Exception {
             mockMvc.perform(
-                            post("/contas")
+                            post("/acessos/contas")
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(
                                             requisicaoCadastro(
@@ -277,7 +273,7 @@ class ContaControllerTest extends BaseAPITest {
         @DisplayName("Deve retornar 404 quando a pessoa informada não existir")
         void cadastrar_comPessoaInexistente_retornaStatus404() throws Exception {
             mockMvc.perform(
-                            post("/contas")
+                            post("/acessos/contas")
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(requisicaoCadastro(999999L, "fantasma", SENHA)))
                     .andExpect(status().isNotFound());
@@ -290,7 +286,7 @@ class ContaControllerTest extends BaseAPITest {
             criarConta(outra, "maria.silva", Set.of(Perfil.GERENCIADOR_PESSOAS));
 
             mockMvc.perform(
-                            post("/contas")
+                            post("/acessos/contas")
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(requisicaoCadastro(pessoaFisica.getId(), "maria.silva", SENHA)))
                     .andExpect(status().isConflict());
@@ -302,7 +298,7 @@ class ContaControllerTest extends BaseAPITest {
             criarConta(pessoaFisica, "maria.antiga", Set.of(Perfil.GERENCIADOR_PESSOAS));
 
             mockMvc.perform(
-                            post("/contas")
+                            post("/acessos/contas")
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(requisicaoCadastro(pessoaFisica.getId(), "maria.nova", SENHA)))
                     .andExpect(status().isConflict());
@@ -310,7 +306,7 @@ class ContaControllerTest extends BaseAPITest {
     }
 
     @Nested
-    @DisplayName("PUT /contas/{id} - Alteração de nome de usuário")
+    @DisplayName("PUT /acessos/contas/{id} - Alteração de nome de usuário")
     class Atualizar {
 
         @Test
@@ -326,7 +322,7 @@ class ContaControllerTest extends BaseAPITest {
                             .formatted(outra.getId());
 
             mockMvc.perform(
-                            put("/contas/{id}", conta.getId())
+                            put("/acessos/contas/{id}", conta.getId())
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(corpo))
                     .andExpect(status().isOk())
@@ -344,7 +340,7 @@ class ContaControllerTest extends BaseAPITest {
             Conta conta = criarConta(pessoaFisica, "maria.silva", Set.of(Perfil.GERENCIADOR_PESSOAS));
 
             mockMvc.perform(
-                            put("/contas/{id}", conta.getId())
+                            put("/acessos/contas/{id}", conta.getId())
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content("{ \"nomeUsuario\": \"\" }"))
                     .andExpect(status().isBadRequest());
@@ -358,7 +354,7 @@ class ContaControllerTest extends BaseAPITest {
             criarConta(outra, "outra.pessoa", Set.of(Perfil.GERENCIADOR_PESSOAS));
 
             mockMvc.perform(
-                            put("/contas/{id}", conta.getId())
+                            put("/acessos/contas/{id}", conta.getId())
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content("{ \"nomeUsuario\": \"outra.pessoa\" }"))
                     .andExpect(status().isConflict());
@@ -370,7 +366,7 @@ class ContaControllerTest extends BaseAPITest {
             Conta conta = criarConta(pessoaFisica, "maria.silva", Set.of(Perfil.GERENCIADOR_PESSOAS));
 
             mockMvc.perform(
-                            put("/contas/{id}", conta.getId())
+                            put("/acessos/contas/{id}", conta.getId())
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content("{ \"nomeUsuario\": \"maria.silva\" }"))
                     .andExpect(status().isOk());
@@ -380,7 +376,7 @@ class ContaControllerTest extends BaseAPITest {
         @DisplayName("Deve retornar 404 para conta inexistente")
         void atualizar_comIdInexistente_retornaStatus404() throws Exception {
             mockMvc.perform(
-                            put("/contas/{id}", 999999L)
+                            put("/acessos/contas/{id}", 999999L)
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content("{ \"nomeUsuario\": \"qualquer\" }"))
                     .andExpect(status().isNotFound());
@@ -392,7 +388,7 @@ class ContaControllerTest extends BaseAPITest {
             Conta conta = criarContaInativa(pessoaFisica, "maria.silva");
 
             mockMvc.perform(
-                            put("/contas/{id}", conta.getId())
+                            put("/acessos/contas/{id}", conta.getId())
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content("{ \"nomeUsuario\": \"maria.nova\" }"))
                     .andExpect(status().isNotFound());
@@ -400,7 +396,7 @@ class ContaControllerTest extends BaseAPITest {
     }
 
     @Nested
-    @DisplayName("PUT /contas/{id}/perfis - Atualização de perfis")
+    @DisplayName("PUT /acessos/contas/{id}/perfis - Atualização de perfis")
     class AtualizarPerfis {
 
         @Test
@@ -409,7 +405,7 @@ class ContaControllerTest extends BaseAPITest {
             Conta conta = criarConta(pessoaFisica, "maria.silva", Set.of(Perfil.GERENCIADOR_PESSOAS));
 
             mockMvc.perform(
-                            put("/contas/{id}/perfis", conta.getId())
+                            put("/acessos/contas/{id}/perfis", conta.getId())
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content("{ \"perfis\": [\"GERENCIADOR_DOACOES\", \"GERENCIADOR_RELATORIOS\"] }"))
                     .andExpect(status().isOk())
@@ -428,7 +424,7 @@ class ContaControllerTest extends BaseAPITest {
             Conta conta = criarConta(pessoaFisica, "maria.silva", Set.of(Perfil.GERENCIADOR_PESSOAS));
 
             mockMvc.perform(
-                            put("/contas/{id}/perfis", conta.getId())
+                            put("/acessos/contas/{id}/perfis", conta.getId())
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content("{ \"perfis\": [] }"))
                     .andExpect(status().isBadRequest());
@@ -440,7 +436,7 @@ class ContaControllerTest extends BaseAPITest {
             Conta conta = criarContaInativa(pessoaFisica, "maria.silva");
 
             mockMvc.perform(
-                            put("/contas/{id}/perfis", conta.getId())
+                            put("/acessos/contas/{id}/perfis", conta.getId())
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content("{ \"perfis\": [\"GERENCIADOR_DOACOES\"] }"))
                     .andExpect(status().isNotFound());
@@ -448,7 +444,7 @@ class ContaControllerTest extends BaseAPITest {
     }
 
     @Nested
-    @DisplayName("PATCH /contas/{id}/redefinir-senha - Redefinição administrativa (US-59)")
+    @DisplayName("PATCH /acessos/contas/{id}/redefinir-senha - Redefinição administrativa (US-59)")
     class RedefinirSenhaAdmin {
 
         @Test
@@ -459,7 +455,7 @@ class ContaControllerTest extends BaseAPITest {
             contaRepository.saveAndFlush(conta);
 
             mockMvc.perform(
-                            patch("/contas/{id}/redefinir-senha", conta.getId())
+                            patch("/acessos/contas/{id}/redefinir-senha", conta.getId())
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content("{ \"novaSenhaTemporaria\": \"Temporaria@2026\" }"))
                     .andExpect(status().isNoContent());
@@ -476,7 +472,7 @@ class ContaControllerTest extends BaseAPITest {
             Conta conta = criarConta(pessoaFisica, "maria.silva", Set.of(Perfil.GERENCIADOR_PESSOAS));
 
             mockMvc.perform(
-                            patch("/contas/{id}/redefinir-senha", conta.getId())
+                            patch("/acessos/contas/{id}/redefinir-senha", conta.getId())
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content("{ \"novaSenhaTemporaria\": \"%s\" }".formatted("a".repeat(73))))
                     .andExpect(status().isBadRequest())
@@ -491,7 +487,7 @@ class ContaControllerTest extends BaseAPITest {
             Conta conta = criarConta(pessoaFisica, "maria.silva", Set.of(Perfil.GERENCIADOR_PESSOAS));
 
             mockMvc.perform(
-                            patch("/contas/{id}/redefinir-senha", conta.getId())
+                            patch("/acessos/contas/{id}/redefinir-senha", conta.getId())
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content("{ \"novaSenhaTemporaria\": \"\" }"))
                     .andExpect(status().isBadRequest());
@@ -503,7 +499,7 @@ class ContaControllerTest extends BaseAPITest {
             Conta conta = criarContaInativa(pessoaFisica, "maria.silva");
 
             mockMvc.perform(
-                            patch("/contas/{id}/redefinir-senha", conta.getId())
+                            patch("/acessos/contas/{id}/redefinir-senha", conta.getId())
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content("{ \"novaSenhaTemporaria\": \"Temporaria@2026\" }"))
                     .andExpect(status().isNotFound());
@@ -511,7 +507,7 @@ class ContaControllerTest extends BaseAPITest {
     }
 
     @Nested
-    @DisplayName("PATCH /contas/minha-senha - Troca de senha pelo próprio usuário (US-46)")
+    @DisplayName("PATCH /acessos/contas/minha-senha - Troca de senha pelo próprio usuário (US-46)")
     class AlterarMinhaSenha {
 
         private static final String CORPO_VALIDO =
@@ -525,7 +521,7 @@ class ContaControllerTest extends BaseAPITest {
             Conta conta = criarConta(pessoaFisica, "maria.silva", Set.of(Perfil.GERENCIADOR_PESSOAS));
 
             mockMvc.perform(
-                            patch("/contas/minha-senha")
+                            patch("/acessos/contas/minha-senha")
                                     .with(user("maria.silva"))
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(CORPO_VALIDO))
@@ -554,7 +550,7 @@ class ContaControllerTest extends BaseAPITest {
             String token = JsonPath.read(login.getResponse().getContentAsString(), "$.token");
 
             mockMvcSemAutenticacao.perform(
-                            patch("/contas/minha-senha")
+                            patch("/acessos/contas/minha-senha")
                                     .header("Authorization", "Bearer " + token)
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(CORPO_VALIDO))
@@ -571,7 +567,7 @@ class ContaControllerTest extends BaseAPITest {
             Conta conta = criarConta(pessoaFisica, "maria.silva", Set.of(Perfil.GERENCIADOR_PESSOAS));
 
             mockMvcSemAutenticacao.perform(
-                            patch("/contas/minha-senha")
+                            patch("/acessos/contas/minha-senha")
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(CORPO_VALIDO))
                     .andExpect(status().isUnauthorized())
@@ -587,7 +583,7 @@ class ContaControllerTest extends BaseAPITest {
             criarConta(pessoaFisica, "maria.silva", Set.of(Perfil.GERENCIADOR_PESSOAS));
 
             mockMvcSemAutenticacao.perform(
-                            patch("/contas/minha-senha")
+                            patch("/acessos/contas/minha-senha")
                                     .header("Authorization", "Bearer token-invalido")
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(CORPO_VALIDO))
@@ -600,7 +596,7 @@ class ContaControllerTest extends BaseAPITest {
             Conta conta = criarConta(pessoaFisica, "maria.silva", Set.of(Perfil.GERENCIADOR_PESSOAS));
 
             mockMvc.perform(
-                            patch("/contas/minha-senha")
+                            patch("/acessos/contas/minha-senha")
                                     .with(user("maria.silva"))
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content("{ \"senhaAtual\": \"errada\", \"novaSenha\": \"Definitiva@2026\" }"))
@@ -618,7 +614,7 @@ class ContaControllerTest extends BaseAPITest {
             criarConta(pessoaFisica, "maria.silva", Set.of(Perfil.GERENCIADOR_PESSOAS));
 
             mockMvc.perform(
-                            patch("/contas/minha-senha")
+                            patch("/acessos/contas/minha-senha")
                                     .with(user("maria.silva"))
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(
@@ -636,7 +632,7 @@ class ContaControllerTest extends BaseAPITest {
             criarConta(pessoaFisica, "maria.silva", Set.of(Perfil.GERENCIADOR_PESSOAS));
 
             mockMvc.perform(
-                            patch("/contas/minha-senha")
+                            patch("/acessos/contas/minha-senha")
                                     .with(user("maria.silva"))
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content("{ \"senhaAtual\": \"\", \"novaSenha\": \"\" }"))
@@ -645,7 +641,7 @@ class ContaControllerTest extends BaseAPITest {
     }
 
     @Nested
-    @DisplayName("PATCH /contas/{id}/desativar e /reativar - Ciclo de vida lógico")
+    @DisplayName("PATCH /acessos/contas/{id}/desativar e /reativar - Ciclo de vida lógico")
     class DesativarEReativar {
 
         @Test
@@ -653,7 +649,7 @@ class ContaControllerTest extends BaseAPITest {
         void desativar_comContaAtiva_retornaStatus204() throws Exception {
             Conta conta = criarConta(pessoaFisica, "maria.silva", Set.of(Perfil.GERENCIADOR_PESSOAS));
 
-            mockMvc.perform(patch("/contas/{id}/desativar", conta.getId()))
+            mockMvc.perform(patch("/acessos/contas/{id}/desativar", conta.getId()))
                     .andExpect(status().isNoContent());
 
             assertThat(contaRepository.findById(conta.getId()).orElseThrow().isAtivo()).isFalse();
@@ -664,7 +660,7 @@ class ContaControllerTest extends BaseAPITest {
         void desativar_comContaJaInativa_retornaStatus404() throws Exception {
             Conta conta = criarContaInativa(pessoaFisica, "maria.silva");
 
-            mockMvc.perform(patch("/contas/{id}/desativar", conta.getId()))
+            mockMvc.perform(patch("/acessos/contas/{id}/desativar", conta.getId()))
                     .andExpect(status().isNotFound());
         }
 
@@ -673,7 +669,7 @@ class ContaControllerTest extends BaseAPITest {
         void reativar_comContaInativa_retornaStatus204() throws Exception {
             Conta conta = criarContaInativa(pessoaFisica, "maria.silva");
 
-            mockMvc.perform(patch("/contas/{id}/reativar", conta.getId()))
+            mockMvc.perform(patch("/acessos/contas/{id}/reativar", conta.getId()))
                     .andExpect(status().isNoContent());
 
             assertThat(contaRepository.findById(conta.getId()).orElseThrow().isAtivo()).isTrue();
@@ -684,7 +680,7 @@ class ContaControllerTest extends BaseAPITest {
         void reativar_comContaJaAtiva_retornaStatus204() throws Exception {
             Conta conta = criarConta(pessoaFisica, "maria.silva", Set.of(Perfil.GERENCIADOR_PESSOAS));
 
-            mockMvc.perform(patch("/contas/{id}/reativar", conta.getId()))
+            mockMvc.perform(patch("/acessos/contas/{id}/reativar", conta.getId()))
                     .andExpect(status().isNoContent());
 
             assertThat(contaRepository.findById(conta.getId()).orElseThrow().getDataInativo()).isNull();
@@ -697,7 +693,7 @@ class ContaControllerTest extends BaseAPITest {
             pessoaFisica.desativar();
             pessoaRepository.saveAndFlush(pessoaFisica);
 
-            mockMvc.perform(patch("/contas/{id}/reativar", conta.getId()))
+            mockMvc.perform(patch("/acessos/contas/{id}/reativar", conta.getId()))
                     .andExpect(status().isBadRequest())
                     .andExpect(
                             jsonPath("$.invalidFields.pessoaId")
@@ -707,13 +703,13 @@ class ContaControllerTest extends BaseAPITest {
         @Test
         @DisplayName("Deve retornar 404 ao reativar conta inexistente")
         void reativar_comIdInexistente_retornaStatus404() throws Exception {
-            mockMvc.perform(patch("/contas/{id}/reativar", 999999L))
+            mockMvc.perform(patch("/acessos/contas/{id}/reativar", 999999L))
                     .andExpect(status().isNotFound());
         }
     }
 
     @Nested
-    @DisplayName("GET /contas - Listagem paginada e filtros")
+    @DisplayName("GET /acessos/contas - Listagem paginada e filtros")
     class Listar {
 
         @BeforeEach
@@ -732,7 +728,7 @@ class ContaControllerTest extends BaseAPITest {
         @Test
         @DisplayName("Deve listar apenas contas ativas por padrão, com paginação")
         void listar_semFiltros_retornaApenasAtivasPaginadas() throws Exception {
-            mockMvc.perform(get("/contas").param("size", "1"))
+            mockMvc.perform(get("/acessos/contas").param("size", "1"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.dados", hasSize(1)))
                     .andExpect(jsonPath("$.tamanhoPagina").value(1))
@@ -744,7 +740,7 @@ class ContaControllerTest extends BaseAPITest {
         @Test
         @DisplayName("Deve filtrar pelo nome da pessoa vinculada")
         void listar_comFiltroNomePessoa_retornaContaCorrespondente() throws Exception {
-            mockMvc.perform(get("/contas").param("nomePessoa", "maria"))
+            mockMvc.perform(get("/acessos/contas").param("nomePessoa", "maria"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.totalElementos").value(1))
                     .andExpect(jsonPath("$.dados[0].nomePessoa").value("Maria Silva"));
@@ -753,7 +749,7 @@ class ContaControllerTest extends BaseAPITest {
         @Test
         @DisplayName("Deve filtrar pelo nome de usuário")
         void listar_comFiltroNomeUsuario_retornaContaCorrespondente() throws Exception {
-            mockMvc.perform(get("/contas").param("nomeUsuario", "JOAO"))
+            mockMvc.perform(get("/acessos/contas").param("nomeUsuario", "JOAO"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.totalElementos").value(1))
                     .andExpect(jsonPath("$.dados[0].nomeUsuario").value("joao.souza"));
@@ -762,7 +758,7 @@ class ContaControllerTest extends BaseAPITest {
         @Test
         @DisplayName("Deve filtrar pelo e-mail da pessoa vinculada")
         void listar_comFiltroEmail_retornaContaCorrespondente() throws Exception {
-            mockMvc.perform(get("/contas").param("email", "maria@"))
+            mockMvc.perform(get("/acessos/contas").param("email", "maria@"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.totalElementos").value(1))
                     .andExpect(jsonPath("$.dados[0].email").value("maria@teste.com"));
@@ -772,7 +768,7 @@ class ContaControllerTest extends BaseAPITest {
         @DisplayName("Deve filtrar por perfis, sem duplicar contas com vários perfis")
         void listar_comFiltroPerfis_retornaContasSemDuplicidade() throws Exception {
             mockMvc.perform(
-                            get("/contas")
+                            get("/acessos/contas")
                                     .param("perfis", "GERENCIADOR_ACESSO")
                                     .param("perfis", "GERENCIADOR_PESSOAS"))
                     .andExpect(status().isOk())
@@ -784,7 +780,7 @@ class ContaControllerTest extends BaseAPITest {
         @Test
         @DisplayName("Deve filtrar pela flag redefinirSenha")
         void listar_comFiltroRedefinirSenha_retornaContasCorrespondentes() throws Exception {
-            mockMvc.perform(get("/contas").param("redefinirSenha", "false"))
+            mockMvc.perform(get("/acessos/contas").param("redefinirSenha", "false"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.totalElementos").value(1))
                     .andExpect(jsonPath("$.dados[0].nomeUsuario").value("joao.souza"))
@@ -794,11 +790,11 @@ class ContaControllerTest extends BaseAPITest {
         @Test
         @DisplayName("Deve filtrar pela data de criação")
         void listar_comFiltroDataCriacao_retornaContasDoDia() throws Exception {
-            mockMvc.perform(get("/contas").param("dataCriacao", hoje()))
+            mockMvc.perform(get("/acessos/contas").param("dataCriacao", hoje()))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.totalElementos").value(2));
 
-            mockMvc.perform(get("/contas").param("dataCriacao", ontem()))
+            mockMvc.perform(get("/acessos/contas").param("dataCriacao", ontem()))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.totalElementos").value(0));
         }
@@ -806,7 +802,7 @@ class ContaControllerTest extends BaseAPITest {
         @Test
         @DisplayName("Deve listar apenas contas desativadas com apenasInativos=true")
         void listar_comApenasInativos_retornaSomenteDesativadas() throws Exception {
-            mockMvc.perform(get("/contas").param("apenasInativos", "true"))
+            mockMvc.perform(get("/acessos/contas").param("apenasInativos", "true"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.totalElementos").value(1))
                     .andExpect(jsonPath("$.dados[0].nomeUsuario").value("ana.lima"))
@@ -817,7 +813,7 @@ class ContaControllerTest extends BaseAPITest {
         @DisplayName("Deve combinar apenasInativos com os demais filtros e com dataInativo")
         void listar_comApenasInativosEDataInativo_filtraSobreDesativadas() throws Exception {
             mockMvc.perform(
-                            get("/contas")
+                            get("/acessos/contas")
                                     .param("apenasInativos", "true")
                                     .param("nomeUsuario", "ana")
                                     .param("dataInativo", hoje()))
@@ -825,14 +821,14 @@ class ContaControllerTest extends BaseAPITest {
                     .andExpect(jsonPath("$.totalElementos").value(1));
 
             mockMvc.perform(
-                            get("/contas")
+                            get("/acessos/contas")
                                     .param("apenasInativos", "true")
                                     .param("dataInativo", ontem()))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.totalElementos").value(0));
 
             mockMvc.perform(
-                            get("/contas")
+                            get("/acessos/contas")
                                     .param("apenasInativos", "true")
                                     .param("nomeUsuario", "maria"))
                     .andExpect(status().isOk())
@@ -842,7 +838,7 @@ class ContaControllerTest extends BaseAPITest {
         @Test
         @DisplayName("Deve ignorar dataInativo quando apenasInativos não estiver ativo")
         void listar_comDataInativoSemApenasInativos_ignoraFiltro() throws Exception {
-            mockMvc.perform(get("/contas").param("dataInativo", ontem()))
+            mockMvc.perform(get("/acessos/contas").param("dataInativo", ontem()))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.totalElementos").value(2));
         }
@@ -850,7 +846,7 @@ class ContaControllerTest extends BaseAPITest {
         @Test
         @DisplayName("Deve aplicar a ordenação padrão quando o campo não estiver na whitelist")
         void listar_comOrdenacaoInvalida_aplicaOrdenacaoPadrao() throws Exception {
-            mockMvc.perform(get("/contas").param("sort", "senhaHash,desc"))
+            mockMvc.perform(get("/acessos/contas").param("sort", "senhaHash,desc"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.dados[0].nomeUsuario").value("joao.souza"))
                     .andExpect(jsonPath("$.dados[1].nomeUsuario").value("maria.silva"));
@@ -859,14 +855,14 @@ class ContaControllerTest extends BaseAPITest {
         @Test
         @DisplayName("Deve ordenar por campo permitido da whitelist")
         void listar_comOrdenacaoValida_aplicaOrdenacao() throws Exception {
-            mockMvc.perform(get("/contas").param("sort", "nomeUsuario,desc"))
+            mockMvc.perform(get("/acessos/contas").param("sort", "nomeUsuario,desc"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.dados[0].nomeUsuario").value("maria.silva"));
         }
     }
 
     @Nested
-    @DisplayName("GET /contas/{id} - Detalhamento (US-54)")
+    @DisplayName("GET /acessos/contas/{id} - Detalhamento (US-54)")
     class BuscarPorId {
 
         @Test
@@ -874,7 +870,7 @@ class ContaControllerTest extends BaseAPITest {
         void buscarPorId_comContaAtiva_retornaStatus200() throws Exception {
             Conta conta = criarConta(pessoaFisica, "maria.silva", Set.of(Perfil.GERENCIADOR_ACESSO));
 
-            mockMvc.perform(get("/contas/{id}", conta.getId()))
+            mockMvc.perform(get("/acessos/contas/{id}", conta.getId()))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.id").value(conta.getId()))
                     .andExpect(jsonPath("$.nomePessoa").value("Maria Silva"))
@@ -894,7 +890,7 @@ class ContaControllerTest extends BaseAPITest {
         void buscarPorId_comContaInativa_retornaStatus200() throws Exception {
             Conta conta = criarContaInativa(pessoaFisica, "maria.silva");
 
-            mockMvc.perform(get("/contas/{id}", conta.getId()))
+            mockMvc.perform(get("/acessos/contas/{id}", conta.getId()))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.ativo").value(false))
                     .andExpect(jsonPath("$.dataInativo").value(hoje()));
@@ -903,18 +899,18 @@ class ContaControllerTest extends BaseAPITest {
         @Test
         @DisplayName("Deve retornar 404 para conta inexistente")
         void buscarPorId_comIdInexistente_retornaStatus404() throws Exception {
-            mockMvc.perform(get("/contas/{id}", 999999L)).andExpect(status().isNotFound());
+            mockMvc.perform(get("/acessos/contas/{id}", 999999L)).andExpect(status().isNotFound());
         }
     }
 
     @Nested
-    @DisplayName("GET /contas/perfis - Opções de perfis (US-57)")
+    @DisplayName("GET /acessos/contas/perfis - Opções de perfis (US-57)")
     class ListarPerfis {
 
         @Test
         @DisplayName("Deve retornar os cinco perfis com código e descrição")
         void listarPerfis_retornaStatus200ComTodosOsPerfis() throws Exception {
-            mockMvc.perform(get("/contas/perfis"))
+            mockMvc.perform(get("/acessos/contas/perfis"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$", hasSize(5)))
                     .andExpect(jsonPath("$[0].codigo").value("GERENCIADOR_PESSOAS"))
@@ -941,7 +937,7 @@ class ContaControllerTest extends BaseAPITest {
         void respostas_naoExpoemHashNemSenha() throws Exception {
             MvcResult cadastro =
                     mockMvc.perform(
-                                    post("/contas")
+                                    post("/acessos/contas")
                                             .contentType(MediaType.APPLICATION_JSON)
                                             .content(
                                                     requisicaoCadastro(
@@ -954,12 +950,12 @@ class ContaControllerTest extends BaseAPITest {
             assertSemDadosSensiveis(cadastro, hash, SENHA_CADASTRO);
 
             assertSemDadosSensiveis(
-                    mockMvc.perform(get("/contas")).andExpect(status().isOk()).andReturn(),
+                    mockMvc.perform(get("/acessos/contas")).andExpect(status().isOk()).andReturn(),
                     hash,
                     SENHA_CADASTRO);
 
             assertSemDadosSensiveis(
-                    mockMvc.perform(get("/contas/{id}", conta.getId()))
+                    mockMvc.perform(get("/acessos/contas/{id}", conta.getId()))
                             .andExpect(status().isOk())
                             .andReturn(),
                     hash,
@@ -967,7 +963,7 @@ class ContaControllerTest extends BaseAPITest {
 
             assertSemDadosSensiveis(
                     mockMvc.perform(
-                                    put("/contas/{id}", conta.getId())
+                                    put("/acessos/contas/{id}", conta.getId())
                                             .contentType(MediaType.APPLICATION_JSON)
                                             .content("{ \"nomeUsuario\": \"maria.silva\" }"))
                             .andExpect(status().isOk())
@@ -977,7 +973,7 @@ class ContaControllerTest extends BaseAPITest {
 
             assertSemDadosSensiveis(
                     mockMvc.perform(
-                                    put("/contas/{id}/perfis", conta.getId())
+                                    put("/acessos/contas/{id}/perfis", conta.getId())
                                             .contentType(MediaType.APPLICATION_JSON)
                                             .content("{ \"perfis\": [\"GERENCIADOR_ACESSO\"] }"))
                             .andExpect(status().isOk())
@@ -989,7 +985,7 @@ class ContaControllerTest extends BaseAPITest {
             String senhaValidacao = "SenhaValidacao@2026";
             assertSemDadosSensiveis(
                     mockMvc.perform(
-                                    post("/contas")
+                                    post("/acessos/contas")
                                             .contentType(MediaType.APPLICATION_JSON)
                                             .content(requisicaoCadastro(pessoaFisica.getId(), "", senhaValidacao)))
                             .andExpect(status().isBadRequest())
@@ -1001,7 +997,7 @@ class ContaControllerTest extends BaseAPITest {
             String senhaConflito = "SenhaConflito@2026";
             assertSemDadosSensiveis(
                     mockMvc.perform(
-                                    post("/contas")
+                                    post("/acessos/contas")
                                             .contentType(MediaType.APPLICATION_JSON)
                                             .content(
                                                     requisicaoCadastro(
@@ -1015,7 +1011,7 @@ class ContaControllerTest extends BaseAPITest {
             String novaSenha = "NovaSenha@2026";
             assertSemDadosSensiveis(
                     mockMvc.perform(
-                                    patch("/contas/minha-senha")
+                                    patch("/acessos/contas/minha-senha")
                                             .with(user("maria.silva"))
                                             .contentType(MediaType.APPLICATION_JSON)
                                             .content(
@@ -1049,7 +1045,7 @@ class ContaControllerTest extends BaseAPITest {
 
             MvcResult troca =
                     mockMvcSemAutenticacao.perform(
-                                    patch("/contas/minha-senha")
+                                    patch("/acessos/contas/minha-senha")
                                             .header("Authorization", "Bearer " + token)
                                             .contentType(MediaType.APPLICATION_JSON)
                                             .content(

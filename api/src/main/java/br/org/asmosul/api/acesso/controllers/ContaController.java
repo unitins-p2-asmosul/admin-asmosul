@@ -30,7 +30,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 @Tag(name = "Contas", description = "Endpoints para gerenciamento de contas de acesso e perfis")
 @RestController
-@RequestMapping("/contas")
+@RequestMapping("/acessos/contas")
 public class ContaController {
 
     private final ContaService contaService;
