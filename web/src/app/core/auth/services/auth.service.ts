@@ -91,7 +91,7 @@ export class AuthService {
       return of(usuario.redefinirSenha);
     }
 
-    return this.http.get<{ redefinirSenha?: boolean }>('contas/eu').pipe(
+    return this.http.get<{ redefinirSenha?: boolean }>('acessos/contas/eu').pipe(
       map((conta) => {
         const flag = !!conta.redefinirSenha;
         this.atualizarStatusRedefinirSenha(flag);
@@ -102,7 +102,7 @@ export class AuthService {
   }
 
   alterarMinhaSenha(dados: RedefinirMinhaSenhaRequisicao): Observable<void> {
-    return this.http.patch<void>('contas/minha-senha', dados).pipe(
+    return this.http.patch<void>('acessos/contas/minha-senha', dados).pipe(
       tap(() => {
         this.atualizarStatusRedefinirSenha(false);
       }),
@@ -110,7 +110,7 @@ export class AuthService {
   }
 
   obterMinhaConta(): Observable<ContaDetalhe> {
-    return this.http.get<ContaDetalhe>('contas/eu').pipe(
+    return this.http.get<ContaDetalhe>('acessos/contas/eu').pipe(
       tap((conta) => {
         const usuarioAtual = this.obterUsuarioAtual();
         if (usuarioAtual) {
