@@ -40,7 +40,7 @@ import {
 } from '../../models/pessoa.model';
 
 @Component({
-  selector: 'app-pessoa-form-page',
+  selector: 'app-pessoa-cadastro-page',
   standalone: true,
   imports: [
     ReactiveFormsModule,
@@ -52,9 +52,9 @@ import {
     MatSelectModule,
     MatProgressSpinnerModule,
   ],
-  templateUrl: './pessoa-form-page.component.html',
+  templateUrl: './pessoa-cadastro-page.component.html',
 })
-export class PessoaFormPageComponent {
+export class PessoaCadastroPageComponent {
   private readonly fb = inject(NonNullableFormBuilder);
   private readonly location = inject(Location);
   private readonly router = inject(Router);
@@ -602,6 +602,3 @@ export function cepValido(control: AbstractControl): ValidationErrors | null {
 
   return digitos.length === 8 ? null : { cepIncompleto: true };
 }
-
-// Alias para manter retrocompatibilidade
-export { PessoaFormPageComponent as PessoaCadastroPageComponent };

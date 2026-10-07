@@ -22,22 +22,22 @@ export const PESSOAS_ROUTES: Routes = [
       {
         path: 'adicionar',
         loadComponent: () =>
-          import('./pages/comorbidade-form-page/comorbidade-form-page.component').then(
-            (m) => m.ComorbidadeFormPageComponent,
+          import('@features/pessoas/pages/comorbidade-cadastro-page/comorbidade-cadastro-page.component').then(
+            (m) => m.ComorbidadeCadastroPageComponent,
           ),
       },
       {
         path: ':id/editar',
         loadComponent: () =>
-          import('./pages/comorbidade-form-page/comorbidade-form-page.component').then(
-            (m) => m.ComorbidadeFormPageComponent,
+          import('@features/pessoas/pages/comorbidade-cadastro-page/comorbidade-cadastro-page.component').then(
+            (m) => m.ComorbidadeCadastroPageComponent,
           ),
       },
       {
         path: ':id',
         loadComponent: () =>
-          import('./pages/comorbidade-form-page/comorbidade-form-page.component').then(
-            (m) => m.ComorbidadeFormPageComponent,
+          import('@features/pessoas/pages/comorbidade-cadastro-page/comorbidade-cadastro-page.component').then(
+            (m) => m.ComorbidadeCadastroPageComponent,
           ),
         data: { visualizacao: true },
       },
@@ -95,22 +95,22 @@ export const PESSOAS_ROUTES: Routes = [
   {
     path: 'adicionar',
     loadComponent: () =>
-      import('./pages/pessoa-form-page/pessoa-form-page.component').then(
-        (m) => m.PessoaFormPageComponent,
+      import('@features/pessoas/pages/pessoa-cadastro-page/pessoa-cadastro-page.component').then(
+        (m) => m.PessoaCadastroPageComponent,
       ),
   },
   {
     path: ':id/editar',
     loadComponent: () =>
-      import('./pages/pessoa-form-page/pessoa-form-page.component').then(
-        (m) => m.PessoaFormPageComponent,
+      import('@features/pessoas/pages/pessoa-cadastro-page/pessoa-cadastro-page.component').then(
+        (m) => m.PessoaCadastroPageComponent,
       ),
   },
   {
     path: ':id',
     loadComponent: () =>
-      import('./pages/pessoa-form-page/pessoa-form-page.component').then(
-        (m) => m.PessoaFormPageComponent,
+      import('@features/pessoas/pages/pessoa-cadastro-page/pessoa-cadastro-page.component').then(
+        (m) => m.PessoaCadastroPageComponent,
       ),
     data: {
       visualizacao: true,

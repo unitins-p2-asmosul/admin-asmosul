@@ -5,14 +5,14 @@ import { provideAnimationsAsync } from '@angular/platform-browser/animations/asy
 import { provideRouter } from '@angular/router';
 import { of, throwError } from 'rxjs';
 import {
-  PessoaFormPageComponent,
+  PessoaCadastroPageComponent,
   cnpjValido,
   cpfValido,
   dataNascimentoValida,
   somenteDigitos,
   telefoneValido,
   cepValido,
-} from './pessoa-form-page.component';
+} from './pessoa-cadastro-page.component';
 import { PessoaService } from '../../services/pessoa.service';
 import { CategoriaService } from '../../services/categoria.service';
 import { ComorbidadeService } from '../../services/comorbidade.service';
@@ -22,8 +22,8 @@ import { FormControl } from '@angular/forms';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 
 describe('PessoaFormPageComponent', () => {
-  let component: PessoaFormPageComponent;
-  let fixture: ComponentFixture<PessoaFormPageComponent>;
+  let component: PessoaCadastroPageComponent;
+  let fixture: ComponentFixture<PessoaCadastroPageComponent>;
   let pessoaServiceMock: {
     cadastrar: ReturnType<typeof vi.fn>;
     atualizar: ReturnType<typeof vi.fn>;
@@ -74,7 +74,7 @@ describe('PessoaFormPageComponent', () => {
     };
 
     await TestBed.configureTestingModule({
-      imports: [PessoaFormPageComponent],
+      imports: [PessoaCadastroPageComponent],
       providers: [
         provideHttpClient(),
         provideHttpClientTesting(),
@@ -87,7 +87,7 @@ describe('PessoaFormPageComponent', () => {
       ],
     }).compileComponents();
 
-    fixture = TestBed.createComponent(PessoaFormPageComponent);
+    fixture = TestBed.createComponent(PessoaCadastroPageComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });
