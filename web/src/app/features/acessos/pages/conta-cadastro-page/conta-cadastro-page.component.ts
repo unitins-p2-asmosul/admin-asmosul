@@ -85,25 +85,14 @@ export class ContaCadastroPageComponent {
   constructor() {
     this.pessoaService
       .listar({ page: 0, size: 100, sort: 'nome,asc', tipoPessoa: 'FISICA' })
-      .pipe(
-        expand((resposta) => {
-          const proximaPagina = resposta.paginaAtual + 1;
-          return proximaPagina < resposta.totalPaginas
-            ? this.pessoaService.listar({
-                page: proximaPagina,
-                size: 100,
-                sort: 'nome,asc',
-                tipoPessoa: 'FISICA',
-              })
-            : EMPTY;
-        }),
-        map((resposta) => resposta.dados),
-        reduce((pessoas, pagina) => [...pessoas, ...pagina], [] as PessoaResumo[]),
-      )
       .subscribe({
-        next: (pessoas) => this.pessoas.set(
-          pessoas.filter((pessoa) => pessoa.ativo !== false && pessoa.tipoPessoa === 'FISICA'),
-        ),
+        next: (resposta) => {
+          const lista = resposta.dados || (resposta as any).content || [];
+          this.pessoas.set(
+            lista.filter((p: any) => p.tipoPessoa === 'FISICA' || p.tipoPessoa?.codigo === 'FISICA')
+          );
+        },
+        error: (err) => console.error('Erro ao carregar pessoas para o select:', err)
       });
 
     this.contaService.listarPerfis().subscribe({

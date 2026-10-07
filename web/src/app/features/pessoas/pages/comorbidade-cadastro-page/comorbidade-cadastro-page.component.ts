@@ -30,9 +30,9 @@ const TAMANHO_MAXIMO_NOME = 50;
     MatInputModule,
     MatIconModule,
   ],
-  templateUrl: './comorbidade-form-page.component.html',
+  templateUrl: './comorbidade-cadastro-page.component.html',
 })
-export class ComorbidadeFormPageComponent {
+export class ComorbidadeCadastroPageComponent {
   private readonly fb = inject(NonNullableFormBuilder);
   private readonly location = inject(Location);
   private readonly router = inject(Router);
