@@ -55,16 +55,36 @@ public enum Uf {
     }
 
     @JsonCreator
-    public static Uf deCodigo(String valor) {
-        if (valor == null || valor.isBlank()) {
+    public static Uf deCodigo(Object valor) {
+        if (valor == null) {
             return null;
         }
 
+        String texto = null;
+        if (valor instanceof String s) {
+            texto = s;
+        } else if (valor instanceof java.util.Map<?, ?> map) {
+            Object codigo = map.get("codigo");
+            if (codigo != null) {
+                texto = codigo.toString();
+            } else {
+                Object nome = map.get("name");
+                if (nome != null) {
+                    texto = nome.toString();
+                }
+            }
+        }
+
+        if (texto == null || texto.isBlank()) {
+            return null;
+        }
+
+        final String finalTexto = texto.trim();
         return Arrays.stream(Uf.values())
                 .filter(
                         u ->
-                                u.name().equalsIgnoreCase(valor.trim())
-                                        || u.getCodigo().equalsIgnoreCase(valor.trim()))
+                                u.name().equalsIgnoreCase(finalTexto)
+                                        || u.getCodigo().equalsIgnoreCase(finalTexto))
                 .findFirst()
                 .orElseThrow(() -> ValidationException.of("uf", "UF informada é inválida"));
     }

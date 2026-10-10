@@ -2,3 +2,16 @@ Link para acessar o diagramar de entidade relacionamento:
 https://app.diagrams.net/?state=%7B%22ids%22:%5B%2212bTlU1OfWU6xlIEXP8VubDMNC9TjJ8h8%22%5D,%22action%22:%22open%22,%22userId%22:%22108224194767699344236%22,%22resourceKeys%22:%7B%7D%7D
 
 
+### Tabela: `endereco_doacao`
+- `id`: BIGINT AUTO_INCREMENT PRIMARY KEY
+- `nome`: VARCHAR(100) NOT NULL UNIQUE
+- `cep`: VARCHAR(9) NOT NULL
+- `uf`: ENUM(27 UFs) NOT NULL
+- `cidade`: VARCHAR(100) NOT NULL
+- `bairro`: VARCHAR(50) NOT NULL
+- `logradouro`: VARCHAR(100) NOT NULL
+- `numero`: VARCHAR(20) NOT NULL
+- `complemento`: VARCHAR(100) NULL
+- `informacoes_adicionais`: TEXT NULL
+- `data_inativo`: DATETIME DEFAULT NULL
+
