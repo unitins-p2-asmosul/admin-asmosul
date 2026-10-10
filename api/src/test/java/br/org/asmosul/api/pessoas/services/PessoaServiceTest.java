@@ -77,7 +77,7 @@ class PessoaServiceTest {
                 "maria.silva@email.com",
                 Escolaridade.SUPERIOR_COMPLETO,
                 "Assistente",
-                RendaFamiliar.ENTRE_DOIS_MIl_E_TRES_MIL,
+                RendaFamiliar.ENTRE_DOIS_MIL_E_TRES_MIL,
                 List.of(1L),
                 List.of(1L),
                 "Descrição válida",
