@@ -1,6 +1,5 @@
 package br.org.asmosul.api.doacoes.controllers;
 
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.doReturn;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
@@ -11,37 +10,33 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import br.org.asmosul.api.comum.config.BaseAPITest;
-import br.org.asmosul.api.doacoes.dtos.EnderecoDoacaoDTO;
-import br.org.asmosul.api.doacoes.models.EnderecoDoacao;
-import br.org.asmosul.api.doacoes.repositories.EnderecoDoacaoRepository;
+import br.org.asmosul.api.doacoes.dtos.EnderecoArmazenamentoDTO;
+import br.org.asmosul.api.doacoes.models.EnderecoArmazenamento;
+import br.org.asmosul.api.doacoes.repositories.EnderecoArmazenamentoRepository;
 import br.org.asmosul.api.pessoas.models.Uf;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
-import org.springframework.test.web.servlet.MockMvc;
 
 @DisplayName("Testes de Integração - EnderecoDoacaoController")
-class EnderecoDoacaoControllerTest extends BaseAPITest {
+class EnderecoArmazenamentoControllerTest extends BaseAPITest {
 
-    @Autowired private MockMvc mockMvc;
-
-    @MockitoSpyBean private EnderecoDoacaoRepository enderecoDoacaoRepository;
+    @MockitoSpyBean private EnderecoArmazenamentoRepository enderecoArmazenamentoRepository;
 
     private final ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
 
     @BeforeEach
     void setUp() {
-        enderecoDoacaoRepository.deleteAll();
+        enderecoArmazenamentoRepository.deleteAll();
     }
 
-    private EnderecoDoacao criarEnderecoExemplo(String nome) {
-        return enderecoDoacaoRepository.save(
-                new EnderecoDoacao(
+    private EnderecoArmazenamento criarEnderecoExemplo(String nome) {
+        return enderecoArmazenamentoRepository.save(
+                new EnderecoArmazenamento(
                         nome,
                         "77000-000",
                         Uf.TO,
@@ -61,7 +56,7 @@ class EnderecoDoacaoControllerTest extends BaseAPITest {
         @DisplayName("Deve cadastrar endereço com sucesso retornando status 201 e Location header")
         void cadastrar_comDadosValidos_retornaStatus201ELocationHeader() throws Exception {
             var requisicao =
-                    new EnderecoDoacaoDTO.Requisicao(
+                    new EnderecoArmazenamentoDTO.Requisicao(
                             "Depósito Norte",
                             "77000-000",
                             Uf.TO,
@@ -92,7 +87,7 @@ class EnderecoDoacaoControllerTest extends BaseAPITest {
         @DisplayName("Deve retornar status 400 quando o nome estiver em branco")
         void cadastrar_comNomeEmBranco_retornaStatus400() throws Exception {
             var requisicao =
-                    new EnderecoDoacaoDTO.Requisicao(
+                    new EnderecoArmazenamentoDTO.Requisicao(
                             "",
                             "77000-000",
                             Uf.TO,
@@ -114,7 +109,7 @@ class EnderecoDoacaoControllerTest extends BaseAPITest {
         @DisplayName("Deve retornar status 400 quando o CEP estiver em branco")
         void cadastrar_comCepEmBranco_retornaStatus400() throws Exception {
             var requisicao =
-                    new EnderecoDoacaoDTO.Requisicao(
+                    new EnderecoArmazenamentoDTO.Requisicao(
                             "Depósito Teste",
                             "",
                             Uf.TO,
@@ -138,7 +133,7 @@ class EnderecoDoacaoControllerTest extends BaseAPITest {
             criarEnderecoExemplo("Depósito Existente");
 
             var requisicao =
-                    new EnderecoDoacaoDTO.Requisicao(
+                    new EnderecoArmazenamentoDTO.Requisicao(
                             "depósito existente",
                             "77000-000",
                             Uf.TO,
@@ -178,9 +173,9 @@ class EnderecoDoacaoControllerTest extends BaseAPITest {
         @DisplayName("Deve filtrar inativos por padrão na listagem")
         void listar_comFiltroIncluirInativos_retornaStatus200() throws Exception {
             criarEnderecoExemplo("Ativo");
-            EnderecoDoacao inativo = criarEnderecoExemplo("Inativo");
+            EnderecoArmazenamento inativo = criarEnderecoExemplo("Inativo");
             inativo.desativar();
-            enderecoDoacaoRepository.save(inativo);
+            enderecoArmazenamentoRepository.save(inativo);
 
             mockMvc.perform(get("/doacoes/enderecos").param("incluirInativos", "false"))
                     .andExpect(status().isOk())
@@ -232,7 +227,7 @@ class EnderecoDoacaoControllerTest extends BaseAPITest {
         @Test
         @DisplayName("Deve retornar detalhes do endereço com status 200 quando existir")
         void buscarPorId_comIdExistente_retornaStatus200() throws Exception {
-            EnderecoDoacao endereco = criarEnderecoExemplo("Depósito Detalhe");
+            EnderecoArmazenamento endereco = criarEnderecoExemplo("Depósito Detalhe");
 
             mockMvc.perform(get("/doacoes/enderecos/{id}", endereco.getId()))
                     .andExpect(status().isOk())
@@ -256,10 +251,10 @@ class EnderecoDoacaoControllerTest extends BaseAPITest {
         @Test
         @DisplayName("Deve atualizar dados do endereço com status 200")
         void atualizar_comDadosValidos_retornaStatus200() throws Exception {
-            EnderecoDoacao endereco = criarEnderecoExemplo("Depósito Antigo");
+            EnderecoArmazenamento endereco = criarEnderecoExemplo("Depósito Antigo");
 
             var requisicao =
-                    new EnderecoDoacaoDTO.Atualizacao(
+                    new EnderecoArmazenamentoDTO.Atualizacao(
                             "Depósito Atualizado",
                             "77000-222",
                             Uf.TO,
@@ -284,10 +279,10 @@ class EnderecoDoacaoControllerTest extends BaseAPITest {
         @DisplayName("Deve retornar status 409 ao tentar atualizar para nome já existente")
         void atualizar_comNomeDuplicado_retornaStatus409() throws Exception {
             criarEnderecoExemplo("Depósito 1");
-            EnderecoDoacao endereco2 = criarEnderecoExemplo("Depósito 2");
+            EnderecoArmazenamento endereco2 = criarEnderecoExemplo("Depósito 2");
 
             var requisicao =
-                    new EnderecoDoacaoDTO.Atualizacao(
+                    new EnderecoArmazenamentoDTO.Atualizacao(
                             "Depósito 1",
                             "77000-000",
                             Uf.TO,
@@ -309,7 +304,7 @@ class EnderecoDoacaoControllerTest extends BaseAPITest {
         @DisplayName("Deve retornar status 404 ao tentar atualizar endereço inexistente")
         void atualizar_comIdInexistente_retornaStatus404() throws Exception {
             var requisicao =
-                    new EnderecoDoacaoDTO.Atualizacao(
+                    new EnderecoArmazenamentoDTO.Atualizacao(
                             "Depósito Teste",
                             "77000-000",
                             Uf.TO,
@@ -335,7 +330,7 @@ class EnderecoDoacaoControllerTest extends BaseAPITest {
         @Test
         @DisplayName("Deve desativar endereço com sucesso retornando status 204")
         void desativar_semItensVinculados_retornaStatus204() throws Exception {
-            EnderecoDoacao endereco = criarEnderecoExemplo("Depósito Para Desativar");
+            EnderecoArmazenamento endereco = criarEnderecoExemplo("Depósito Para Desativar");
 
             mockMvc.perform(patch("/doacoes/enderecos/{id}/desativar", endereco.getId()))
                     .andExpect(status().isNoContent());
@@ -347,10 +342,10 @@ class EnderecoDoacaoControllerTest extends BaseAPITest {
         @Test
         @DisplayName("Deve retornar status 400 ao tentar desativar endereço com itens vinculados (RN012)")
         void desativar_comItensVinculados_retornaStatus400() throws Exception {
-            EnderecoDoacao endereco = criarEnderecoExemplo("Depósito Com Itens");
+            EnderecoArmazenamento endereco = criarEnderecoExemplo("Depósito Com Itens");
 
             doReturn(true)
-                    .when(enderecoDoacaoRepository)
+                    .when(enderecoArmazenamentoRepository)
                     .possuiItensVinculados(endereco.getId());
 
             mockMvc.perform(patch("/doacoes/enderecos/{id}/desativar", endereco.getId()))
@@ -372,9 +367,9 @@ class EnderecoDoacaoControllerTest extends BaseAPITest {
         @Test
         @DisplayName("Deve reativar endereço com sucesso retornando status 204")
         void reativar_comIdExistente_retornaStatus204() throws Exception {
-            EnderecoDoacao endereco = criarEnderecoExemplo("Depósito Para Reativar");
+            EnderecoArmazenamento endereco = criarEnderecoExemplo("Depósito Para Reativar");
             endereco.desativar();
-            endereco = enderecoDoacaoRepository.save(endereco);
+            endereco = enderecoArmazenamentoRepository.save(endereco);
 
             mockMvc.perform(patch("/doacoes/enderecos/{id}/reativar", endereco.getId()))
                     .andExpect(status().isNoContent());

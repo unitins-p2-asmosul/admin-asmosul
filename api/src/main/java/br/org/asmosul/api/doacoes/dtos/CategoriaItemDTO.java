@@ -1,21 +1,21 @@
 package br.org.asmosul.api.doacoes.dtos;
 
-import br.org.asmosul.api.doacoes.models.CategoriaDoacao;
+import br.org.asmosul.api.doacoes.models.CategoriaItem;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import java.time.LocalDateTime;
 
-public final class CategoriaDoacaoDTO {
+public final class CategoriaItemDTO {
 
-    private CategoriaDoacaoDTO() {}
+    private CategoriaItemDTO() {}
 
     public record Requisicao(
             @NotBlank(message = "O nome é obrigatório")
                     @Size(max = 50, message = "O nome deve ter no máximo 50 caracteres")
                     String nome,
             String descricao) {
-        public CategoriaDoacao paraEntidade() {
-            return new CategoriaDoacao(this.nome, this.descricao);
+        public CategoriaItem paraEntidade() {
+            return new CategoriaItem(this.nome, this.descricao);
         }
     }
 
@@ -26,7 +26,7 @@ public final class CategoriaDoacaoDTO {
             String descricao) {}
 
     public record Resumo(Long id, String nome, String descricao, boolean ativo) {
-        public static Resumo deEntidade(CategoriaDoacao categoria) {
+        public static Resumo deEntidade(CategoriaItem categoria) {
             return new Resumo(
                     categoria.getId(),
                     categoria.getNome(),
@@ -41,7 +41,7 @@ public final class CategoriaDoacaoDTO {
             String descricao,
             boolean ativo,
             LocalDateTime dataInativo) {
-        public static Detalhe deEntidade(CategoriaDoacao categoria) {
+        public static Detalhe deEntidade(CategoriaItem categoria) {
             return new Detalhe(
                     categoria.getId(),
                     categoria.getNome(),

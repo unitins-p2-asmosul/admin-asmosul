@@ -7,8 +7,8 @@ import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "categoria_doacao")
-public class CategoriaDoacao extends EntidadeInativavel {
+@Table(name = "categoria_item")
+public class CategoriaItem extends EntidadeInativavel {
 
     @Column(nullable = false, unique = true, length = 50)
     private String nome;
@@ -16,9 +16,9 @@ public class CategoriaDoacao extends EntidadeInativavel {
     @Column(columnDefinition = "TEXT")
     private String descricao;
 
-    protected CategoriaDoacao() {}
+    protected CategoriaItem() {}
 
-    public CategoriaDoacao(String nome, String descricao) {
+    public CategoriaItem(String nome, String descricao) {
         this.nome = nome;
         this.descricao = descricao;
     }

@@ -1,8 +1,8 @@
 package br.org.asmosul.api.doacoes.controllers;
 
 import br.org.asmosul.api.comum.dtos.RespostaPaginada;
-import br.org.asmosul.api.doacoes.dtos.CategoriaDoacaoDTO;
-import br.org.asmosul.api.doacoes.services.CategoriaDoacaoService;
+import br.org.asmosul.api.doacoes.dtos.CategoriaItemDTO;
+import br.org.asmosul.api.doacoes.services.CategoriaItemService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -30,12 +30,12 @@ import org.springframework.web.util.UriComponentsBuilder;
         description = "Endpoints para gerenciamento de categorias de itens no módulo de doações")
 @RestController
 @RequestMapping("/doacoes/categorias")
-public class CategoriaDoacaoController {
+public class CategoriaItemController {
 
-    private final CategoriaDoacaoService categoriaDoacaoService;
+    private final CategoriaItemService categoriaItemService;
 
-    public CategoriaDoacaoController(CategoriaDoacaoService categoriaDoacaoService) {
-        this.categoriaDoacaoService = categoriaDoacaoService;
+    public CategoriaItemController(CategoriaItemService categoriaItemService) {
+        this.categoriaItemService = categoriaItemService;
     }
 
     @Operation(
@@ -52,10 +52,10 @@ public class CategoriaDoacaoController {
                         description = "Categoria de doação já cadastrada com este nome")
             })
     @PostMapping
-    public ResponseEntity<CategoriaDoacaoDTO.Detalhe> cadastrar(
-            @RequestBody @Valid CategoriaDoacaoDTO.Requisicao requisicao,
+    public ResponseEntity<CategoriaItemDTO.Detalhe> cadastrar(
+            @RequestBody @Valid CategoriaItemDTO.Requisicao requisicao,
             UriComponentsBuilder uriBuilder) {
-        CategoriaDoacaoDTO.Detalhe detalhe = categoriaDoacaoService.cadastrar(requisicao);
+        CategoriaItemDTO.Detalhe detalhe = categoriaItemService.cadastrar(requisicao);
         URI uri =
                 uriBuilder
                         .path("/doacoes/categorias/{id}")
@@ -73,14 +73,14 @@ public class CategoriaDoacaoController {
                 @ApiResponse(responseCode = "200", description = "Listagem retornada com sucesso")
             })
     @GetMapping
-    public ResponseEntity<RespostaPaginada<CategoriaDoacaoDTO.Resumo>> listar(
+    public ResponseEntity<RespostaPaginada<CategoriaItemDTO.Resumo>> listar(
             @ParameterObject @PageableDefault(size = 10, sort = "nome") Pageable paginacao,
             @RequestParam(defaultValue = "false") boolean incluirInativos,
             @RequestParam(required = false) String nome,
             @RequestParam(required = false) String descricao) {
 
-        RespostaPaginada<CategoriaDoacaoDTO.Resumo> resposta =
-                categoriaDoacaoService.listar(paginacao, incluirInativos, nome, descricao);
+        RespostaPaginada<CategoriaItemDTO.Resumo> resposta =
+                categoriaItemService.listar(paginacao, incluirInativos, nome, descricao);
 
         return ResponseEntity.ok(resposta);
     }
@@ -94,9 +94,9 @@ public class CategoriaDoacaoController {
                 @ApiResponse(responseCode = "200", description = "Lista retornada com sucesso")
             })
     @GetMapping("/todas")
-    public ResponseEntity<List<CategoriaDoacaoDTO.Resumo>> listarTodas(
+    public ResponseEntity<List<CategoriaItemDTO.Resumo>> listarTodas(
             @RequestParam(defaultValue = "false") boolean incluirInativos) {
-        return ResponseEntity.ok(categoriaDoacaoService.listarTodas(incluirInativos));
+        return ResponseEntity.ok(categoriaItemService.listarTodas(incluirInativos));
     }
 
     @Operation(
@@ -112,8 +112,8 @@ public class CategoriaDoacaoController {
                         description = "Categoria de doação não encontrada ou inativa")
             })
     @GetMapping("/{id}")
-    public ResponseEntity<CategoriaDoacaoDTO.Detalhe> buscarPorId(@PathVariable Long id) {
-        CategoriaDoacaoDTO.Detalhe detalhe = categoriaDoacaoService.buscarPorId(id);
+    public ResponseEntity<CategoriaItemDTO.Detalhe> buscarPorId(@PathVariable Long id) {
+        CategoriaItemDTO.Detalhe detalhe = categoriaItemService.buscarPorId(id);
         return ResponseEntity.ok(detalhe);
     }
 
@@ -134,10 +134,10 @@ public class CategoriaDoacaoController {
                         description = "Categoria de doação já cadastrada com este nome")
             })
     @PutMapping("/{id}")
-    public ResponseEntity<CategoriaDoacaoDTO.Detalhe> atualizar(
+    public ResponseEntity<CategoriaItemDTO.Detalhe> atualizar(
             @PathVariable Long id,
-            @RequestBody @Valid CategoriaDoacaoDTO.Atualizacao requisicao) {
-        CategoriaDoacaoDTO.Detalhe detalhe = categoriaDoacaoService.atualizar(id, requisicao);
+            @RequestBody @Valid CategoriaItemDTO.Atualizacao requisicao) {
+        CategoriaItemDTO.Detalhe detalhe = categoriaItemService.atualizar(id, requisicao);
         return ResponseEntity.ok(detalhe);
     }
 
@@ -155,7 +155,7 @@ public class CategoriaDoacaoController {
             })
     @PatchMapping("/{id}/desativar")
     public ResponseEntity<Void> desativar(@PathVariable Long id) {
-        categoriaDoacaoService.desativar(id);
+        categoriaItemService.desativar(id);
         return ResponseEntity.noContent().build();
     }
 
@@ -174,7 +174,7 @@ public class CategoriaDoacaoController {
             })
     @PatchMapping("/{id}/reativar")
     public ResponseEntity<Void> reativar(@PathVariable Long id) {
-        categoriaDoacaoService.reativar(id);
+        categoriaItemService.reativar(id);
         return ResponseEntity.noContent().build();
     }
 }

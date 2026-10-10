@@ -4,10 +4,10 @@ import br.org.asmosul.api.comum.dtos.RespostaPaginada;
 import br.org.asmosul.api.comum.exceptions.EntidadeNaoEncontradaException;
 import br.org.asmosul.api.comum.exceptions.ValidationException;
 import br.org.asmosul.api.comum.utils.PaginacaoUtils;
-import br.org.asmosul.api.doacoes.dtos.CategoriaDoacaoDTO;
-import br.org.asmosul.api.doacoes.models.CategoriaDoacao;
-import br.org.asmosul.api.doacoes.repositories.CategoriaDoacaoRepository;
-import br.org.asmosul.api.doacoes.repositories.CategoriaDoacaoSpecification;
+import br.org.asmosul.api.doacoes.dtos.CategoriaItemDTO;
+import br.org.asmosul.api.doacoes.models.CategoriaItem;
+import br.org.asmosul.api.doacoes.repositories.CategoriaItemRepository;
+import br.org.asmosul.api.doacoes.repositories.CategoriaItemSpecification;
 import java.util.List;
 import java.util.Set;
 import org.springframework.data.domain.Page;
@@ -17,68 +17,68 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-public class CategoriaDoacaoService {
+public class CategoriaItemService {
 
     private static final Set<String> CAMPOS_ORDENACAO_VALIDOS =
             Set.of("id", "nome", "descricao", "dataInativo");
 
-    private final CategoriaDoacaoRepository categoriaDoacaoRepository;
+    private final CategoriaItemRepository categoriaItemRepository;
 
-    public CategoriaDoacaoService(CategoriaDoacaoRepository categoriaDoacaoRepository) {
-        this.categoriaDoacaoRepository = categoriaDoacaoRepository;
+    public CategoriaItemService(CategoriaItemRepository categoriaItemRepository) {
+        this.categoriaItemRepository = categoriaItemRepository;
     }
 
     @Transactional
-    public CategoriaDoacaoDTO.Detalhe cadastrar(CategoriaDoacaoDTO.Requisicao requisicao) {
-        if (categoriaDoacaoRepository.existsByNomeIgnoreCase(requisicao.nome())) {
+    public CategoriaItemDTO.Detalhe cadastrar(CategoriaItemDTO.Requisicao requisicao) {
+        if (categoriaItemRepository.existsByNomeIgnoreCase(requisicao.nome())) {
             throw ValidationException.ofConflito(
                     "nome", "Já existe uma categoria de doação cadastrada com este nome.");
         }
 
-        CategoriaDoacao categoria = requisicao.paraEntidade();
-        CategoriaDoacao categoriaSalva = categoriaDoacaoRepository.save(categoria);
+        CategoriaItem categoria = requisicao.paraEntidade();
+        CategoriaItem categoriaSalva = categoriaItemRepository.save(categoria);
 
-        return CategoriaDoacaoDTO.Detalhe.deEntidade(categoriaSalva);
+        return CategoriaItemDTO.Detalhe.deEntidade(categoriaSalva);
     }
 
     @Transactional(readOnly = true)
-    public RespostaPaginada<CategoriaDoacaoDTO.Resumo> listar(
+    public RespostaPaginada<CategoriaItemDTO.Resumo> listar(
             Pageable paginacao, boolean incluirInativos, String nome, String descricao) {
 
         Pageable paginacaoSanitizada =
                 PaginacaoUtils.sanitizarPaginacao(paginacao, CAMPOS_ORDENACAO_VALIDOS, "nome");
 
-        Specification<CategoriaDoacao> spec =
-                CategoriaDoacaoSpecification.comFiltro(nome, descricao, incluirInativos);
+        Specification<CategoriaItem> spec =
+                CategoriaItemSpecification.comFiltro(nome, descricao, incluirInativos);
 
-        Page<CategoriaDoacao> pagina =
-                categoriaDoacaoRepository.findAll(spec, paginacaoSanitizada);
+        Page<CategoriaItem> pagina =
+                categoriaItemRepository.findAll(spec, paginacaoSanitizada);
 
-        Page<CategoriaDoacaoDTO.Resumo> paginaDtos =
-                pagina.map(CategoriaDoacaoDTO.Resumo::deEntidade);
+        Page<CategoriaItemDTO.Resumo> paginaDtos =
+                pagina.map(CategoriaItemDTO.Resumo::deEntidade);
 
         return RespostaPaginada.dePage(paginaDtos);
     }
 
     @Transactional(readOnly = true)
-    public List<CategoriaDoacaoDTO.Resumo> listarTodas(boolean incluirInativos) {
-        List<CategoriaDoacao> categorias =
+    public List<CategoriaItemDTO.Resumo> listarTodas(boolean incluirInativos) {
+        List<CategoriaItem> categorias =
                 incluirInativos
-                        ? categoriaDoacaoRepository.findAll()
-                        : categoriaDoacaoRepository.findAllByDataInativoIsNull();
+                        ? categoriaItemRepository.findAll()
+                        : categoriaItemRepository.findAllByDataInativoIsNull();
 
-        return categorias.stream().map(CategoriaDoacaoDTO.Resumo::deEntidade).toList();
+        return categorias.stream().map(CategoriaItemDTO.Resumo::deEntidade).toList();
     }
 
     @Transactional(readOnly = true)
-    public List<CategoriaDoacaoDTO.Resumo> listarTodas() {
+    public List<CategoriaItemDTO.Resumo> listarTodas() {
         return listarTodas(false);
     }
 
     @Transactional(readOnly = true)
-    public CategoriaDoacaoDTO.Detalhe buscarPorId(Long id) {
-        CategoriaDoacao categoria =
-                categoriaDoacaoRepository
+    public CategoriaItemDTO.Detalhe buscarPorId(Long id) {
+        CategoriaItem categoria =
+                categoriaItemRepository
                         .findByIdAndDataInativoIsNull(id)
                         .orElseThrow(
                                 () ->
@@ -86,13 +86,13 @@ public class CategoriaDoacaoService {
                                                 "Categoria de doação ativa não encontrada com o ID informado: "
                                                         + id));
 
-        return CategoriaDoacaoDTO.Detalhe.deEntidade(categoria);
+        return CategoriaItemDTO.Detalhe.deEntidade(categoria);
     }
 
     @Transactional
-    public CategoriaDoacaoDTO.Detalhe atualizar(Long id, CategoriaDoacaoDTO.Atualizacao requisicao) {
-        CategoriaDoacao categoria =
-                categoriaDoacaoRepository
+    public CategoriaItemDTO.Detalhe atualizar(Long id, CategoriaItemDTO.Atualizacao requisicao) {
+        CategoriaItem categoria =
+                categoriaItemRepository
                         .findByIdAndDataInativoIsNull(id)
                         .orElseThrow(
                                 () ->
@@ -100,7 +100,7 @@ public class CategoriaDoacaoService {
                                                 "Categoria de doação ativa não encontrada com o ID informado: "
                                                         + id));
 
-        if (categoriaDoacaoRepository.existsByNomeIgnoreCaseAndIdNot(requisicao.nome(), id)) {
+        if (categoriaItemRepository.existsByNomeIgnoreCaseAndIdNot(requisicao.nome(), id)) {
             throw ValidationException.ofConflito(
                     "nome", "Já existe uma categoria de doação cadastrada com este nome.");
         }
@@ -108,13 +108,13 @@ public class CategoriaDoacaoService {
         categoria.setNome(requisicao.nome());
         categoria.setDescricao(requisicao.descricao());
 
-        return CategoriaDoacaoDTO.Detalhe.deEntidade(categoria);
+        return CategoriaItemDTO.Detalhe.deEntidade(categoria);
     }
 
     @Transactional
     public void desativar(Long id) {
-        CategoriaDoacao categoria =
-                categoriaDoacaoRepository
+        CategoriaItem categoria =
+                categoriaItemRepository
                         .findByIdAndDataInativoIsNull(id)
                         .orElseThrow(
                                 () ->
@@ -127,8 +127,8 @@ public class CategoriaDoacaoService {
 
     @Transactional
     public void reativar(Long id) {
-        CategoriaDoacao categoria =
-                categoriaDoacaoRepository
+        CategoriaItem categoria =
+                categoriaItemRepository
                         .findById(id)
                         .orElseThrow(
                                 () ->

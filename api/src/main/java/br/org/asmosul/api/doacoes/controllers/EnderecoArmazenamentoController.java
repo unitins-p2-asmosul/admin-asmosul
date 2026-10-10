@@ -1,8 +1,8 @@
 package br.org.asmosul.api.doacoes.controllers;
 
 import br.org.asmosul.api.comum.dtos.RespostaPaginada;
-import br.org.asmosul.api.doacoes.dtos.EnderecoDoacaoDTO;
-import br.org.asmosul.api.doacoes.services.EnderecoDoacaoService;
+import br.org.asmosul.api.doacoes.dtos.EnderecoArmazenamentoDTO;
+import br.org.asmosul.api.doacoes.services.EnderecoArmazenamentoService;
 import br.org.asmosul.api.pessoas.models.Uf;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -32,12 +32,12 @@ import org.springframework.web.util.UriComponentsBuilder;
                 "Endpoints para gerenciamento de endereços de armazenamento de itens no módulo de doações")
 @RestController
 @RequestMapping("/doacoes/enderecos")
-public class EnderecoDoacaoController {
+public class EnderecoArmazenamentoController {
 
-    private final EnderecoDoacaoService enderecoDoacaoService;
+    private final EnderecoArmazenamentoService enderecoArmazenamentoService;
 
-    public EnderecoDoacaoController(EnderecoDoacaoService enderecoDoacaoService) {
-        this.enderecoDoacaoService = enderecoDoacaoService;
+    public EnderecoArmazenamentoController(EnderecoArmazenamentoService enderecoArmazenamentoService) {
+        this.enderecoArmazenamentoService = enderecoArmazenamentoService;
     }
 
     @Operation(
@@ -55,10 +55,10 @@ public class EnderecoDoacaoController {
                         description = "Endereço já cadastrado com este nome")
             })
     @PostMapping
-    public ResponseEntity<EnderecoDoacaoDTO.Detalhe> cadastrar(
-            @RequestBody @Valid EnderecoDoacaoDTO.Requisicao requisicao,
+    public ResponseEntity<EnderecoArmazenamentoDTO.Detalhe> cadastrar(
+            @RequestBody @Valid EnderecoArmazenamentoDTO.Requisicao requisicao,
             UriComponentsBuilder uriBuilder) {
-        EnderecoDoacaoDTO.Detalhe detalhe = enderecoDoacaoService.cadastrar(requisicao);
+        EnderecoArmazenamentoDTO.Detalhe detalhe = enderecoArmazenamentoService.cadastrar(requisicao);
         URI uri =
                 uriBuilder
                         .path("/doacoes/enderecos/{id}")
@@ -76,7 +76,7 @@ public class EnderecoDoacaoController {
                 @ApiResponse(responseCode = "200", description = "Listagem retornada com sucesso")
             })
     @GetMapping
-    public ResponseEntity<RespostaPaginada<EnderecoDoacaoDTO.Resumo>> listar(
+    public ResponseEntity<RespostaPaginada<EnderecoArmazenamentoDTO.Resumo>> listar(
             @ParameterObject @PageableDefault(size = 10, sort = "nome") Pageable paginacao,
             @RequestParam(defaultValue = "false") boolean incluirInativos,
             @RequestParam(required = false) String nome,
@@ -86,8 +86,8 @@ public class EnderecoDoacaoController {
             @RequestParam(required = false) String bairro,
             @RequestParam(required = false) String logradouro) {
 
-        RespostaPaginada<EnderecoDoacaoDTO.Resumo> resposta =
-                enderecoDoacaoService.listar(
+        RespostaPaginada<EnderecoArmazenamentoDTO.Resumo> resposta =
+                enderecoArmazenamentoService.listar(
                         paginacao, incluirInativos, nome, cep, uf, cidade, bairro, logradouro);
 
         return ResponseEntity.ok(resposta);
@@ -102,9 +102,9 @@ public class EnderecoDoacaoController {
                 @ApiResponse(responseCode = "200", description = "Lista retornada com sucesso")
             })
     @GetMapping("/todas")
-    public ResponseEntity<List<EnderecoDoacaoDTO.Resumo>> listarTodas(
+    public ResponseEntity<List<EnderecoArmazenamentoDTO.Resumo>> listarTodas(
             @RequestParam(defaultValue = "false") boolean incluirInativos) {
-        return ResponseEntity.ok(enderecoDoacaoService.listarTodas(incluirInativos));
+        return ResponseEntity.ok(enderecoArmazenamentoService.listarTodas(incluirInativos));
     }
 
     @Operation(
@@ -118,8 +118,8 @@ public class EnderecoDoacaoController {
                         description = "Endereço não encontrado ou inativo")
             })
     @GetMapping("/{id}")
-    public ResponseEntity<EnderecoDoacaoDTO.Detalhe> buscarPorId(@PathVariable Long id) {
-        EnderecoDoacaoDTO.Detalhe detalhe = enderecoDoacaoService.buscarPorId(id);
+    public ResponseEntity<EnderecoArmazenamentoDTO.Detalhe> buscarPorId(@PathVariable Long id) {
+        EnderecoArmazenamentoDTO.Detalhe detalhe = enderecoArmazenamentoService.buscarPorId(id);
         return ResponseEntity.ok(detalhe);
     }
 
@@ -140,10 +140,10 @@ public class EnderecoDoacaoController {
                         description = "Endereço já cadastrado com este nome")
             })
     @PutMapping("/{id}")
-    public ResponseEntity<EnderecoDoacaoDTO.Detalhe> atualizar(
+    public ResponseEntity<EnderecoArmazenamentoDTO.Detalhe> atualizar(
             @PathVariable Long id,
-            @RequestBody @Valid EnderecoDoacaoDTO.Atualizacao requisicao) {
-        EnderecoDoacaoDTO.Detalhe detalhe = enderecoDoacaoService.atualizar(id, requisicao);
+            @RequestBody @Valid EnderecoArmazenamentoDTO.Atualizacao requisicao) {
+        EnderecoArmazenamentoDTO.Detalhe detalhe = enderecoArmazenamentoService.atualizar(id, requisicao);
         return ResponseEntity.ok(detalhe);
     }
 
@@ -165,7 +165,7 @@ public class EnderecoDoacaoController {
             })
     @PatchMapping("/{id}/desativar")
     public ResponseEntity<Void> desativar(@PathVariable Long id) {
-        enderecoDoacaoService.desativar(id);
+        enderecoArmazenamentoService.desativar(id);
         return ResponseEntity.noContent().build();
     }
 
@@ -184,7 +184,7 @@ public class EnderecoDoacaoController {
             })
     @PatchMapping("/{id}/reativar")
     public ResponseEntity<Void> reativar(@PathVariable Long id) {
-        enderecoDoacaoService.reativar(id);
+        enderecoArmazenamentoService.reativar(id);
         return ResponseEntity.noContent().build();
     }
 }

@@ -10,9 +10,9 @@ import br.org.asmosul.api.comum.dtos.RespostaPaginada;
 import br.org.asmosul.api.comum.exceptions.ConflitoDadosException;
 import br.org.asmosul.api.comum.exceptions.EntidadeNaoEncontradaException;
 import br.org.asmosul.api.comum.exceptions.ValidationException;
-import br.org.asmosul.api.doacoes.dtos.EnderecoDoacaoDTO;
-import br.org.asmosul.api.doacoes.models.EnderecoDoacao;
-import br.org.asmosul.api.doacoes.repositories.EnderecoDoacaoRepository;
+import br.org.asmosul.api.doacoes.dtos.EnderecoArmazenamentoDTO;
+import br.org.asmosul.api.doacoes.models.EnderecoArmazenamento;
+import br.org.asmosul.api.doacoes.repositories.EnderecoArmazenamentoRepository;
 import br.org.asmosul.api.pessoas.models.Uf;
 import java.util.List;
 import java.util.Optional;
@@ -31,15 +31,15 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("Testes Unitários - EnderecoDoacaoService")
-class EnderecoDoacaoServiceTest {
+class EnderecoArmazenamentoServiceTest {
 
-    @Mock private EnderecoDoacaoRepository enderecoDoacaoRepository;
+    @Mock private EnderecoArmazenamentoRepository enderecoArmazenamentoRepository;
 
-    @InjectMocks private EnderecoDoacaoService enderecoDoacaoService;
+    @InjectMocks private EnderecoArmazenamentoService enderecoArmazenamentoService;
 
-    private EnderecoDoacao criarEnderecoExemplo(Long id, String nome) {
-        EnderecoDoacao endereco =
-                new EnderecoDoacao(
+    private EnderecoArmazenamento criarEnderecoExemplo(Long id, String nome) {
+        EnderecoArmazenamento endereco =
+                new EnderecoArmazenamento(
                         nome,
                         "77000-000",
                         Uf.TO,
@@ -61,7 +61,7 @@ class EnderecoDoacaoServiceTest {
         @DisplayName("Deve cadastrar endereço com dados válidos")
         void cadastrar_comDadosValidos_salvaERetornaDetalhe() {
             var requisicao =
-                    new EnderecoDoacaoDTO.Requisicao(
+                    new EnderecoArmazenamentoDTO.Requisicao(
                             "Galpão Central",
                             "77000-000",
                             Uf.TO,
@@ -72,25 +72,25 @@ class EnderecoDoacaoServiceTest {
                             "Sala 1",
                             "Depósito principal");
 
-            when(enderecoDoacaoRepository.existsByNomeIgnoreCase("Galpão Central")).thenReturn(false);
+            when(enderecoArmazenamentoRepository.existsByNomeIgnoreCase("Galpão Central")).thenReturn(false);
 
-            EnderecoDoacao salvo = criarEnderecoExemplo(1L, "Galpão Central");
-            when(enderecoDoacaoRepository.save(any(EnderecoDoacao.class))).thenReturn(salvo);
+            EnderecoArmazenamento salvo = criarEnderecoExemplo(1L, "Galpão Central");
+            when(enderecoArmazenamentoRepository.save(any(EnderecoArmazenamento.class))).thenReturn(salvo);
 
-            EnderecoDoacaoDTO.Detalhe resultado = enderecoDoacaoService.cadastrar(requisicao);
+            EnderecoArmazenamentoDTO.Detalhe resultado = enderecoArmazenamentoService.cadastrar(requisicao);
 
             assertThat(resultado).isNotNull();
             assertThat(resultado.id()).isEqualTo(1L);
             assertThat(resultado.nome()).isEqualTo("Galpão Central");
             assertThat(resultado.ativo()).isTrue();
-            verify(enderecoDoacaoRepository).save(any(EnderecoDoacao.class));
+            verify(enderecoArmazenamentoRepository).save(any(EnderecoArmazenamento.class));
         }
 
         @Test
         @DisplayName("Deve lançar ConflitoDadosException quando nome já existir (RN03)")
         void cadastrar_comNomeDuplicado_lancaConflitoDadosException() {
             var requisicao =
-                    new EnderecoDoacaoDTO.Requisicao(
+                    new EnderecoArmazenamentoDTO.Requisicao(
                             "Galpão Central",
                             "77000-000",
                             Uf.TO,
@@ -101,9 +101,9 @@ class EnderecoDoacaoServiceTest {
                             null,
                             null);
 
-            when(enderecoDoacaoRepository.existsByNomeIgnoreCase("Galpão Central")).thenReturn(true);
+            when(enderecoArmazenamentoRepository.existsByNomeIgnoreCase("Galpão Central")).thenReturn(true);
 
-            assertThatThrownBy(() -> enderecoDoacaoService.cadastrar(requisicao))
+            assertThatThrownBy(() -> enderecoArmazenamentoService.cadastrar(requisicao))
                     .isInstanceOf(ConflitoDadosException.class)
                     .hasMessageContaining("Já existe um endereço de armazenamento cadastrado com este nome.");
         }
@@ -117,13 +117,13 @@ class EnderecoDoacaoServiceTest {
         @DisplayName("Deve retornar listagem paginada sanitizada com filtros")
         void listar_comPaginacaoESanitizacao_retornaRespostaPaginada() {
             Pageable paginacao = PageRequest.of(0, 10);
-            EnderecoDoacao endereco = criarEnderecoExemplo(2L, "Depósito A");
+            EnderecoArmazenamento endereco = criarEnderecoExemplo(2L, "Depósito A");
 
-            when(enderecoDoacaoRepository.findAll(any(Specification.class), any(Pageable.class)))
+            when(enderecoArmazenamentoRepository.findAll(any(Specification.class), any(Pageable.class)))
                     .thenReturn(new PageImpl<>(List.of(endereco), paginacao, 1));
 
-            RespostaPaginada<EnderecoDoacaoDTO.Resumo> resposta =
-                    enderecoDoacaoService.listar(
+            RespostaPaginada<EnderecoArmazenamentoDTO.Resumo> resposta =
+                    enderecoArmazenamentoService.listar(
                             paginacao, false, "Depósito", "77000", Uf.TO, "Palmas", "Centro", "Av");
 
             assertThat(resposta).isNotNull();
@@ -140,10 +140,10 @@ class EnderecoDoacaoServiceTest {
         @Test
         @DisplayName("Deve listar apenas ativos quando incluirInativos for falso")
         void listarTodas_apenasAtivos_retornaLista() {
-            EnderecoDoacao ativo = criarEnderecoExemplo(3L, "Depósito Ativo");
-            when(enderecoDoacaoRepository.findAllByDataInativoIsNull()).thenReturn(List.of(ativo));
+            EnderecoArmazenamento ativo = criarEnderecoExemplo(3L, "Depósito Ativo");
+            when(enderecoArmazenamentoRepository.findAllByDataInativoIsNull()).thenReturn(List.of(ativo));
 
-            List<EnderecoDoacaoDTO.Resumo> resultado = enderecoDoacaoService.listarTodas(false);
+            List<EnderecoArmazenamentoDTO.Resumo> resultado = enderecoArmazenamentoService.listarTodas(false);
 
             assertThat(resultado).hasSize(1);
             assertThat(resultado.get(0).nome()).isEqualTo("Depósito Ativo");
@@ -152,13 +152,13 @@ class EnderecoDoacaoServiceTest {
         @Test
         @DisplayName("Deve listar todos incluindo inativos quando incluirInativos for verdadeiro")
         void listarTodas_incluindoInativos_retornaListaCompleta() {
-            EnderecoDoacao ativo = criarEnderecoExemplo(3L, "Depósito Ativo");
-            EnderecoDoacao inativo = criarEnderecoExemplo(4L, "Depósito Inativo");
+            EnderecoArmazenamento ativo = criarEnderecoExemplo(3L, "Depósito Ativo");
+            EnderecoArmazenamento inativo = criarEnderecoExemplo(4L, "Depósito Inativo");
             inativo.desativar();
 
-            when(enderecoDoacaoRepository.findAll()).thenReturn(List.of(ativo, inativo));
+            when(enderecoArmazenamentoRepository.findAll()).thenReturn(List.of(ativo, inativo));
 
-            List<EnderecoDoacaoDTO.Resumo> resultado = enderecoDoacaoService.listarTodas(true);
+            List<EnderecoArmazenamentoDTO.Resumo> resultado = enderecoArmazenamentoService.listarTodas(true);
 
             assertThat(resultado).hasSize(2);
         }
@@ -171,11 +171,11 @@ class EnderecoDoacaoServiceTest {
         @Test
         @DisplayName("Deve retornar detalhes do endereço quando ativo e encontrado")
         void buscarPorId_comIdExistenteEAtivo_retornaDetalhe() {
-            EnderecoDoacao endereco = criarEnderecoExemplo(5L, "Depósito Sul");
-            when(enderecoDoacaoRepository.findByIdAndDataInativoIsNull(5L))
+            EnderecoArmazenamento endereco = criarEnderecoExemplo(5L, "Depósito Sul");
+            when(enderecoArmazenamentoRepository.findByIdAndDataInativoIsNull(5L))
                     .thenReturn(Optional.of(endereco));
 
-            EnderecoDoacaoDTO.Detalhe resultado = enderecoDoacaoService.buscarPorId(5L);
+            EnderecoArmazenamentoDTO.Detalhe resultado = enderecoArmazenamentoService.buscarPorId(5L);
 
             assertThat(resultado).isNotNull();
             assertThat(resultado.id()).isEqualTo(5L);
@@ -185,10 +185,10 @@ class EnderecoDoacaoServiceTest {
         @Test
         @DisplayName("Deve lançar EntidadeNaoEncontradaException quando não encontrado ou inativo")
         void buscarPorId_comIdInexistenteOuInativo_lancaEntidadeNaoEncontradaException() {
-            when(enderecoDoacaoRepository.findByIdAndDataInativoIsNull(99L))
+            when(enderecoArmazenamentoRepository.findByIdAndDataInativoIsNull(99L))
                     .thenReturn(Optional.empty());
 
-            assertThatThrownBy(() -> enderecoDoacaoService.buscarPorId(99L))
+            assertThatThrownBy(() -> enderecoArmazenamentoService.buscarPorId(99L))
                     .isInstanceOf(EntidadeNaoEncontradaException.class);
         }
     }
@@ -200,14 +200,14 @@ class EnderecoDoacaoServiceTest {
         @Test
         @DisplayName("Deve atualizar endereço com sucesso")
         void atualizar_comDadosValidos_atualizaERetornaDetalhe() {
-            EnderecoDoacao endereco = criarEnderecoExemplo(6L, "Nome Antigo");
-            when(enderecoDoacaoRepository.findByIdAndDataInativoIsNull(6L))
+            EnderecoArmazenamento endereco = criarEnderecoExemplo(6L, "Nome Antigo");
+            when(enderecoArmazenamentoRepository.findByIdAndDataInativoIsNull(6L))
                     .thenReturn(Optional.of(endereco));
-            when(enderecoDoacaoRepository.existsByNomeIgnoreCaseAndIdNot("Nome Novo", 6L))
+            when(enderecoArmazenamentoRepository.existsByNomeIgnoreCaseAndIdNot("Nome Novo", 6L))
                     .thenReturn(false);
 
             var requisicao =
-                    new EnderecoDoacaoDTO.Atualizacao(
+                    new EnderecoArmazenamentoDTO.Atualizacao(
                             "Nome Novo",
                             "77000-111",
                             Uf.TO,
@@ -218,7 +218,7 @@ class EnderecoDoacaoServiceTest {
                             "Galpão 2",
                             "Novo depósito");
 
-            EnderecoDoacaoDTO.Detalhe resultado = enderecoDoacaoService.atualizar(6L, requisicao);
+            EnderecoArmazenamentoDTO.Detalhe resultado = enderecoArmazenamentoService.atualizar(6L, requisicao);
 
             assertThat(resultado).isNotNull();
             assertThat(resultado.nome()).isEqualTo("Nome Novo");
@@ -229,14 +229,14 @@ class EnderecoDoacaoServiceTest {
         @Test
         @DisplayName("Deve lançar ConflitoDadosException ao atualizar para nome já existente")
         void atualizar_comNomeDuplicado_lancaConflitoDadosException() {
-            EnderecoDoacao endereco = criarEnderecoExemplo(6L, "Nome Antigo");
-            when(enderecoDoacaoRepository.findByIdAndDataInativoIsNull(6L))
+            EnderecoArmazenamento endereco = criarEnderecoExemplo(6L, "Nome Antigo");
+            when(enderecoArmazenamentoRepository.findByIdAndDataInativoIsNull(6L))
                     .thenReturn(Optional.of(endereco));
-            when(enderecoDoacaoRepository.existsByNomeIgnoreCaseAndIdNot("Nome Existente", 6L))
+            when(enderecoArmazenamentoRepository.existsByNomeIgnoreCaseAndIdNot("Nome Existente", 6L))
                     .thenReturn(true);
 
             var requisicao =
-                    new EnderecoDoacaoDTO.Atualizacao(
+                    new EnderecoArmazenamentoDTO.Atualizacao(
                             "Nome Existente",
                             "77000-111",
                             Uf.TO,
@@ -247,7 +247,7 @@ class EnderecoDoacaoServiceTest {
                             null,
                             null);
 
-            assertThatThrownBy(() -> enderecoDoacaoService.atualizar(6L, requisicao))
+            assertThatThrownBy(() -> enderecoArmazenamentoService.atualizar(6L, requisicao))
                     .isInstanceOf(ConflitoDadosException.class);
         }
     }
@@ -259,12 +259,12 @@ class EnderecoDoacaoServiceTest {
         @Test
         @DisplayName("Deve desativar endereço ativo quando não houver itens vinculados")
         void desativar_semItensVinculados_inativaComSucesso() {
-            EnderecoDoacao endereco = criarEnderecoExemplo(7L, "Depósito Vazio");
-            when(enderecoDoacaoRepository.findByIdAndDataInativoIsNull(7L))
+            EnderecoArmazenamento endereco = criarEnderecoExemplo(7L, "Depósito Vazio");
+            when(enderecoArmazenamentoRepository.findByIdAndDataInativoIsNull(7L))
                     .thenReturn(Optional.of(endereco));
-            when(enderecoDoacaoRepository.possuiItensVinculados(7L)).thenReturn(false);
+            when(enderecoArmazenamentoRepository.possuiItensVinculados(7L)).thenReturn(false);
 
-            enderecoDoacaoService.desativar(7L);
+            enderecoArmazenamentoService.desativar(7L);
 
             assertThat(endereco.isAtivo()).isFalse();
             assertThat(endereco.getDataInativo()).isNotNull();
@@ -273,12 +273,12 @@ class EnderecoDoacaoServiceTest {
         @Test
         @DisplayName("Deve lançar ValidationException (HTTP 400) ao desativar endereço com itens vinculados (RN012)")
         void desativar_comItensVinculados_lancaValidationException() {
-            EnderecoDoacao endereco = criarEnderecoExemplo(7L, "Depósito Ocupado");
-            when(enderecoDoacaoRepository.findByIdAndDataInativoIsNull(7L))
+            EnderecoArmazenamento endereco = criarEnderecoExemplo(7L, "Depósito Ocupado");
+            when(enderecoArmazenamentoRepository.findByIdAndDataInativoIsNull(7L))
                     .thenReturn(Optional.of(endereco));
-            when(enderecoDoacaoRepository.possuiItensVinculados(7L)).thenReturn(true);
+            when(enderecoArmazenamentoRepository.possuiItensVinculados(7L)).thenReturn(true);
 
-            assertThatThrownBy(() -> enderecoDoacaoService.desativar(7L))
+            assertThatThrownBy(() -> enderecoArmazenamentoService.desativar(7L))
                     .isInstanceOf(ValidationException.class)
                     .satisfies(
                             ex -> {
@@ -295,10 +295,10 @@ class EnderecoDoacaoServiceTest {
         @Test
         @DisplayName("Deve lançar EntidadeNaoEncontradaException se o endereço já estiver inativo ou não existir")
         void desativar_comIdInexistenteOuJaInativo_lancaEntidadeNaoEncontradaException() {
-            when(enderecoDoacaoRepository.findByIdAndDataInativoIsNull(99L))
+            when(enderecoArmazenamentoRepository.findByIdAndDataInativoIsNull(99L))
                     .thenReturn(Optional.empty());
 
-            assertThatThrownBy(() -> enderecoDoacaoService.desativar(99L))
+            assertThatThrownBy(() -> enderecoArmazenamentoService.desativar(99L))
                     .isInstanceOf(EntidadeNaoEncontradaException.class);
         }
     }
@@ -310,11 +310,11 @@ class EnderecoDoacaoServiceTest {
         @Test
         @DisplayName("Deve reativar endereço inativo com sucesso")
         void reativar_comIdExistente_reativaComSucesso() {
-            EnderecoDoacao endereco = criarEnderecoExemplo(8L, "Depósito Reativado");
+            EnderecoArmazenamento endereco = criarEnderecoExemplo(8L, "Depósito Reativado");
             endereco.desativar();
-            when(enderecoDoacaoRepository.findById(8L)).thenReturn(Optional.of(endereco));
+            when(enderecoArmazenamentoRepository.findById(8L)).thenReturn(Optional.of(endereco));
 
-            enderecoDoacaoService.reativar(8L);
+            enderecoArmazenamentoService.reativar(8L);
 
             assertThat(endereco.isAtivo()).isTrue();
             assertThat(endereco.getDataInativo()).isNull();
@@ -323,9 +323,9 @@ class EnderecoDoacaoServiceTest {
         @Test
         @DisplayName("Deve lançar EntidadeNaoEncontradaException ao reativar endereço inexistente")
         void reativar_comIdInexistente_lancaEntidadeNaoEncontradaException() {
-            when(enderecoDoacaoRepository.findById(99L)).thenReturn(Optional.empty());
+            when(enderecoArmazenamentoRepository.findById(99L)).thenReturn(Optional.empty());
 
-            assertThatThrownBy(() -> enderecoDoacaoService.reativar(99L))
+            assertThatThrownBy(() -> enderecoArmazenamentoService.reativar(99L))
                     .isInstanceOf(EntidadeNaoEncontradaException.class);
         }
     }

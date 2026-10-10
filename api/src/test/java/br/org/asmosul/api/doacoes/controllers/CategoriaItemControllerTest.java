@@ -9,9 +9,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import br.org.asmosul.api.comum.config.BaseAPITest;
-import br.org.asmosul.api.doacoes.dtos.CategoriaDoacaoDTO;
-import br.org.asmosul.api.doacoes.models.CategoriaDoacao;
-import br.org.asmosul.api.doacoes.repositories.CategoriaDoacaoRepository;
+import br.org.asmosul.api.doacoes.dtos.CategoriaItemDTO;
+import br.org.asmosul.api.doacoes.models.CategoriaItem;
+import br.org.asmosul.api.doacoes.repositories.CategoriaItemRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -19,18 +19,17 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MockMvc;
 
 @DisplayName("Testes de Integração - CategoriaDoacaoController")
-class CategoriaDoacaoControllerTest extends BaseAPITest {
+class   CategoriaItemControllerTest extends BaseAPITest {
 
-    @Autowired private CategoriaDoacaoRepository categoriaDoacaoRepository;
+    @Autowired private CategoriaItemRepository categoriaItemRepository;
 
     private final ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
 
     @BeforeEach
     void setUp() {
-        categoriaDoacaoRepository.deleteAll();
+        categoriaItemRepository.deleteAll();
     }
 
     @Nested
@@ -41,7 +40,7 @@ class CategoriaDoacaoControllerTest extends BaseAPITest {
         @DisplayName("Deve cadastrar categoria de doação com sucesso retornando status 201 e Location header")
         void cadastrar_comDadosValidos_retornaStatus201ELocationHeader() throws Exception {
             var requisicao =
-                    new CategoriaDoacaoDTO.Requisicao("Alimentos Não Perecíveis", "Arroz, feijão, etc.");
+                    new CategoriaItemDTO.Requisicao("Alimentos Não Perecíveis", "Arroz, feijão, etc.");
 
             mockMvc.perform(
                             post("/doacoes/categorias")
@@ -63,7 +62,7 @@ class CategoriaDoacaoControllerTest extends BaseAPITest {
         @Test
         @DisplayName("Deve retornar status 400 quando o nome estiver em branco")
         void cadastrar_comNomeEmBranco_retornaStatus400() throws Exception {
-            var requisicao = new CategoriaDoacaoDTO.Requisicao("", "Descrição válida");
+            var requisicao = new CategoriaItemDTO.Requisicao("", "Descrição válida");
 
             mockMvc.perform(
                             post("/doacoes/categorias")
@@ -76,7 +75,7 @@ class CategoriaDoacaoControllerTest extends BaseAPITest {
         @DisplayName("Deve retornar status 400 quando o nome exceder 50 caracteres")
         void cadastrar_comNomeExcedendoLimite_retornaStatus400() throws Exception {
             var nomeLongo = "A".repeat(51);
-            var requisicao = new CategoriaDoacaoDTO.Requisicao(nomeLongo, "Descrição");
+            var requisicao = new CategoriaItemDTO.Requisicao(nomeLongo, "Descrição");
 
             mockMvc.perform(
                             post("/doacoes/categorias")
@@ -88,9 +87,9 @@ class CategoriaDoacaoControllerTest extends BaseAPITest {
         @Test
         @DisplayName("Deve retornar status 409 quando o nome já estiver cadastrado (RN03)")
         void cadastrar_comNomeDuplicado_retornaStatus409() throws Exception {
-            categoriaDoacaoRepository.save(new CategoriaDoacao("Vestuário", "Roupas em geral"));
+            categoriaItemRepository.save(new CategoriaItem("Vestuário", "Roupas em geral"));
 
-            var requisicao = new CategoriaDoacaoDTO.Requisicao("vestuário", "Outra descrição");
+            var requisicao = new CategoriaItemDTO.Requisicao("vestuário", "Outra descrição");
 
             mockMvc.perform(
                             post("/doacoes/categorias")
@@ -108,8 +107,8 @@ class CategoriaDoacaoControllerTest extends BaseAPITest {
         @Test
         @DisplayName("Deve retornar listagem paginada de categorias de doação com status 200")
         void listar_comPaginacao_retornaStatus200EListaPaginada() throws Exception {
-            categoriaDoacaoRepository.save(new CategoriaDoacao("Alimentos", "Desc 1"));
-            categoriaDoacaoRepository.save(new CategoriaDoacao("Roupas", "Desc 2"));
+            categoriaItemRepository.save(new CategoriaItem("Alimentos", "Desc 1"));
+            categoriaItemRepository.save(new CategoriaItem("Roupas", "Desc 2"));
 
             mockMvc.perform(get("/doacoes/categorias").param("page", "0").param("size", "10"))
                     .andExpect(status().isOk())
@@ -120,10 +119,10 @@ class CategoriaDoacaoControllerTest extends BaseAPITest {
         @Test
         @DisplayName("Deve filtrar inativos por padrão na listagem")
         void listar_comFiltroIncluirInativos_retornaStatus200() throws Exception {
-            categoriaDoacaoRepository.save(new CategoriaDoacao("Categoria Ativa", "Desc"));
-            CategoriaDoacao inativa = new CategoriaDoacao("Categoria Inativa", "Desc");
+            categoriaItemRepository.save(new CategoriaItem("Categoria Ativa", "Desc"));
+            CategoriaItem inativa = new CategoriaItem("Categoria Inativa", "Desc");
             inativa.desativar();
-            categoriaDoacaoRepository.save(inativa);
+            categoriaItemRepository.save(inativa);
 
             mockMvc.perform(get("/doacoes/categorias").param("incluirInativos", "false"))
                     .andExpect(status().isOk())
@@ -138,8 +137,8 @@ class CategoriaDoacaoControllerTest extends BaseAPITest {
         @Test
         @DisplayName("Deve filtrar por nome e descrição")
         void listar_comFiltrosNomeEDescricao_retornaItensFiltrados() throws Exception {
-            categoriaDoacaoRepository.save(new CategoriaDoacao("Cadeiras", "Móveis para escritório"));
-            categoriaDoacaoRepository.save(new CategoriaDoacao("Mesas", "Móveis para jantar"));
+            categoriaItemRepository.save(new CategoriaItem("Cadeiras", "Móveis para escritório"));
+            categoriaItemRepository.save(new CategoriaItem("Mesas", "Móveis para jantar"));
 
             mockMvc.perform(
                             get("/doacoes/categorias")
@@ -158,8 +157,8 @@ class CategoriaDoacaoControllerTest extends BaseAPITest {
         @Test
         @DisplayName("Deve retornar lista completa de categorias de doação ativas com status 200")
         void listarTodas_retornaStatus200EListaCompleta() throws Exception {
-            categoriaDoacaoRepository.save(new CategoriaDoacao("Categoria A", "Desc A"));
-            categoriaDoacaoRepository.save(new CategoriaDoacao("Categoria B", "Desc B"));
+            categoriaItemRepository.save(new CategoriaItem("Categoria A", "Desc A"));
+            categoriaItemRepository.save(new CategoriaItem("Categoria B", "Desc B"));
 
             mockMvc.perform(get("/doacoes/categorias/todas"))
                     .andExpect(status().isOk())
@@ -175,8 +174,8 @@ class CategoriaDoacaoControllerTest extends BaseAPITest {
         @Test
         @DisplayName("Deve retornar detalhes da categoria de doação com status 200 quando existir")
         void buscarPorId_comIdExistente_retornaStatus200() throws Exception {
-            CategoriaDoacao cat =
-                    categoriaDoacaoRepository.save(new CategoriaDoacao("Eletrônicos", "TVs e computadores"));
+            CategoriaItem cat =
+                    categoriaItemRepository.save(new CategoriaItem("Eletrônicos", "TVs e computadores"));
 
             mockMvc.perform(get("/doacoes/categorias/{id}", cat.getId()))
                     .andExpect(status().isOk())
@@ -201,11 +200,11 @@ class CategoriaDoacaoControllerTest extends BaseAPITest {
         @Test
         @DisplayName("Deve atualizar dados da categoria de doação com status 200")
         void atualizar_comDadosValidos_retornaStatus200() throws Exception {
-            CategoriaDoacao cat =
-                    categoriaDoacaoRepository.save(new CategoriaDoacao("Brinquedos", "Para crianças"));
+            CategoriaItem cat =
+                    categoriaItemRepository.save(new CategoriaItem("Brinquedos", "Para crianças"));
 
             var requisicao =
-                    new CategoriaDoacaoDTO.Atualizacao("Brinquedos Infantis", "Para crianças e bebês");
+                    new CategoriaItemDTO.Atualizacao("Brinquedos Infantis", "Para crianças e bebês");
 
             mockMvc.perform(
                             put("/doacoes/categorias/{id}", cat.getId())
@@ -220,11 +219,11 @@ class CategoriaDoacaoControllerTest extends BaseAPITest {
         @Test
         @DisplayName("Deve retornar status 409 ao tentar atualizar para nome já existente")
         void atualizar_comNomeDuplicado_retornaStatus409() throws Exception {
-            categoriaDoacaoRepository.save(new CategoriaDoacao("Item 1", "Desc 1"));
-            CategoriaDoacao cat2 =
-                    categoriaDoacaoRepository.save(new CategoriaDoacao("Item 2", "Desc 2"));
+            categoriaItemRepository.save(new CategoriaItem("Item 1", "Desc 1"));
+            CategoriaItem cat2 =
+                    categoriaItemRepository.save(new CategoriaItem("Item 2", "Desc 2"));
 
-            var requisicao = new CategoriaDoacaoDTO.Atualizacao("item 1", "Desc Atualizada");
+            var requisicao = new CategoriaItemDTO.Atualizacao("item 1", "Desc Atualizada");
 
             mockMvc.perform(
                             put("/doacoes/categorias/{id}", cat2.getId())
@@ -236,7 +235,7 @@ class CategoriaDoacaoControllerTest extends BaseAPITest {
         @Test
         @DisplayName("Deve retornar status 404 ao tentar atualizar categoria inexistente")
         void atualizar_comIdInexistente_retornaStatus404() throws Exception {
-            var requisicao = new CategoriaDoacaoDTO.Atualizacao("Nome", "Desc");
+            var requisicao = new CategoriaItemDTO.Atualizacao("Nome", "Desc");
 
             mockMvc.perform(
                             put("/doacoes/categorias/{id}", 99999L)
@@ -253,8 +252,8 @@ class CategoriaDoacaoControllerTest extends BaseAPITest {
         @Test
         @DisplayName("Deve desativar categoria com sucesso retornando status 204")
         void desativar_comIdExistente_retornaStatus204() throws Exception {
-            CategoriaDoacao cat =
-                    categoriaDoacaoRepository.save(new CategoriaDoacao("Categoria Para Desativar", "Desc"));
+            CategoriaItem cat =
+                    categoriaItemRepository.save(new CategoriaItem("Categoria Para Desativar", "Desc"));
 
             mockMvc.perform(patch("/doacoes/categorias/{id}/desativar", cat.getId()))
                     .andExpect(status().isNoContent());
@@ -279,9 +278,9 @@ class CategoriaDoacaoControllerTest extends BaseAPITest {
         @Test
         @DisplayName("Deve reativar categoria com sucesso retornando status 204")
         void reativar_comIdExistente_retornaStatus204() throws Exception {
-            CategoriaDoacao cat = new CategoriaDoacao("Categoria Para Reativar", "Desc");
+            CategoriaItem cat = new CategoriaItem("Categoria Para Reativar", "Desc");
             cat.desativar();
-            cat = categoriaDoacaoRepository.save(cat);
+            cat = categoriaItemRepository.save(cat);
 
             mockMvc.perform(patch("/doacoes/categorias/{id}/reativar", cat.getId()))
                     .andExpect(status().isNoContent());

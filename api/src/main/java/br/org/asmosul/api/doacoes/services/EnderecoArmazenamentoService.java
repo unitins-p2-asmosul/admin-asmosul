@@ -4,10 +4,10 @@ import br.org.asmosul.api.comum.dtos.RespostaPaginada;
 import br.org.asmosul.api.comum.exceptions.EntidadeNaoEncontradaException;
 import br.org.asmosul.api.comum.exceptions.ValidationException;
 import br.org.asmosul.api.comum.utils.PaginacaoUtils;
-import br.org.asmosul.api.doacoes.dtos.EnderecoDoacaoDTO;
-import br.org.asmosul.api.doacoes.models.EnderecoDoacao;
-import br.org.asmosul.api.doacoes.repositories.EnderecoDoacaoRepository;
-import br.org.asmosul.api.doacoes.repositories.EnderecoDoacaoSpecification;
+import br.org.asmosul.api.doacoes.dtos.EnderecoArmazenamentoDTO;
+import br.org.asmosul.api.doacoes.models.EnderecoArmazenamento;
+import br.org.asmosul.api.doacoes.repositories.EnderecoArmazenamentoRepository;
+import br.org.asmosul.api.doacoes.repositories.EnderecoArmazenamentoSpecification;
 import br.org.asmosul.api.pessoas.models.Uf;
 import java.util.List;
 import java.util.Set;
@@ -18,32 +18,32 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-public class EnderecoDoacaoService {
+public class EnderecoArmazenamentoService {
 
     private static final Set<String> CAMPOS_ORDENACAO_VALIDOS =
             Set.of("id", "nome", "cidade", "bairro", "dataInativo");
 
-    private final EnderecoDoacaoRepository enderecoDoacaoRepository;
+    private final EnderecoArmazenamentoRepository enderecoArmazenamentoRepository;
 
-    public EnderecoDoacaoService(EnderecoDoacaoRepository enderecoDoacaoRepository) {
-        this.enderecoDoacaoRepository = enderecoDoacaoRepository;
+    public EnderecoArmazenamentoService(EnderecoArmazenamentoRepository enderecoArmazenamentoRepository) {
+        this.enderecoArmazenamentoRepository = enderecoArmazenamentoRepository;
     }
 
     @Transactional
-    public EnderecoDoacaoDTO.Detalhe cadastrar(EnderecoDoacaoDTO.Requisicao requisicao) {
-        if (enderecoDoacaoRepository.existsByNomeIgnoreCase(requisicao.nome())) {
+    public EnderecoArmazenamentoDTO.Detalhe cadastrar(EnderecoArmazenamentoDTO.Requisicao requisicao) {
+        if (enderecoArmazenamentoRepository.existsByNomeIgnoreCase(requisicao.nome())) {
             throw ValidationException.ofConflito(
                     "nome", "Já existe um endereço de armazenamento cadastrado com este nome.");
         }
 
-        EnderecoDoacao endereco = requisicao.paraEntidade();
-        EnderecoDoacao enderecoSalvo = enderecoDoacaoRepository.save(endereco);
+        EnderecoArmazenamento endereco = requisicao.paraEntidade();
+        EnderecoArmazenamento enderecoSalvo = enderecoArmazenamentoRepository.save(endereco);
 
-        return EnderecoDoacaoDTO.Detalhe.deEntidade(enderecoSalvo);
+        return EnderecoArmazenamentoDTO.Detalhe.deEntidade(enderecoSalvo);
     }
 
     @Transactional(readOnly = true)
-    public RespostaPaginada<EnderecoDoacaoDTO.Resumo> listar(
+    public RespostaPaginada<EnderecoArmazenamentoDTO.Resumo> listar(
             Pageable paginacao,
             boolean incluirInativos,
             String nome,
@@ -56,36 +56,36 @@ public class EnderecoDoacaoService {
         Pageable paginacaoSanitizada =
                 PaginacaoUtils.sanitizarPaginacao(paginacao, CAMPOS_ORDENACAO_VALIDOS, "nome");
 
-        Specification<EnderecoDoacao> spec =
-                EnderecoDoacaoSpecification.comFiltro(
+        Specification<EnderecoArmazenamento> spec =
+                EnderecoArmazenamentoSpecification.comFiltro(
                         nome, cep, uf, cidade, bairro, logradouro, incluirInativos);
 
-        Page<EnderecoDoacao> pagina = enderecoDoacaoRepository.findAll(spec, paginacaoSanitizada);
+        Page<EnderecoArmazenamento> pagina = enderecoArmazenamentoRepository.findAll(spec, paginacaoSanitizada);
 
-        Page<EnderecoDoacaoDTO.Resumo> paginaDtos = pagina.map(EnderecoDoacaoDTO.Resumo::deEntidade);
+        Page<EnderecoArmazenamentoDTO.Resumo> paginaDtos = pagina.map(EnderecoArmazenamentoDTO.Resumo::deEntidade);
 
         return RespostaPaginada.dePage(paginaDtos);
     }
 
     @Transactional(readOnly = true)
-    public List<EnderecoDoacaoDTO.Resumo> listarTodas(boolean incluirInativos) {
-        List<EnderecoDoacao> enderecos =
+    public List<EnderecoArmazenamentoDTO.Resumo> listarTodas(boolean incluirInativos) {
+        List<EnderecoArmazenamento> enderecos =
                 incluirInativos
-                        ? enderecoDoacaoRepository.findAll()
-                        : enderecoDoacaoRepository.findAllByDataInativoIsNull();
+                        ? enderecoArmazenamentoRepository.findAll()
+                        : enderecoArmazenamentoRepository.findAllByDataInativoIsNull();
 
-        return enderecos.stream().map(EnderecoDoacaoDTO.Resumo::deEntidade).toList();
+        return enderecos.stream().map(EnderecoArmazenamentoDTO.Resumo::deEntidade).toList();
     }
 
     @Transactional(readOnly = true)
-    public List<EnderecoDoacaoDTO.Resumo> listarTodas() {
+    public List<EnderecoArmazenamentoDTO.Resumo> listarTodas() {
         return listarTodas(false);
     }
 
     @Transactional(readOnly = true)
-    public EnderecoDoacaoDTO.Detalhe buscarPorId(Long id) {
-        EnderecoDoacao endereco =
-                enderecoDoacaoRepository
+    public EnderecoArmazenamentoDTO.Detalhe buscarPorId(Long id) {
+        EnderecoArmazenamento endereco =
+                enderecoArmazenamentoRepository
                         .findByIdAndDataInativoIsNull(id)
                         .orElseThrow(
                                 () ->
@@ -93,13 +93,13 @@ public class EnderecoDoacaoService {
                                                 "Endereço de armazenamento ativo não encontrado com o ID informado: "
                                                         + id));
 
-        return EnderecoDoacaoDTO.Detalhe.deEntidade(endereco);
+        return EnderecoArmazenamentoDTO.Detalhe.deEntidade(endereco);
     }
 
     @Transactional
-    public EnderecoDoacaoDTO.Detalhe atualizar(Long id, EnderecoDoacaoDTO.Atualizacao requisicao) {
-        EnderecoDoacao endereco =
-                enderecoDoacaoRepository
+    public EnderecoArmazenamentoDTO.Detalhe atualizar(Long id, EnderecoArmazenamentoDTO.Atualizacao requisicao) {
+        EnderecoArmazenamento endereco =
+                enderecoArmazenamentoRepository
                         .findByIdAndDataInativoIsNull(id)
                         .orElseThrow(
                                 () ->
@@ -107,7 +107,7 @@ public class EnderecoDoacaoService {
                                                 "Endereço de armazenamento ativo não encontrado com o ID informado: "
                                                         + id));
 
-        if (enderecoDoacaoRepository.existsByNomeIgnoreCaseAndIdNot(requisicao.nome(), id)) {
+        if (enderecoArmazenamentoRepository.existsByNomeIgnoreCaseAndIdNot(requisicao.nome(), id)) {
             throw ValidationException.ofConflito(
                     "nome", "Já existe um endereço de armazenamento cadastrado com este nome.");
         }
@@ -122,13 +122,13 @@ public class EnderecoDoacaoService {
         endereco.setComplemento(requisicao.complemento());
         endereco.setInformacoesAdicionais(requisicao.informacoesAdicionais());
 
-        return EnderecoDoacaoDTO.Detalhe.deEntidade(endereco);
+        return EnderecoArmazenamentoDTO.Detalhe.deEntidade(endereco);
     }
 
     @Transactional
     public void desativar(Long id) {
-        EnderecoDoacao endereco =
-                enderecoDoacaoRepository
+        EnderecoArmazenamento endereco =
+                enderecoArmazenamentoRepository
                         .findByIdAndDataInativoIsNull(id)
                         .orElseThrow(
                                 () ->
@@ -143,8 +143,8 @@ public class EnderecoDoacaoService {
 
     @Transactional
     public void reativar(Long id) {
-        EnderecoDoacao endereco =
-                enderecoDoacaoRepository
+        EnderecoArmazenamento endereco =
+                enderecoArmazenamentoRepository
                         .findById(id)
                         .orElseThrow(
                                 () ->
@@ -156,7 +156,7 @@ public class EnderecoDoacaoService {
     }
 
     protected void validarItensVinculados(Long id) {
-        if (enderecoDoacaoRepository.possuiItensVinculados(id)) {
+        if (enderecoArmazenamentoRepository.possuiItensVinculados(id)) {
             throw ValidationException.of(
                     "endereco",
                     "Não é possível desativar um endereço que possui itens armazenados vinculados (RN012)");

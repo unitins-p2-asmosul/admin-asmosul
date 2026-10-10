@@ -1,15 +1,15 @@
 package br.org.asmosul.api.doacoes.dtos;
 
-import br.org.asmosul.api.doacoes.models.EnderecoDoacao;
+import br.org.asmosul.api.doacoes.models.EnderecoArmazenamento;
 import br.org.asmosul.api.pessoas.models.Uf;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import java.time.LocalDateTime;
 
-public final class EnderecoDoacaoDTO {
+public final class EnderecoArmazenamentoDTO {
 
-    private EnderecoDoacaoDTO() {}
+    private EnderecoArmazenamentoDTO() {}
 
     public record Requisicao(
             @NotBlank(message = "O nome é obrigatório")
@@ -35,8 +35,8 @@ public final class EnderecoDoacaoDTO {
                     String complemento,
             String informacoesAdicionais) {
 
-        public EnderecoDoacao paraEntidade() {
-            return new EnderecoDoacao(
+        public EnderecoArmazenamento paraEntidade() {
+            return new EnderecoArmazenamento(
                     this.nome,
                     this.cep,
                     this.uf,
@@ -85,7 +85,7 @@ public final class EnderecoDoacaoDTO {
             String complemento,
             boolean ativo) {
 
-        public static Resumo deEntidade(EnderecoDoacao endereco) {
+        public static Resumo deEntidade(EnderecoArmazenamento endereco) {
             return new Resumo(
                     endereco.getId(),
                     endereco.getNome(),
@@ -114,7 +114,7 @@ public final class EnderecoDoacaoDTO {
             boolean ativo,
             LocalDateTime dataInativo) {
 
-        public static Detalhe deEntidade(EnderecoDoacao endereco) {
+        public static Detalhe deEntidade(EnderecoArmazenamento endereco) {
             return new Detalhe(
                     endereco.getId(),
                     endereco.getNome(),

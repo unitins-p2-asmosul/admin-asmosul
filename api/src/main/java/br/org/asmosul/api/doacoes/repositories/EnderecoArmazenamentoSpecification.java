@@ -1,17 +1,17 @@
 package br.org.asmosul.api.doacoes.repositories;
 
-import br.org.asmosul.api.doacoes.models.EnderecoDoacao;
+import br.org.asmosul.api.doacoes.models.EnderecoArmazenamento;
 import br.org.asmosul.api.pessoas.models.Uf;
 import jakarta.persistence.criteria.Predicate;
 import java.util.ArrayList;
 import java.util.List;
 import org.springframework.data.jpa.domain.Specification;
 
-public final class EnderecoDoacaoSpecification {
+public final class EnderecoArmazenamentoSpecification {
 
-    private EnderecoDoacaoSpecification() {}
+    private EnderecoArmazenamentoSpecification() {}
 
-    public static Specification<EnderecoDoacao> comFiltro(
+    public static Specification<EnderecoArmazenamento> comFiltro(
             String nome,
             String cep,
             Uf uf,

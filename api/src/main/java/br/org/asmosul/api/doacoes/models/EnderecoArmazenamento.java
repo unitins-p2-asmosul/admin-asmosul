@@ -10,8 +10,8 @@ import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "endereco_doacao")
-public class EnderecoDoacao extends EntidadeInativavel {
+@Table(name = "endereco_armazenamento")
+public class EnderecoArmazenamento extends EntidadeInativavel {
 
     @Column(nullable = false, unique = true, length = 100)
     private String nome;
@@ -41,9 +41,9 @@ public class EnderecoDoacao extends EntidadeInativavel {
     @Column(name = "informacoes_adicionais", columnDefinition = "TEXT")
     private String informacoesAdicionais;
 
-    protected EnderecoDoacao() {}
+    protected EnderecoArmazenamento() {}
 
-    public EnderecoDoacao(
+    public EnderecoArmazenamento(
             String nome,
             String cep,
             Uf uf,

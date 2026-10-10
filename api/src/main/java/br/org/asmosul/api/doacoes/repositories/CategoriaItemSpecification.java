@@ -1,16 +1,16 @@
 package br.org.asmosul.api.doacoes.repositories;
 
-import br.org.asmosul.api.doacoes.models.CategoriaDoacao;
+import br.org.asmosul.api.doacoes.models.CategoriaItem;
 import jakarta.persistence.criteria.Predicate;
 import java.util.ArrayList;
 import java.util.List;
 import org.springframework.data.jpa.domain.Specification;
 
-public final class CategoriaDoacaoSpecification {
+public final class CategoriaItemSpecification {
 
-    private CategoriaDoacaoSpecification() {}
+    private CategoriaItemSpecification() {}
 
-    public static Specification<CategoriaDoacao> comFiltro(
+    public static Specification<CategoriaItem> comFiltro(
             String nome, String descricao, boolean incluirInativos) {
         return (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
