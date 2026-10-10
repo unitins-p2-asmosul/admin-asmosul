@@ -8,12 +8,12 @@ server:
   forward-headers-strategy: framework
 
 spring:
-  application:
+  applicatio  n:
     name: api
 
   # Define o profile padrão como 'dev' caso nenhum seja passado
   profiles:
-    active: dev
+    default: dev
 
   # JPA & Hibernate
   jpa:
