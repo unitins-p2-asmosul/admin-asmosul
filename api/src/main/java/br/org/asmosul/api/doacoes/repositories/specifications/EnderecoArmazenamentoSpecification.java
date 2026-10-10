@@ -1,4 +1,4 @@
-package br.org.asmosul.api.doacoes.repositories;
+package br.org.asmosul.api.doacoes.repositories.specifications;
 
 import br.org.asmosul.api.doacoes.models.EnderecoArmazenamento;
 import br.org.asmosul.api.pessoas.models.Uf;

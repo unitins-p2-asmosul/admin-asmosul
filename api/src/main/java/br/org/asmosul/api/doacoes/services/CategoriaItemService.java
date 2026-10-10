@@ -7,7 +7,7 @@ import br.org.asmosul.api.comum.utils.PaginacaoUtils;
 import br.org.asmosul.api.doacoes.dtos.CategoriaItemDTO;
 import br.org.asmosul.api.doacoes.models.CategoriaItem;
 import br.org.asmosul.api.doacoes.repositories.CategoriaItemRepository;
-import br.org.asmosul.api.doacoes.repositories.CategoriaItemSpecification;
+import br.org.asmosul.api.doacoes.repositories.specifications.CategoriaItemSpecification;
 import java.util.List;
 import java.util.Set;
 import org.springframework.data.domain.Page;

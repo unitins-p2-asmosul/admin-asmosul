@@ -7,7 +7,7 @@ import br.org.asmosul.api.comum.utils.PaginacaoUtils;
 import br.org.asmosul.api.doacoes.dtos.EnderecoArmazenamentoDTO;
 import br.org.asmosul.api.doacoes.models.EnderecoArmazenamento;
 import br.org.asmosul.api.doacoes.repositories.EnderecoArmazenamentoRepository;
-import br.org.asmosul.api.doacoes.repositories.EnderecoArmazenamentoSpecification;
+import br.org.asmosul.api.doacoes.repositories.specifications.EnderecoArmazenamentoSpecification;
 import br.org.asmosul.api.pessoas.models.Uf;
 import java.util.List;
 import java.util.Set;
