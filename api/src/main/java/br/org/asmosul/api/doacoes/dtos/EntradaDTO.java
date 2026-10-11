@@ -62,10 +62,7 @@ public final class EntradaDTO {
     public record Atualizacao(
         @NotNull(message = "O doador é obrigatório")
         Long idDoador,
-        String descricao,
-        @NotEmpty(message = "A entrada deve conter ao menos um item")
-        @Valid
-        List<ItemEntradaRequisicao> itens) {}
+        String descricao) {}
 
     public record Resumo(
         Long id,

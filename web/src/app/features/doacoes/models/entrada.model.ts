@@ -24,7 +24,6 @@ export interface EntradaRequisicao {
 export interface EntradaAtualizacao {
   idDoador: number;
   descricao?: string;
-  itens: ItemEntradaRequisicao[];
 }
 
 export interface EntradaResumo {

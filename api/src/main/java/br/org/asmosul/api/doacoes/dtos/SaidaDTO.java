@@ -60,9 +60,7 @@ public final class SaidaDTO {
         Long idRecebedor,
         String descricao,
         @Valid
-        List<ItemSaidaRequisicao> itens,
-        @Valid
-        List<KitSaidaRequisicao> kits) {
+        List<ItemSaidaRequisicao> itens) {
 
         public Saida paraEntidade(Pessoa recebedor) {
             return new Saida(recebedor, LocalDateTime.now(), this.descricao);
@@ -72,10 +70,7 @@ public final class SaidaDTO {
     public record Atualizacao(
         @NotNull(message = "O recebedor é obrigatório")
         Long idRecebedor,
-        String descricao,
-        @NotEmpty(message = "A saída deve conter itens ou kits")
-        @Valid
-        List<ItemSaidaRequisicao> itens) {}
+        String descricao) {}
 
     public record Resumo(
         Long id,

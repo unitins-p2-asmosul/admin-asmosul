@@ -24,7 +24,6 @@ export interface MovimentacaoRequisicao {
 export interface MovimentacaoAtualizacao {
   idNovoArmazenamento: number;
   descricao?: string;
-  itens: ItemMovimentacaoRequisicao[];
 }
 
 export interface MovimentacaoResumo {

@@ -62,10 +62,7 @@ public final class MovimentacaoDTO {
     public record Atualizacao(
         @NotNull(message = "O novo local de armazenamento é obrigatório")
         Long idNovoArmazenamento,
-        String descricao,
-        @NotEmpty(message = "A movimentação deve possuir ao menos um item")
-        @Valid
-        List<ItemMovimentacaoRequisicao> itens) {}
+        String descricao) {}
 
     public record Resumo(
         Long id,

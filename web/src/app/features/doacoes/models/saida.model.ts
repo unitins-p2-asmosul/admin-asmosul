@@ -31,7 +31,6 @@ export interface SaidaRequisicao {
 export interface SaidaAtualizacao {
   idRecebedor: number;
   descricao?: string;
-  itens: ItemSaidaRequisicao[];
 }
 
 export interface SaidaResumo {
