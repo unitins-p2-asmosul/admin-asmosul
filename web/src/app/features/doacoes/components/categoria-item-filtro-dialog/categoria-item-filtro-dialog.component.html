@@ -1,0 +1,24 @@
+<div class="pagina-formulario !my-0 !w-full !max-w-none">
+  <h2 mat-dialog-title class="flex items-center gap-3 !text-2xl !font-bold !text-[#0b3c5d]">
+    <mat-icon>tune</mat-icon>
+    Filtrar categorias de itens
+  </h2>
+
+  <mat-dialog-content [formGroup]="form" class="grid gap-x-5 gap-y-2 sm:grid-cols-2">
+    <mat-form-field appearance="outline" class="w-full">
+      <mat-label>Nome</mat-label>
+      <input matInput formControlName="nome" (keydown.enter)="aplicar()" />
+    </mat-form-field>
+    <mat-form-field appearance="outline" class="w-full">
+      <mat-label>Descrição</mat-label>
+      <input matInput formControlName="descricao" (keydown.enter)="aplicar()" />
+    </mat-form-field>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="center" class="!gap-4 !pb-5">
+    <button mat-flat-button type="button" (click)="limpar()">Limpar</button>
+    <button mat-flat-button type="button" class="acao-primaria" (click)="aplicar()">
+      Aplicar filtros
+    </button>
+  </mat-dialog-actions>
+</div>

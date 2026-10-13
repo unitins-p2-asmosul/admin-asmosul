@@ -26,7 +26,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.util.UriComponentsBuilder;
 
 @Tag(
-        name = "Categorias de Doação",
+        name = "Categorias de Itens",
         description = "Endpoints para gerenciamento de categorias de itens no módulo de doações")
 @RestController
 @RequestMapping("/doacoes/categorias")
@@ -39,17 +39,17 @@ public class CategoriaItemController {
     }
 
     @Operation(
-            summary = "Cadastrar uma nova categoria de doação",
-            description = "Cria um novo registro de categoria de doação no sistema")
+            summary = "Cadastrar uma nova categoria de item",
+            description = "Cria um novo registro de categoria de item no sistema")
     @ApiResponses(
             value = {
                 @ApiResponse(
                         responseCode = "201",
-                        description = "Categoria de doação criada com sucesso"),
+                        description = "Categoria de item criada com sucesso"),
                 @ApiResponse(responseCode = "400", description = "Dados de entrada inválidos"),
                 @ApiResponse(
                         responseCode = "409",
-                        description = "Categoria de doação já cadastrada com este nome")
+                        description = "Categoria de item já cadastrada com este nome")
             })
     @PostMapping
     public ResponseEntity<CategoriaItemDTO.Detalhe> cadastrar(
@@ -65,9 +65,9 @@ public class CategoriaItemController {
     }
 
     @Operation(
-            summary = "Listar categorias de doação",
+            summary = "Listar categorias de itens",
             description =
-                    "Retorna uma listagem paginada de categorias de doação com suporte a filtros por nome e descrição")
+                    "Retorna uma listagem paginada de categorias de itens com filtros por nome, descrição e status")
     @ApiResponses(
             value = {
                 @ApiResponse(responseCode = "200", description = "Listagem retornada com sucesso")
@@ -76,19 +76,21 @@ public class CategoriaItemController {
     public ResponseEntity<RespostaPaginada<CategoriaItemDTO.Resumo>> listar(
             @ParameterObject @PageableDefault(size = 10, sort = "nome") Pageable paginacao,
             @RequestParam(defaultValue = "false") boolean incluirInativos,
+            @RequestParam(defaultValue = "false") boolean apenasInativos,
             @RequestParam(required = false) String nome,
             @RequestParam(required = false) String descricao) {
 
         RespostaPaginada<CategoriaItemDTO.Resumo> resposta =
-                categoriaItemService.listar(paginacao, incluirInativos, nome, descricao);
+                categoriaItemService.listar(
+                        paginacao, incluirInativos, apenasInativos, nome, descricao);
 
         return ResponseEntity.ok(resposta);
     }
 
     @Operation(
-            summary = "Listar todas as categorias de doação",
+            summary = "Listar todas as categorias de itens",
             description =
-                    "Retorna uma lista simples não paginada com todas as categorias de doação para caixas de seleção")
+                    "Retorna uma lista simples não paginada com todas as categorias de itens para caixas de seleção")
     @ApiResponses(
             value = {
                 @ApiResponse(responseCode = "200", description = "Lista retornada com sucesso")
@@ -100,16 +102,16 @@ public class CategoriaItemController {
     }
 
     @Operation(
-            summary = "Buscar categoria de doação por ID",
-            description = "Retorna os detalhes completos de uma categoria de doação ativa")
+            summary = "Buscar categoria de item por ID",
+            description = "Retorna os detalhes completos de uma categoria de item")
     @ApiResponses(
             value = {
                 @ApiResponse(
                         responseCode = "200",
-                        description = "Categoria de doação encontrada"),
+                        description = "Categoria de item encontrada"),
                 @ApiResponse(
                         responseCode = "404",
-                        description = "Categoria de doação não encontrada ou inativa")
+                        description = "Categoria de item não encontrada")
             })
     @GetMapping("/{id}")
     public ResponseEntity<CategoriaItemDTO.Detalhe> buscarPorId(@PathVariable Long id) {
@@ -118,8 +120,8 @@ public class CategoriaItemController {
     }
 
     @Operation(
-            summary = "Atualizar dados da categoria de doação",
-            description = "Atualiza as informações de uma categoria de doação cadastrada")
+            summary = "Atualizar dados da categoria de item",
+            description = "Atualiza as informações de uma categoria de item cadastrada")
     @ApiResponses(
             value = {
                 @ApiResponse(
@@ -128,10 +130,10 @@ public class CategoriaItemController {
                 @ApiResponse(responseCode = "400", description = "Dados inválidos"),
                 @ApiResponse(
                         responseCode = "404",
-                        description = "Categoria de doação não encontrada ou inativa"),
+                        description = "Categoria de item não encontrada ou inativa"),
                 @ApiResponse(
                         responseCode = "409",
-                        description = "Categoria de doação já cadastrada com este nome")
+                        description = "Categoria de item já cadastrada com este nome")
             })
     @PutMapping("/{id}")
     public ResponseEntity<CategoriaItemDTO.Detalhe> atualizar(
@@ -142,16 +144,16 @@ public class CategoriaItemController {
     }
 
     @Operation(
-            summary = "Desativar categoria de doação",
-            description = "Realiza a desativação lógica (soft delete) da categoria de doação")
+            summary = "Desativar categoria de item",
+            description = "Realiza a desativação lógica (soft delete) da categoria de item")
     @ApiResponses(
             value = {
                 @ApiResponse(
                         responseCode = "204",
-                        description = "Categoria de doação desativada com sucesso"),
+                        description = "Categoria de item desativada com sucesso"),
                 @ApiResponse(
                         responseCode = "404",
-                        description = "Categoria de doação não encontrada ou já inativa")
+                        description = "Categoria de item não encontrada ou já inativa")
             })
     @PatchMapping("/{id}/desativar")
     public ResponseEntity<Void> desativar(@PathVariable Long id) {
@@ -160,17 +162,17 @@ public class CategoriaItemController {
     }
 
     @Operation(
-            summary = "Reativar categoria de doação",
+            summary = "Reativar categoria de item",
             description =
-                    "Reativa o registro de uma categoria de doação previamente desativada")
+                    "Reativa o registro de uma categoria de item previamente desativada")
     @ApiResponses(
             value = {
                 @ApiResponse(
                         responseCode = "204",
-                        description = "Categoria de doação reativada com sucesso"),
+                        description = "Categoria de item reativada com sucesso"),
                 @ApiResponse(
                         responseCode = "404",
-                        description = "Categoria de doação não encontrada")
+                        description = "Categoria de item não encontrada")
             })
     @PatchMapping("/{id}/reativar")
     public ResponseEntity<Void> reativar(@PathVariable Long id) {

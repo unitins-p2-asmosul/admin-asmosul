@@ -32,7 +32,7 @@ public class CategoriaItemService {
     public CategoriaItemDTO.Detalhe cadastrar(CategoriaItemDTO.Requisicao requisicao) {
         if (categoriaItemRepository.existsByNomeIgnoreCase(requisicao.nome())) {
             throw ValidationException.ofConflito(
-                    "nome", "Já existe uma categoria de doação cadastrada com este nome.");
+                    "nome", "Já existe uma categoria de item cadastrada com este nome.");
         }
 
         CategoriaItem categoria = requisicao.paraEntidade();
@@ -43,13 +43,18 @@ public class CategoriaItemService {
 
     @Transactional(readOnly = true)
     public RespostaPaginada<CategoriaItemDTO.Resumo> listar(
-            Pageable paginacao, boolean incluirInativos, String nome, String descricao) {
+            Pageable paginacao,
+            boolean incluirInativos,
+            boolean apenasInativos,
+            String nome,
+            String descricao) {
 
         Pageable paginacaoSanitizada =
                 PaginacaoUtils.sanitizarPaginacao(paginacao, CAMPOS_ORDENACAO_VALIDOS, "nome");
 
         Specification<CategoriaItem> spec =
-                CategoriaItemSpecification.comFiltro(nome, descricao, incluirInativos);
+                CategoriaItemSpecification.comFiltro(
+                        nome, descricao, incluirInativos, apenasInativos);
 
         Page<CategoriaItem> pagina =
                 categoriaItemRepository.findAll(spec, paginacaoSanitizada);
@@ -79,11 +84,11 @@ public class CategoriaItemService {
     public CategoriaItemDTO.Detalhe buscarPorId(Long id) {
         CategoriaItem categoria =
                 categoriaItemRepository
-                        .findByIdAndDataInativoIsNull(id)
+                        .findById(id)
                         .orElseThrow(
                                 () ->
                                         new EntidadeNaoEncontradaException(
-                                                "Categoria de doação ativa não encontrada com o ID informado: "
+                                                "Categoria de item não encontrada com o ID informado: "
                                                         + id));
 
         return CategoriaItemDTO.Detalhe.deEntidade(categoria);
@@ -97,12 +102,12 @@ public class CategoriaItemService {
                         .orElseThrow(
                                 () ->
                                         new EntidadeNaoEncontradaException(
-                                                "Categoria de doação ativa não encontrada com o ID informado: "
+                                                "Categoria de item ativa não encontrada com o ID informado: "
                                                         + id));
 
         if (categoriaItemRepository.existsByNomeIgnoreCaseAndIdNot(requisicao.nome(), id)) {
             throw ValidationException.ofConflito(
-                    "nome", "Já existe uma categoria de doação cadastrada com este nome.");
+                    "nome", "Já existe uma categoria de item cadastrada com este nome.");
         }
 
         categoria.setNome(requisicao.nome());
@@ -119,7 +124,7 @@ public class CategoriaItemService {
                         .orElseThrow(
                                 () ->
                                         new EntidadeNaoEncontradaException(
-                                                "Categoria de doação ativa não encontrada com o ID informado: "
+                                                "Categoria de item ativa não encontrada com o ID informado: "
                                                         + id));
 
         categoria.desativar();
@@ -133,7 +138,7 @@ public class CategoriaItemService {
                         .orElseThrow(
                                 () ->
                                         new EntidadeNaoEncontradaException(
-                                                "Categoria de doação não encontrada com o ID informado: "
+                                                "Categoria de item não encontrada com o ID informado: "
                                                         + id));
 
         categoria.reativar();

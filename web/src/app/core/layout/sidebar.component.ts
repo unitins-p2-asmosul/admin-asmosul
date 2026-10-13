@@ -56,8 +56,10 @@ export class SidebarComponent {
       id: 'doacoes',
       titulo: 'Doações',
       icone: 'card_giftcard',
+      perfil: Perfil.GERENCIADOR_DOACOES,
       itens: [
         { rotulo: 'Itens', icone: 'inventory_2' },
+        { rotulo: 'Categorias de Itens', icone: 'category', rota: '/doacoes/categorias' },
         { rotulo: 'Kits', icone: 'widgets' },
         { rotulo: 'Entradas', icone: 'input' },
         { rotulo: 'Saídas', icone: 'output' },

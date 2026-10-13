@@ -23,4 +23,10 @@ export const routes: Routes = [
     loadChildren: () =>
       import('@features/acessos/contas.routes').then((m) => m.CONTAS_ROUTES),
   },
+  {
+    path: 'doacoes',
+    canActivate: [perfilGuard(Perfil.GERENCIADOR_DOACOES)],
+    loadChildren: () =>
+      import('@features/doacoes/doacoes.routes').then((m) => m.DOACOES_ROUTES),
+  },
 ];

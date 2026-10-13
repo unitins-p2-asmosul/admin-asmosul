@@ -139,14 +139,14 @@ abstract class EntidadeInativavel {
   + isAtivo(): boolean
 }
 
-class CategoriaDoacao {
+class CategoriaItem {
   - id: Long
   - nome: String
   - descricao: String
   - data_inativo: DateTime
 }
 
-CategoriaDoacao --|> EntidadeInativavel
+CategoriaItem --|> EntidadeInativavel
 
 class EnderecoDoacao {
   - id: Long

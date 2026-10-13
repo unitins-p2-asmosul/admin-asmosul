@@ -30,19 +30,19 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
-@DisplayName("Testes Unitários - CategoriaDoacaoService")
+@DisplayName("Testes Unitários - CategoriaItemService")
 class CategoriaItemServiceTest {
 
     @Mock private CategoriaItemRepository categoriaItemRepository;
 
-    @InjectMocks private CategoriaItemService categoriaDoacaoService;
+    @InjectMocks private CategoriaItemService categoriaItemService;
 
     @Nested
-    @DisplayName("Cadastrar Categoria de Doação")
+    @DisplayName("Cadastrar Categoria de Item")
     class Cadastrar {
 
         @Test
-        @DisplayName("Deve cadastrar categoria de doação com sucesso")
+        @DisplayName("Deve cadastrar categoria de item com sucesso")
         void cadastrar_comDadosValidos_salvaERetornaDetalhe() {
             var requisicao = new CategoriaItemDTO.Requisicao("Alimentos", "Cestas e mantimentos");
             when(categoriaItemRepository.existsByNomeIgnoreCase("Alimentos")).thenReturn(false);
@@ -51,7 +51,7 @@ class CategoriaItemServiceTest {
             ReflectionTestUtils.setField(salva, "id", 1L);
             when(categoriaItemRepository.save(any(CategoriaItem.class))).thenReturn(salva);
 
-            CategoriaItemDTO.Detalhe resultado = categoriaDoacaoService.cadastrar(requisicao);
+            CategoriaItemDTO.Detalhe resultado = categoriaItemService.cadastrar(requisicao);
 
             assertThat(resultado).isNotNull();
             assertThat(resultado.id()).isEqualTo(1L);
@@ -68,9 +68,9 @@ class CategoriaItemServiceTest {
             var requisicao = new CategoriaItemDTO.Requisicao("Alimentos", "Desc");
             when(categoriaItemRepository.existsByNomeIgnoreCase("Alimentos")).thenReturn(true);
 
-            assertThatThrownBy(() -> categoriaDoacaoService.cadastrar(requisicao))
+            assertThatThrownBy(() -> categoriaItemService.cadastrar(requisicao))
                     .isInstanceOf(ConflitoDadosException.class)
-                    .hasMessageContaining("Já existe uma categoria de doação cadastrada com este nome.");
+                    .hasMessageContaining("Já existe uma categoria de item cadastrada com este nome.");
         }
     }
 
@@ -89,7 +89,7 @@ class CategoriaItemServiceTest {
                     .thenReturn(new PageImpl<>(List.of(cat), paginacao, 1));
 
             RespostaPaginada<CategoriaItemDTO.Resumo> resposta =
-                    categoriaDoacaoService.listar(paginacao, false, "Roupas", null);
+                    categoriaItemService.listar(paginacao, false, false, "Roupas", null);
 
             assertThat(resposta).isNotNull();
             assertThat(resposta.dados()).hasSize(1);
@@ -109,7 +109,7 @@ class CategoriaItemServiceTest {
             ReflectionTestUtils.setField(cat, "id", 3L);
             when(categoriaItemRepository.findAllByDataInativoIsNull()).thenReturn(List.of(cat));
 
-            List<CategoriaItemDTO.Resumo> resultado = categoriaDoacaoService.listarTodas(false);
+            List<CategoriaItemDTO.Resumo> resultado = categoriaItemService.listarTodas(false);
 
             assertThat(resultado).hasSize(1);
             assertThat(resultado.get(0).nome()).isEqualTo("Higiene");
@@ -126,14 +126,14 @@ class CategoriaItemServiceTest {
 
             when(categoriaItemRepository.findAll()).thenReturn(List.of(ativa, inativa));
 
-            List<CategoriaItemDTO.Resumo> resultado = categoriaDoacaoService.listarTodas(true);
+            List<CategoriaItemDTO.Resumo> resultado = categoriaItemService.listarTodas(true);
 
             assertThat(resultado).hasSize(2);
         }
     }
 
     @Nested
-    @DisplayName("Buscar Categoria de Doação por ID")
+    @DisplayName("Buscar Categoria de Item por ID")
     class BuscarPorId {
 
         @Test
@@ -141,10 +141,10 @@ class CategoriaItemServiceTest {
         void buscarPorId_comIdExistenteEAtivo_retornaDetalhe() {
             CategoriaItem cat = new CategoriaItem("Móveis", "Mesas e cadeiras");
             ReflectionTestUtils.setField(cat, "id", 5L);
-            when(categoriaItemRepository.findByIdAndDataInativoIsNull(5L))
+            when(categoriaItemRepository.findById(5L))
                     .thenReturn(Optional.of(cat));
 
-            CategoriaItemDTO.Detalhe resultado = categoriaDoacaoService.buscarPorId(5L);
+            CategoriaItemDTO.Detalhe resultado = categoriaItemService.buscarPorId(5L);
 
             assertThat(resultado).isNotNull();
             assertThat(resultado.id()).isEqualTo(5L);
@@ -152,19 +152,33 @@ class CategoriaItemServiceTest {
         }
 
         @Test
-        @DisplayName("Deve lançar EntidadeNaoEncontradaException quando não encontrada ou inativa")
-        void buscarPorId_comIdInexistenteOuInativo_lancaEntidadeNaoEncontradaException() {
-            when(categoriaItemRepository.findByIdAndDataInativoIsNull(99L))
+        @DisplayName("Deve retornar detalhes de categoria inativa para visualização")
+        void buscarPorId_comCategoriaInativa_retornaDetalhe() {
+            CategoriaItem categoriaInativa = new CategoriaItem("Inativa", "Descrição");
+            categoriaInativa.desativar();
+            when(categoriaItemRepository.findById(99L))
+                    .thenReturn(Optional.of(categoriaInativa));
+
+            CategoriaItemDTO.Detalhe resultado = categoriaItemService.buscarPorId(99L);
+
+            assertThat(resultado.ativo()).isFalse();
+            assertThat(resultado.dataInativo()).isNotNull();
+        }
+
+        @Test
+        @DisplayName("Deve lançar EntidadeNaoEncontradaException quando não encontrada")
+        void buscarPorId_comIdInexistente_lancaEntidadeNaoEncontradaException() {
+            when(categoriaItemRepository.findById(99L))
                     .thenReturn(Optional.empty());
 
-            assertThatThrownBy(() -> categoriaDoacaoService.buscarPorId(99L))
+            assertThatThrownBy(() -> categoriaItemService.buscarPorId(99L))
                     .isInstanceOf(EntidadeNaoEncontradaException.class)
-                    .hasMessageContaining("Categoria de doação ativa não encontrada");
+                    .hasMessageContaining("Categoria de item não encontrada");
         }
     }
 
     @Nested
-    @DisplayName("Atualizar Categoria de Doação")
+    @DisplayName("Atualizar Categoria de Item")
     class Atualizar {
 
         @Test
@@ -178,7 +192,7 @@ class CategoriaItemServiceTest {
                     .thenReturn(false);
 
             var requisicao = new CategoriaItemDTO.Atualizacao("Nome Novo", "Desc Nova");
-            CategoriaItemDTO.Detalhe resultado = categoriaDoacaoService.atualizar(6L, requisicao);
+            CategoriaItemDTO.Detalhe resultado = categoriaItemService.atualizar(6L, requisicao);
 
             assertThat(resultado).isNotNull();
             assertThat(resultado.nome()).isEqualTo("Nome Novo");
@@ -199,9 +213,9 @@ class CategoriaItemServiceTest {
 
             var requisicao = new CategoriaItemDTO.Atualizacao("Nome Existente", "Desc");
 
-            assertThatThrownBy(() -> categoriaDoacaoService.atualizar(6L, requisicao))
+            assertThatThrownBy(() -> categoriaItemService.atualizar(6L, requisicao))
                     .isInstanceOf(ConflitoDadosException.class)
-                    .hasMessageContaining("Já existe uma categoria de doação cadastrada com este nome.");
+                    .hasMessageContaining("Já existe uma categoria de item cadastrada com este nome.");
         }
 
         @Test
@@ -212,13 +226,13 @@ class CategoriaItemServiceTest {
 
             var requisicao = new CategoriaItemDTO.Atualizacao("Nome", "Desc");
 
-            assertThatThrownBy(() -> categoriaDoacaoService.atualizar(99L, requisicao))
+            assertThatThrownBy(() -> categoriaItemService.atualizar(99L, requisicao))
                     .isInstanceOf(EntidadeNaoEncontradaException.class);
         }
     }
 
     @Nested
-    @DisplayName("Desativar Categoria de Doação (Soft Delete)")
+    @DisplayName("Desativar Categoria de Item (Soft Delete)")
     class Desativar {
 
         @Test
@@ -229,7 +243,7 @@ class CategoriaItemServiceTest {
             when(categoriaItemRepository.findByIdAndDataInativoIsNull(7L))
                     .thenReturn(Optional.of(cat));
 
-            categoriaDoacaoService.desativar(7L);
+            categoriaItemService.desativar(7L);
 
             assertThat(cat.isAtivo()).isFalse();
             assertThat(cat.getDataInativo()).isNotNull();
@@ -241,13 +255,13 @@ class CategoriaItemServiceTest {
             when(categoriaItemRepository.findByIdAndDataInativoIsNull(99L))
                     .thenReturn(Optional.empty());
 
-            assertThatThrownBy(() -> categoriaDoacaoService.desativar(99L))
+            assertThatThrownBy(() -> categoriaItemService.desativar(99L))
                     .isInstanceOf(EntidadeNaoEncontradaException.class);
         }
     }
 
     @Nested
-    @DisplayName("Reativar Categoria de Doação")
+    @DisplayName("Reativar Categoria de Item")
     class Reativar {
 
         @Test
@@ -258,7 +272,7 @@ class CategoriaItemServiceTest {
             cat.desativar();
             when(categoriaItemRepository.findById(8L)).thenReturn(Optional.of(cat));
 
-            categoriaDoacaoService.reativar(8L);
+            categoriaItemService.reativar(8L);
 
             assertThat(cat.isAtivo()).isTrue();
             assertThat(cat.getDataInativo()).isNull();
@@ -269,7 +283,7 @@ class CategoriaItemServiceTest {
         void reativar_comIdInexistente_lancaEntidadeNaoEncontradaException() {
             when(categoriaItemRepository.findById(99L)).thenReturn(Optional.empty());
 
-            assertThatThrownBy(() -> categoriaDoacaoService.reativar(99L))
+            assertThatThrownBy(() -> categoriaItemService.reativar(99L))
                     .isInstanceOf(EntidadeNaoEncontradaException.class);
         }
     }
