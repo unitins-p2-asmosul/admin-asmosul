@@ -11,7 +11,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import br.org.asmosul.api.comum.config.BaseAPITest;
 import br.org.asmosul.api.doacoes.dtos.CategoriaItemDTO;
 import br.org.asmosul.api.doacoes.models.CategoriaItem;
+import br.org.asmosul.api.doacoes.models.Item;
+import br.org.asmosul.api.doacoes.models.UnidadeMedida;
 import br.org.asmosul.api.doacoes.repositories.CategoriaItemRepository;
+import br.org.asmosul.api.doacoes.repositories.ItemRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -24,11 +27,13 @@ import org.springframework.http.MediaType;
 class CategoriaItemControllerTest extends BaseAPITest {
 
     @Autowired private CategoriaItemRepository categoriaItemRepository;
+    @Autowired private ItemRepository itemRepository;
 
     private final ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
 
     @BeforeEach
     void setUp() {
+        itemRepository.deleteAll();
         categoriaItemRepository.deleteAll();
     }
 
@@ -274,6 +279,24 @@ class CategoriaItemControllerTest extends BaseAPITest {
         void desativar_comIdInexistenteOuJaInativo_retornaStatus404() throws Exception {
             mockMvc.perform(patch("/doacoes/categorias/{id}/desativar", 99999L))
                     .andExpect(status().isNotFound());
+        }
+
+        @Test
+        @DisplayName("Deve retornar status 409 e manter ativa a categoria vinculada a um item")
+        void desativar_comCategoriaEmUso_retornaStatus409() throws Exception {
+            CategoriaItem categoria =
+                    categoriaItemRepository.save(new CategoriaItem("Categoria em uso", "Desc"));
+            itemRepository.save(
+                    new Item("Item vinculado", categoria, 100, UnidadeMedida.UNIDADE, "Descrição"));
+
+            mockMvc.perform(patch("/doacoes/categorias/{id}/desativar", categoria.getId()))
+                    .andExpect(status().isConflict())
+                    .andExpect(jsonPath("$.detail").value(
+                            "Não é possível inativar a categoria porque ela está vinculada a um ou mais itens."));
+
+            mockMvc.perform(get("/doacoes/categorias/{id}", categoria.getId()))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.ativo").value(true));
         }
     }
 

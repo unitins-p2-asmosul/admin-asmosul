@@ -1,12 +1,14 @@
 package br.org.asmosul.api.doacoes.services;
 
 import br.org.asmosul.api.comum.dtos.RespostaPaginada;
+import br.org.asmosul.api.comum.exceptions.ConflitoDadosException;
 import br.org.asmosul.api.comum.exceptions.EntidadeNaoEncontradaException;
 import br.org.asmosul.api.comum.exceptions.ValidationException;
 import br.org.asmosul.api.comum.utils.PaginacaoUtils;
 import br.org.asmosul.api.doacoes.dtos.CategoriaItemDTO;
 import br.org.asmosul.api.doacoes.models.CategoriaItem;
 import br.org.asmosul.api.doacoes.repositories.CategoriaItemRepository;
+import br.org.asmosul.api.doacoes.repositories.ItemRepository;
 import br.org.asmosul.api.doacoes.repositories.specifications.CategoriaItemSpecification;
 import java.util.List;
 import java.util.Set;
@@ -23,9 +25,12 @@ public class CategoriaItemService {
             Set.of("id", "nome", "descricao", "dataInativo");
 
     private final CategoriaItemRepository categoriaItemRepository;
+    private final ItemRepository itemRepository;
 
-    public CategoriaItemService(CategoriaItemRepository categoriaItemRepository) {
+    public CategoriaItemService(
+            CategoriaItemRepository categoriaItemRepository, ItemRepository itemRepository) {
         this.categoriaItemRepository = categoriaItemRepository;
+        this.itemRepository = itemRepository;
     }
 
     @Transactional
@@ -126,6 +131,11 @@ public class CategoriaItemService {
                                         new EntidadeNaoEncontradaException(
                                                 "Categoria de item ativa não encontrada com o ID informado: "
                                                         + id));
+
+        if (itemRepository.existsByCategoria_Id(id)) {
+            throw new ConflitoDadosException(
+                    "Não é possível inativar a categoria porque ela está vinculada a um ou mais itens.");
+        }
 
         categoria.desativar();
     }

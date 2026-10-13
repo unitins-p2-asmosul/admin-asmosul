@@ -13,6 +13,7 @@ import br.org.asmosul.api.comum.exceptions.EntidadeNaoEncontradaException;
 import br.org.asmosul.api.doacoes.dtos.CategoriaItemDTO;
 import br.org.asmosul.api.doacoes.models.CategoriaItem;
 import br.org.asmosul.api.doacoes.repositories.CategoriaItemRepository;
+import br.org.asmosul.api.doacoes.repositories.ItemRepository;
 
 import java.util.List;
 import java.util.Optional;
@@ -34,6 +35,8 @@ import org.springframework.test.util.ReflectionTestUtils;
 class CategoriaItemServiceTest {
 
     @Mock private CategoriaItemRepository categoriaItemRepository;
+
+    @Mock private ItemRepository itemRepository;
 
     @InjectMocks private CategoriaItemService categoriaItemService;
 
@@ -242,11 +245,27 @@ class CategoriaItemServiceTest {
             ReflectionTestUtils.setField(cat, "id", 7L);
             when(categoriaItemRepository.findByIdAndDataInativoIsNull(7L))
                     .thenReturn(Optional.of(cat));
+            when(itemRepository.existsByCategoria_Id(7L)).thenReturn(false);
 
             categoriaItemService.desativar(7L);
 
             assertThat(cat.isAtivo()).isFalse();
             assertThat(cat.getDataInativo()).isNotNull();
+        }
+
+        @Test
+        @DisplayName("Não deve inativar categoria vinculada a um item")
+        void desativar_comCategoriaEmUso_lancaConflitoDadosException() {
+            CategoriaItem cat = new CategoriaItem("Alimentos", "Mantimentos");
+            ReflectionTestUtils.setField(cat, "id", 9L);
+            when(categoriaItemRepository.findByIdAndDataInativoIsNull(9L))
+                    .thenReturn(Optional.of(cat));
+            when(itemRepository.existsByCategoria_Id(9L)).thenReturn(true);
+
+            assertThatThrownBy(() -> categoriaItemService.desativar(9L))
+                    .isInstanceOf(ConflitoDadosException.class)
+                    .hasMessageContaining("vinculada a um ou mais itens");
+            assertThat(cat.isAtivo()).isTrue();
         }
 
         @Test

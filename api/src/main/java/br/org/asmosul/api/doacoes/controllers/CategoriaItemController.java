@@ -152,6 +152,9 @@ public class CategoriaItemController {
                         responseCode = "204",
                         description = "Categoria de item desativada com sucesso"),
                 @ApiResponse(
+                        responseCode = "409",
+                        description = "Categoria de item vinculada a itens e não pode ser inativada"),
+                @ApiResponse(
                         responseCode = "404",
                         description = "Categoria de item não encontrada ou já inativa")
             })
