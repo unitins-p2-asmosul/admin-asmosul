@@ -11,7 +11,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import br.org.asmosul.api.comum.config.BaseAPITest;
 import br.org.asmosul.api.doacoes.dtos.CategoriaItemDTO;
 import br.org.asmosul.api.doacoes.models.CategoriaItem;
+import br.org.asmosul.api.doacoes.models.Item;
+import br.org.asmosul.api.doacoes.models.UnidadeMedida;
 import br.org.asmosul.api.doacoes.repositories.CategoriaItemRepository;
+import br.org.asmosul.api.doacoes.repositories.ItemRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -20,24 +23,26 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 
-@DisplayName("Testes de Integração - CategoriaDoacaoController")
-class   CategoriaItemControllerTest extends BaseAPITest {
+@DisplayName("Testes de Integração - CategoriaItemController")
+class CategoriaItemControllerTest extends BaseAPITest {
 
     @Autowired private CategoriaItemRepository categoriaItemRepository;
+    @Autowired private ItemRepository itemRepository;
 
     private final ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
 
     @BeforeEach
     void setUp() {
+        itemRepository.deleteAll();
         categoriaItemRepository.deleteAll();
     }
 
     @Nested
-    @DisplayName("POST /doacoes/categorias - Cadastro de Categoria de Doação")
+    @DisplayName("POST /doacoes/categorias - Cadastro de Categoria de Item")
     class Cadastrar {
 
         @Test
-        @DisplayName("Deve cadastrar categoria de doação com sucesso retornando status 201 e Location header")
+        @DisplayName("Deve cadastrar categoria de item com sucesso retornando status 201 e Location header")
         void cadastrar_comDadosValidos_retornaStatus201ELocationHeader() throws Exception {
             var requisicao =
                     new CategoriaItemDTO.Requisicao("Alimentos Não Perecíveis", "Arroz, feijão, etc.");
@@ -105,7 +110,7 @@ class   CategoriaItemControllerTest extends BaseAPITest {
     class ListarPaginado {
 
         @Test
-        @DisplayName("Deve retornar listagem paginada de categorias de doação com status 200")
+        @DisplayName("Deve retornar listagem paginada de categorias de itens com status 200")
         void listar_comPaginacao_retornaStatus200EListaPaginada() throws Exception {
             categoriaItemRepository.save(new CategoriaItem("Alimentos", "Desc 1"));
             categoriaItemRepository.save(new CategoriaItem("Roupas", "Desc 2"));
@@ -132,6 +137,11 @@ class   CategoriaItemControllerTest extends BaseAPITest {
             mockMvc.perform(get("/doacoes/categorias").param("incluirInativos", "true"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.totalElementos").value(2));
+
+            mockMvc.perform(get("/doacoes/categorias").param("apenasInativos", "true"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.totalElementos").value(1))
+                    .andExpect(jsonPath("$.dados[0].nome").value("Categoria Inativa"));
         }
 
         @Test
@@ -155,7 +165,7 @@ class   CategoriaItemControllerTest extends BaseAPITest {
     class ListarTodas {
 
         @Test
-        @DisplayName("Deve retornar lista completa de categorias de doação ativas com status 200")
+        @DisplayName("Deve retornar lista completa de categorias de itens ativas com status 200")
         void listarTodas_retornaStatus200EListaCompleta() throws Exception {
             categoriaItemRepository.save(new CategoriaItem("Categoria A", "Desc A"));
             categoriaItemRepository.save(new CategoriaItem("Categoria B", "Desc B"));
@@ -172,7 +182,7 @@ class   CategoriaItemControllerTest extends BaseAPITest {
     class BuscarPorId {
 
         @Test
-        @DisplayName("Deve retornar detalhes da categoria de doação com status 200 quando existir")
+        @DisplayName("Deve retornar detalhes da categoria de item com status 200 quando existir")
         void buscarPorId_comIdExistente_retornaStatus200() throws Exception {
             CategoriaItem cat =
                     categoriaItemRepository.save(new CategoriaItem("Eletrônicos", "TVs e computadores"));
@@ -198,7 +208,7 @@ class   CategoriaItemControllerTest extends BaseAPITest {
     class Atualizar {
 
         @Test
-        @DisplayName("Deve atualizar dados da categoria de doação com status 200")
+        @DisplayName("Deve atualizar dados da categoria de item com status 200")
         void atualizar_comDadosValidos_retornaStatus200() throws Exception {
             CategoriaItem cat =
                     categoriaItemRepository.save(new CategoriaItem("Brinquedos", "Para crianças"));
@@ -258,9 +268,10 @@ class   CategoriaItemControllerTest extends BaseAPITest {
             mockMvc.perform(patch("/doacoes/categorias/{id}/desativar", cat.getId()))
                     .andExpect(status().isNoContent());
 
-            // Garantir que a busca ativa agora retorna 404
+            // Categorias inativas continuam disponíveis para consulta e reativação.
             mockMvc.perform(get("/doacoes/categorias/{id}", cat.getId()))
-                    .andExpect(status().isNotFound());
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.ativo").value(false));
         }
 
         @Test
@@ -268,6 +279,24 @@ class   CategoriaItemControllerTest extends BaseAPITest {
         void desativar_comIdInexistenteOuJaInativo_retornaStatus404() throws Exception {
             mockMvc.perform(patch("/doacoes/categorias/{id}/desativar", 99999L))
                     .andExpect(status().isNotFound());
+        }
+
+        @Test
+        @DisplayName("Deve retornar status 409 e manter ativa a categoria vinculada a um item")
+        void desativar_comCategoriaEmUso_retornaStatus409() throws Exception {
+            CategoriaItem categoria =
+                    categoriaItemRepository.save(new CategoriaItem("Categoria em uso", "Desc"));
+            itemRepository.save(
+                    new Item("Item vinculado", categoria, 100, UnidadeMedida.UNIDADE, "Descrição"));
+
+            mockMvc.perform(patch("/doacoes/categorias/{id}/desativar", categoria.getId()))
+                    .andExpect(status().isConflict())
+                    .andExpect(jsonPath("$.detail").value(
+                            "Não é possível inativar a categoria porque ela está vinculada a um ou mais itens."));
+
+            mockMvc.perform(get("/doacoes/categorias/{id}", categoria.getId()))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.ativo").value(true));
         }
     }
 

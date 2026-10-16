@@ -18,7 +18,7 @@ export interface CategoriaItemDetalhe {
   id: number;
   nome: string;
   descricao?: string;
-  ativo?: boolean;
+  ativo: boolean;
   dataInativo?: string;
 }
 
