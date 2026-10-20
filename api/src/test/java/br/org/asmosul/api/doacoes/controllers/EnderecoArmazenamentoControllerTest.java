@@ -22,7 +22,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 
-@DisplayName("Testes de Integração - EnderecoDoacaoController")
+@DisplayName("Testes de Integração - EnderecoArmazenamentoController")
 class EnderecoArmazenamentoControllerTest extends BaseAPITest {
 
     @MockitoSpyBean private EnderecoArmazenamentoRepository enderecoArmazenamentoRepository;
@@ -188,6 +188,21 @@ class EnderecoArmazenamentoControllerTest extends BaseAPITest {
         }
 
         @Test
+        @DisplayName("Deve retornar somente os endereços inativos quando solicitado")
+        void listar_apenasInativos_retornaSomenteInativos() throws Exception {
+            criarEnderecoExemplo("Ativo");
+            EnderecoArmazenamento inativo = criarEnderecoExemplo("Inativo");
+            inativo.desativar();
+            enderecoArmazenamentoRepository.save(inativo);
+
+            mockMvc.perform(get("/doacoes/enderecos").param("apenasInativos", "true"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.totalElementos").value(1))
+                    .andExpect(jsonPath("$.dados[0].nome").value("Inativo"))
+                    .andExpect(jsonPath("$.dados[0].ativo").value(false));
+        }
+
+        @Test
         @DisplayName("Deve filtrar por cidade, bairro e nome")
         void listar_comFiltrosMultiplos_retornaItensFiltrados() throws Exception {
             criarEnderecoExemplo("Depósito Central");
@@ -237,8 +252,21 @@ class EnderecoArmazenamentoControllerTest extends BaseAPITest {
         }
 
         @Test
-        @DisplayName("Deve retornar status 404 quando o ID não existir ou estiver inativo")
-        void buscarPorId_comIdInexistenteOuInativo_retornaStatus404() throws Exception {
+        @DisplayName("Deve retornar detalhes de endereço inativo para permitir consulta e reativação")
+        void buscarPorId_comEnderecoInativo_retornaStatus200() throws Exception {
+            EnderecoArmazenamento inativo = criarEnderecoExemplo("Depósito Inativo");
+            inativo.desativar();
+            enderecoArmazenamentoRepository.save(inativo);
+
+            mockMvc.perform(get("/doacoes/enderecos/{id}", inativo.getId()))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.nome").value("Depósito Inativo"))
+                    .andExpect(jsonPath("$.ativo").value(false));
+        }
+
+        @Test
+        @DisplayName("Deve retornar status 404 quando o ID não existir")
+        void buscarPorId_comIdInexistente_retornaStatus404() throws Exception {
             mockMvc.perform(get("/doacoes/enderecos/{id}", 99999L))
                     .andExpect(status().isNotFound());
         }
@@ -336,7 +364,8 @@ class EnderecoArmazenamentoControllerTest extends BaseAPITest {
                     .andExpect(status().isNoContent());
 
             mockMvc.perform(get("/doacoes/enderecos/{id}", endereco.getId()))
-                    .andExpect(status().isNotFound());
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.ativo").value(false));
         }
 
         @Test

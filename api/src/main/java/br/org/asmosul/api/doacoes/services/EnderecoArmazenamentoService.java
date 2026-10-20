@@ -46,6 +46,7 @@ public class EnderecoArmazenamentoService {
     public RespostaPaginada<EnderecoArmazenamentoDTO.Resumo> listar(
             Pageable paginacao,
             boolean incluirInativos,
+            boolean apenasInativos,
             String nome,
             String cep,
             Uf uf,
@@ -58,7 +59,7 @@ public class EnderecoArmazenamentoService {
 
         Specification<EnderecoArmazenamento> spec =
                 EnderecoArmazenamentoSpecification.comFiltro(
-                        nome, cep, uf, cidade, bairro, logradouro, incluirInativos);
+                        nome, cep, uf, cidade, bairro, logradouro, incluirInativos, apenasInativos);
 
         Page<EnderecoArmazenamento> pagina = enderecoArmazenamentoRepository.findAll(spec, paginacaoSanitizada);
 
@@ -86,11 +87,11 @@ public class EnderecoArmazenamentoService {
     public EnderecoArmazenamentoDTO.Detalhe buscarPorId(Long id) {
         EnderecoArmazenamento endereco =
                 enderecoArmazenamentoRepository
-                        .findByIdAndDataInativoIsNull(id)
+                        .findById(id)
                         .orElseThrow(
                                 () ->
                                         new EntidadeNaoEncontradaException(
-                                                "Endereço de armazenamento ativo não encontrado com o ID informado: "
+                                                "Endereço de armazenamento não encontrado com o ID informado: "
                                                         + id));
 
         return EnderecoArmazenamentoDTO.Detalhe.deEntidade(endereco);

@@ -1,0 +1,234 @@
+<section
+  class="pagina-formulario !my-0 !w-[calc(100%-32px)] !max-w-[1280px] pt-7 pb-10 sm:!w-[calc(100%-64px)]"
+  [class.pagina-formulario__visualizacao]="visualizacao()"
+>
+  <header class="mb-10">
+    <div class="flex flex-wrap items-center gap-3">
+      <button mat-icon-button type="button" aria-label="Voltar" (click)="voltar()">
+        <mat-icon>arrow_back</mat-icon>
+      </button>
+      <div>
+        <h1 class="m-0 text-[2.5rem] leading-tight font-bold text-[#0b3c5d]">{{ titulo }}</h1>
+        <p class="mt-2 text-lg font-semibold text-[#8298a9]">{{ descricao }}</p>
+      </div>
+      @if (registro(); as endereco) {
+        <span
+          class="pagina-formulario__status"
+          [class.pagina-formulario__status--ativo]="endereco.ativo"
+          [class.pagina-formulario__status--inativo]="!endereco.ativo"
+        >
+          {{ endereco.ativo ? 'Ativo' : 'Inativo' }}
+        </span>
+      }
+    </div>
+  </header>
+
+  <form
+    [formGroup]="form"
+    (ngSubmit)="salvar()"
+    class="rounded-xl border border-[#dfe4ea] bg-white px-5 pt-7 pb-12 shadow-none sm:px-7 sm:pt-8"
+  >
+    @if (registro()?.dataInativo) {
+      <p class="mb-6 border-b border-gray-200 pb-5">
+        <span class="font-semibold">Inativado em:</span> {{ registro()?.dataInativo }}
+      </p>
+    }
+
+    <div class="grid grid-cols-1 gap-y-3 sm:grid-cols-2 sm:gap-x-6">
+      <div class="sm:col-span-2">
+        <label for="cep" class="mb-2 block text-sm font-semibold text-[#344054]">CEP *</label>
+        <mat-form-field appearance="outline" class="w-full">
+          <input
+            id="cep"
+            matInput
+            formControlName="cep"
+            autocomplete="postal-code"
+            inputmode="numeric"
+            maxlength="9"
+            placeholder="00000-000"
+            (input)="formatarCep()"
+          />
+          @if (buscandoCep()) {
+            <mat-hint>Consultando CEP...</mat-hint>
+          } @else {
+            <mat-hint
+              >Ao informar um CEP válido, o endereço será preenchido automaticamente.</mat-hint
+            >
+          }
+          @if (form.controls.cep.hasError('required') && form.controls.cep.touched) {
+            <mat-error>Informe o CEP.</mat-error>
+          } @else if (form.controls.cep.hasError('pattern')) {
+            <mat-error>Informe um CEP válido com 8 dígitos.</mat-error>
+          } @else if (form.controls.cep.hasError('backend')) {
+            <mat-error>{{ form.controls.cep.getError('backend') }}</mat-error>
+          }
+        </mat-form-field>
+      </div>
+
+      <div class="sm:col-span-2">
+        <label for="nome" class="mb-2 block text-sm font-semibold text-[#344054]">Nome *</label>
+        <mat-form-field appearance="outline" class="w-full">
+          <input
+            id="nome"
+            matInput
+            formControlName="nome"
+            maxlength="100"
+            placeholder="Nome do endereço"
+          />
+          @if (form.controls.nome.hasError('required') || form.controls.nome.hasError('pattern')) {
+            <mat-error>Informe o nome do endereço.</mat-error>
+          } @else if (form.controls.nome.hasError('maxlength')) {
+            <mat-error>O nome deve conter no máximo 100 caracteres.</mat-error>
+          } @else if (form.controls.nome.hasError('backend')) {
+            <mat-error>{{ form.controls.nome.getError('backend') }}</mat-error>
+          }
+        </mat-form-field>
+      </div>
+
+      <div>
+        <label for="uf" class="mb-2 block text-sm font-semibold text-[#344054]">UF *</label>
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-select id="uf" formControlName="uf" placeholder="Selecione a UF">
+            @for (uf of ufOpcoes; track uf.codigo) {
+              <mat-option [value]="uf.codigo">{{ uf.codigo }} - {{ uf.descricao }}</mat-option>
+            }
+          </mat-select>
+          @if (form.controls.uf.hasError('required') && form.controls.uf.touched) {
+            <mat-error>Selecione a UF.</mat-error>
+          }
+        </mat-form-field>
+      </div>
+
+      <div>
+        <label for="cidade" class="mb-2 block text-sm font-semibold text-[#344054]">Cidade *</label>
+        <mat-form-field appearance="outline" class="w-full">
+          <input id="cidade" matInput formControlName="cidade" maxlength="100" />
+          @if (
+            form.controls.cidade.hasError('required') || form.controls.cidade.hasError('pattern')
+          ) {
+            <mat-error>Informe a cidade.</mat-error>
+          } @else if (form.controls.cidade.hasError('maxlength')) {
+            <mat-error>A cidade deve conter no máximo 100 caracteres.</mat-error>
+          }
+        </mat-form-field>
+      </div>
+
+      <div>
+        <label for="bairro" class="mb-2 block text-sm font-semibold text-[#344054]">Bairro *</label>
+        <mat-form-field appearance="outline" class="w-full">
+          <input id="bairro" matInput formControlName="bairro" maxlength="50" />
+          @if (
+            form.controls.bairro.hasError('required') || form.controls.bairro.hasError('pattern')
+          ) {
+            <mat-error>Informe o bairro.</mat-error>
+          } @else if (form.controls.bairro.hasError('maxlength')) {
+            <mat-error>O bairro deve conter no máximo 50 caracteres.</mat-error>
+          }
+        </mat-form-field>
+      </div>
+
+      <div>
+        <label for="logradouro" class="mb-2 block text-sm font-semibold text-[#344054]"
+          >Logradouro *</label
+        >
+        <mat-form-field appearance="outline" class="w-full">
+          <input id="logradouro" matInput formControlName="logradouro" maxlength="100" />
+          @if (
+            form.controls.logradouro.hasError('required') ||
+            form.controls.logradouro.hasError('pattern')
+          ) {
+            <mat-error>Informe o logradouro.</mat-error>
+          } @else if (form.controls.logradouro.hasError('maxlength')) {
+            <mat-error>O logradouro deve conter no máximo 100 caracteres.</mat-error>
+          }
+        </mat-form-field>
+      </div>
+
+      <div>
+        <label for="numero" class="mb-2 block text-sm font-semibold text-[#344054]">Número *</label>
+        <mat-form-field appearance="outline" class="w-full">
+          <input id="numero" matInput formControlName="numero" maxlength="20" />
+          @if (
+            form.controls.numero.hasError('required') || form.controls.numero.hasError('pattern')
+          ) {
+            <mat-error>Informe o número.</mat-error>
+          } @else if (form.controls.numero.hasError('maxlength')) {
+            <mat-error>O número deve conter no máximo 20 caracteres.</mat-error>
+          }
+        </mat-form-field>
+      </div>
+
+      <div class="sm:col-span-2">
+        <label for="complemento" class="mb-2 block text-sm font-semibold text-[#344054]"
+          >Complemento</label
+        >
+        <mat-form-field appearance="outline" class="w-full">
+          <input id="complemento" matInput formControlName="complemento" maxlength="100" />
+          @if (form.controls.complemento.hasError('maxlength')) {
+            <mat-error>O complemento deve conter no máximo 100 caracteres.</mat-error>
+          }
+        </mat-form-field>
+      </div>
+
+      <div class="sm:col-span-2">
+        <label for="informacoesAdicionais" class="mb-2 block text-sm font-semibold text-[#344054]">
+          Informações adicionais
+        </label>
+        <mat-form-field appearance="outline" class="w-full">
+          <textarea
+            id="informacoesAdicionais"
+            matInput
+            formControlName="informacoesAdicionais"
+            rows="4"
+          ></textarea>
+        </mat-form-field>
+      </div>
+    </div>
+
+    @if (visualizacao() && registro(); as endereco) {
+      <div class="mt-10 flex flex-wrap justify-center gap-4 pb-5">
+        @if (endereco.ativo) {
+          <button mat-flat-button type="button" class="!min-w-40" (click)="editar()">
+            <mat-icon>edit</mat-icon>
+            Editar endereço
+          </button>
+        }
+        <button
+          mat-flat-button
+          type="button"
+          class="!min-w-40"
+          [disabled]="carregando()"
+          (click)="alternarEstado()"
+        >
+          <mat-icon>{{ endereco.ativo ? 'location_off' : 'restore' }}</mat-icon>
+          {{ endereco.ativo ? 'Inativar endereço' : 'Reativar endereço' }}
+        </button>
+      </div>
+    } @else {
+      <div class="mt-10 flex flex-wrap justify-center gap-4 pb-5">
+        <button
+          mat-flat-button
+          type="button"
+          class="!min-w-40 !bg-[#0b3c5d] !text-white"
+          (click)="voltar()"
+        >
+          Cancelar
+        </button>
+        <button
+          mat-flat-button
+          type="submit"
+          class="!min-w-40 !bg-[#0b3c5d] !text-white"
+          [disabled]="carregando() || form.disabled"
+        >
+          @if (carregando()) {
+            Salvando...
+          } @else if (modoCriacao()) {
+            Cadastrar endereço
+          } @else {
+            Salvar alterações
+          }
+        </button>
+      </div>
+    }
+  </form>
+</section>

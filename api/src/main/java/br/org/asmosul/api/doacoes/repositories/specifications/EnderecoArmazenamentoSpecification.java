@@ -18,11 +18,14 @@ public final class EnderecoArmazenamentoSpecification {
             String cidade,
             String bairro,
             String logradouro,
-            boolean incluirInativos) {
+            boolean incluirInativos,
+            boolean apenasInativos) {
         return (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
 
-            if (!incluirInativos) {
+            if (apenasInativos) {
+                predicates.add(criteriaBuilder.isNotNull(root.get("dataInativo")));
+            } else if (!incluirInativos) {
                 predicates.add(criteriaBuilder.isNull(root.get("dataInativo")));
             }
 

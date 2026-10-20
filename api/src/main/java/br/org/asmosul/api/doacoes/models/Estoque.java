@@ -6,12 +6,14 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 
 @Entity
 @Table(
     name = "estoque",
+    indexes = {@Index(name = "idx_estoque_id_armazenamento", columnList = "id_armazenamento")},
     uniqueConstraints = {
         @UniqueConstraint(
             name = "uq_estoque_item_armazenamento",
