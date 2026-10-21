@@ -359,7 +359,41 @@ class MovimentacaoServiceTest {
             assertThat(resposta.dados()).hasSize(2);
             assertThat(resposta.totalElementos()).isEqualTo(2);
             assertThat(resposta.dados().get(0).nomeItem()).isEqualTo("Arroz");
-            assertThat(resposta.dados().get(0).quantidade()).isEqualTo(5);
+            assertThat(resposta.dados().get(0).quantidade()).isEqualTo("5 un");
+        }
+
+        @Test
+        @DisplayName("Deve exibir quantidades agregadas separadamente por unidade de medida")
+        void listar_comItensDeUnidadesDiferentes_naoSomaUnidadesIncompativeis() {
+            EnderecoArmazenamento destino = criarEnderecoExemplo(2L, "Destino");
+            EnderecoArmazenamento origem = criarEnderecoExemplo(1L, "Origem");
+            Movimentacao movimentacao = criarMovimentacaoExemplo(1L, destino, "Transferência");
+            Item arroz = new Item("Arroz", null, 10, UnidadeMedida.QUILO, "Alimento");
+            Item latas = new Item("Latas", null, 10, UnidadeMedida.UNIDADE, "Alimento");
+            List<MovimentacaoEstoque> itens = List.of(
+                    new MovimentacaoEstoque(arroz, origem, movimentacao, 2),
+                    new MovimentacaoEstoque(latas, origem, movimentacao, 5));
+
+            MovimentacaoDTO.Resumo resumo = MovimentacaoDTO.Resumo.deEntidade(movimentacao, itens);
+
+            assertThat(resumo.quantidade()).isEqualTo("2 kg, 5 un");
+        }
+
+        @Test
+        @DisplayName("Deve rejeitar período de filtro com data inicial posterior à final")
+        void listar_comPeriodoInvertido_lancaValidationException() {
+            var filtro = new MovimentacaoDTO.MovimentacaoFiltroDTO(
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    LocalDateTime.of(2026, 10, 21, 12, 0),
+                    LocalDateTime.of(2026, 10, 20, 12, 0));
+
+            assertThatThrownBy(() ->
+                            movimentacaoService.listar(filtro, PageRequest.of(0, 10)))
+                    .isInstanceOf(ValidationException.class);
         }
     }
 

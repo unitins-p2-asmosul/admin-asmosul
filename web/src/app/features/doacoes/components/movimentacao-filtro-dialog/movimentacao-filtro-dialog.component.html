@@ -1,0 +1,62 @@
+<div class="pagina-formulario !my-0 !w-full !max-w-none">
+  <h2 mat-dialog-title class="!text-2xl !font-bold !text-[#0b3c5d]">
+    Filtrar movimentações de estoque
+  </h2>
+  <mat-dialog-content>
+    <form [formGroup]="form" class="grid gap-x-5 gap-y-2 sm:grid-cols-2">
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>Item</mat-label>
+        <mat-select formControlName="itemId">
+          <mat-option [value]="null">Todos</mat-option>
+          @for (item of itens(); track item.id) {
+            <mat-option [value]="item.id">{{ item.nome }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>Local antigo</mat-label>
+        <mat-select formControlName="localAntigoId">
+          <mat-option [value]="null">Todos</mat-option>
+          @for (endereco of enderecos(); track endereco.id) {
+            <mat-option [value]="endereco.id">{{ endereco.nome }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>Local novo</mat-label>
+        <mat-select formControlName="localNovoId">
+          <mat-option [value]="null">Todos</mat-option>
+          @for (endereco of enderecos(); track endereco.id) {
+            <mat-option [value]="endereco.id">{{ endereco.nome }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>Quantidade</mat-label>
+        <input matInput type="number" min="1" step="1" formControlName="quantidade" />
+        @if (
+          form.controls.quantidade.hasError('min') || form.controls.quantidade.hasError('pattern')
+        ) {
+          <mat-error>Informe uma quantidade inteira maior que zero.</mat-error>
+        }
+      </mat-form-field>
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>Data/hora inicial</mat-label>
+        <input matInput type="datetime-local" formControlName="dataHoraInicio" />
+      </mat-form-field>
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>Data/hora final</mat-label>
+        <input matInput type="datetime-local" formControlName="dataHoraFim" />
+        @if (form.controls.dataHoraFim.hasError('periodo')) {
+          <mat-error>A data/hora final deve ser posterior à inicial.</mat-error>
+        }
+      </mat-form-field>
+    </form>
+  </mat-dialog-content>
+  <mat-dialog-actions align="center" class="pessoa-filtro__actions !gap-4 !pb-5">
+    <button mat-flat-button type="button" (click)="limpar()">Limpar</button>
+    <button mat-flat-button type="button" class="acao-primaria" (click)="aplicar()">
+      Aplicar filtros
+    </button>
+  </mat-dialog-actions>
+</div>

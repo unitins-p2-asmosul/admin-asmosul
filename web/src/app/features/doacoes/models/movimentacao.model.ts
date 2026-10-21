@@ -13,6 +13,7 @@ export interface ItemMovimentacaoDetalhe {
   idArmazenamentoAntigo: number;
   nomeArmazenamentoAntigo: string;
   quantidade: number;
+  unidadeMedida?: string;
 }
 
 export interface MovimentacaoRequisicao {
@@ -22,7 +23,6 @@ export interface MovimentacaoRequisicao {
 }
 
 export interface MovimentacaoAtualizacao {
-  idNovoArmazenamento?: number;
   descricao?: string;
 }
 
@@ -31,7 +31,7 @@ export interface MovimentacaoResumo {
   nomeItem?: string;
   localAntigo?: string;
   localNovo?: string;
-  quantidade?: number;
+  quantidade: string;
   dataHora: string;
 }
 
@@ -49,9 +49,8 @@ export interface MovimentacaoFiltros {
   localAntigoId?: number;
   localNovoId?: number;
   quantidade?: number;
-  data?: string;
+  dataHoraInicio?: string;
+  dataHoraFim?: string;
 }
 
-export interface MovimentacaoConsultaParametros
-  extends ParametrosConsulta,
-    MovimentacaoFiltros {}
+export interface MovimentacaoConsultaParametros extends ParametrosConsulta, MovimentacaoFiltros {}

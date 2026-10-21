@@ -34,6 +34,14 @@ public final class MovimentacaoSpecification {
                 LocalDateTime fimDoDia = filtro.data().atTime(LocalTime.MAX);
                 predicates.add(criteriaBuilder.between(root.get("dataHora"), inicioDoDia, fimDoDia));
             }
+            if (filtro.dataHoraInicio() != null) {
+                predicates.add(criteriaBuilder.greaterThanOrEqualTo(
+                        root.get("dataHora"), filtro.dataHoraInicio()));
+            }
+            if (filtro.dataHoraFim() != null) {
+                predicates.add(criteriaBuilder.lessThanOrEqualTo(
+                        root.get("dataHora"), filtro.dataHoraFim()));
+            }
 
             if (filtro.itemId() != null || filtro.localAntigoId() != null || filtro.quantidade() != null) {
                 Subquery<Long> subquery = query.subquery(Long.class);
@@ -61,4 +69,3 @@ public final class MovimentacaoSpecification {
         };
     }
 }
-

@@ -3,6 +3,7 @@ package br.org.asmosul.api.doacoes.controllers;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
@@ -26,6 +27,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageImpl;
@@ -67,7 +69,8 @@ class MovimentacaoControllerTest {
             var itemReq = new MovimentacaoDTO.ItemMovimentacaoRequisicao(10L, 1L, 5);
             var requisicao = new MovimentacaoDTO.Requisicao(2L, "Transferência entre estoques", List.of(itemReq));
 
-            var itemDetalhe = new MovimentacaoDTO.ItemMovimentacaoDetalhe(100L, 10L, "Arroz", 1L, "Origem", 5);
+            var itemDetalhe = new MovimentacaoDTO.ItemMovimentacaoDetalhe(
+                    100L, 10L, "Arroz", 1L, "Origem", 5, "KG");
             var detalheRetorno = new MovimentacaoDTO.Detalhe(
                     1L, 2L, "Destino", LocalDateTime.now(), "Transferência entre estoques", List.of(itemDetalhe));
 
@@ -144,7 +147,8 @@ class MovimentacaoControllerTest {
         @Test
         @DisplayName("Deve listar movimentações retornando status 200 e resposta paginada")
         void listar_retornaStatus200ERespostaPaginada() throws Exception {
-            var resumo = new MovimentacaoDTO.Resumo(1L, "Arroz", "Origem", "Destino", 10, LocalDateTime.now());
+            var resumo = new MovimentacaoDTO.Resumo(
+                    1L, "Arroz", "Origem", "Destino", "10 un", LocalDateTime.now());
             var respostaPaginada = RespostaPaginada.dePage(new PageImpl<>(List.of(resumo), PageRequest.of(0, 10), 1));
 
             when(movimentacaoService.listar(any(), any())).thenReturn(respostaPaginada);
@@ -153,8 +157,33 @@ class MovimentacaoControllerTest {
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.dados[0].id").value(1L))
                     .andExpect(jsonPath("$.dados[0].nomeItem").value("Arroz"))
-                    .andExpect(jsonPath("$.dados[0].quantidade").value(10))
+                    .andExpect(jsonPath("$.dados[0].quantidade").value("10 un"))
                     .andExpect(jsonPath("$.totalElementos").value(1));
+        }
+
+        @Test
+        @DisplayName("Deve vincular filtros de data/hora inicial e final")
+        void listar_comPeriodoDataHora_encaminhaPeriodoAoServico() throws Exception {
+            var respostaPaginada =
+                    RespostaPaginada.dePage(
+                            new PageImpl<MovimentacaoDTO.Resumo>(
+                                    List.of(), PageRequest.of(0, 10), 0));
+            when(movimentacaoService.listar(any(), any())).thenReturn(respostaPaginada);
+
+            mockMvc.perform(get("/doacoes/movimentacoes")
+                            .param("dataHoraInicio", "2026-10-20T08:30")
+                            .param("dataHoraFim", "2026-10-21T17:00"))
+                    .andExpect(status().isOk());
+
+            ArgumentCaptor<MovimentacaoDTO.MovimentacaoFiltroDTO> filtroCaptor =
+                    ArgumentCaptor.forClass(MovimentacaoDTO.MovimentacaoFiltroDTO.class);
+            verify(movimentacaoService).listar(filtroCaptor.capture(), any());
+            org.junit.jupiter.api.Assertions.assertEquals(
+                    LocalDateTime.of(2026, 10, 20, 8, 30),
+                    filtroCaptor.getValue().dataHoraInicio());
+            org.junit.jupiter.api.Assertions.assertEquals(
+                    LocalDateTime.of(2026, 10, 21, 17, 0),
+                    filtroCaptor.getValue().dataHoraFim());
         }
     }
 
@@ -165,7 +194,8 @@ class MovimentacaoControllerTest {
         @Test
         @DisplayName("Deve retornar status 200 e os detalhes da movimentação quando existir")
         void buscarPorId_quandoExistir_retornaStatus200EDetalhe() throws Exception {
-            var itemDetalhe = new MovimentacaoDTO.ItemMovimentacaoDetalhe(100L, 10L, "Feijão", 1L, "Origem", 8);
+            var itemDetalhe = new MovimentacaoDTO.ItemMovimentacaoDetalhe(
+                    100L, 10L, "Feijão", 1L, "Origem", 8, "UN");
             var detalhe = new MovimentacaoDTO.Detalhe(
                     1L, 2L, "Destino", LocalDateTime.now(), "Descrição detalhada", List.of(itemDetalhe));
 
@@ -176,7 +206,8 @@ class MovimentacaoControllerTest {
                     .andExpect(jsonPath("$.id").value(1L))
                     .andExpect(jsonPath("$.nomeNovoArmazenamento").value("Destino"))
                     .andExpect(jsonPath("$.descricao").value("Descrição detalhada"))
-                    .andExpect(jsonPath("$.itens[0].nomeItem").value("Feijão"));
+                    .andExpect(jsonPath("$.itens[0].nomeItem").value("Feijão"))
+                    .andExpect(jsonPath("$.itens[0].unidadeMedida").value("UN"));
         }
 
         @Test

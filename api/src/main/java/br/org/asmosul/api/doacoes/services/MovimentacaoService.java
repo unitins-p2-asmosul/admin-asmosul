@@ -16,6 +16,7 @@ import br.org.asmosul.api.doacoes.repositories.ItemRepository;
 import br.org.asmosul.api.doacoes.repositories.MovimentacaoEstoqueRepository;
 import br.org.asmosul.api.doacoes.repositories.MovimentacaoRepository;
 import br.org.asmosul.api.doacoes.repositories.specifications.MovimentacaoSpecification;
+import java.time.LocalDateTime;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -120,6 +121,13 @@ public class MovimentacaoService {
     @Transactional(readOnly = true)
     public RespostaPaginada<MovimentacaoDTO.Resumo> listar(
             MovimentacaoDTO.MovimentacaoFiltroDTO filtro, Pageable paginacao) {
+        if (filtro != null
+                && filtro.dataHoraInicio() != null
+                && filtro.dataHoraFim() != null
+                && filtro.dataHoraInicio().isAfter(filtro.dataHoraFim())) {
+            throw ValidationException.of(
+                    "dataHoraInicio", "A data/hora inicial deve ser anterior à data/hora final.");
+        }
         Pageable paginacaoSanitizada =
                 PaginacaoUtils.sanitizarPaginacao(paginacao, CAMPOS_ORDENACAO_VALIDOS, "dataHora");
 
@@ -179,4 +187,3 @@ public class MovimentacaoService {
                         .orElseGet(() -> new Estoque(item, armazenamento, 0)));
     }
 }
-
