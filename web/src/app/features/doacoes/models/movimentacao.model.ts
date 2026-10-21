@@ -22,7 +22,7 @@ export interface MovimentacaoRequisicao {
 }
 
 export interface MovimentacaoAtualizacao {
-  idNovoArmazenamento: number;
+  idNovoArmazenamento?: number;
   descricao?: string;
 }
 
