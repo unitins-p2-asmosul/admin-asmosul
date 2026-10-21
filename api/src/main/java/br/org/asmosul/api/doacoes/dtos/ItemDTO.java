@@ -94,6 +94,8 @@ public final class ItemDTO {
         }
     }
 
+    public record EstoqueLocal(Long idEndereco, String nomeEndereco, Integer quantidade) {}
+
     public record Detalhe(
             Long id,
             String nome,
