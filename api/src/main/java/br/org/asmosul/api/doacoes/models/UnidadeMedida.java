@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Arrays;
+import java.util.Map;
 
 @JsonFormat(shape = JsonFormat.Shape.OBJECT)
 public enum UnidadeMedida {
@@ -39,20 +40,47 @@ public enum UnidadeMedida {
     }
 
     @JsonCreator
-    public static UnidadeMedida deCodigo(String valor) {
-        if (valor == null || valor.isBlank()) return null;
+    public static UnidadeMedida deCodigo(Object valor) {
+        if (valor == null) {
+            return null;
+        }
 
+        String texto = null;
+        if (valor instanceof String s) {
+            texto = s;
+        } else if (valor instanceof Map<?, ?> map) {
+            Object codigo = map.get("codigo");
+            if (codigo != null) {
+                texto = codigo.toString();
+            } else {
+                Object name = map.get("name");
+                if (name != null) {
+                    texto = name.toString();
+                } else {
+                    Object descricao = map.get("descricao");
+                    if (descricao != null) {
+                        texto = descricao.toString();
+                    }
+                }
+            }
+        }
+
+        if (texto == null || texto.isBlank()) {
+            return null;
+        }
+
+        final String finalTexto = texto.trim();
         return Arrays.stream(UnidadeMedida.values())
-            .filter(
-                u ->
-                    u.name().equalsIgnoreCase(valor.trim())
-                        || u.getCodigo().equalsIgnoreCase(valor.trim())
-                        || u.getDescricao().equalsIgnoreCase(valor.trim()))
-            .findFirst()
-            .orElseThrow(
-                () ->
-                    ValidationException.of(
-                        "unidadeMedida",
-                        "Opção de unidade de medida informada é inválida"));
+                .filter(
+                        u ->
+                                u.name().equalsIgnoreCase(finalTexto)
+                                        || u.getCodigo().equalsIgnoreCase(finalTexto)
+                                        || u.getDescricao().equalsIgnoreCase(finalTexto))
+                .findFirst()
+                .orElseThrow(
+                        () ->
+                                ValidationException.of(
+                                        "unidadeMedida",
+                                        "Opção de unidade de medida informada é inválida"));
     }
 }
