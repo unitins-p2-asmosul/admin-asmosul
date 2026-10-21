@@ -28,6 +28,14 @@ export interface EnderecoArmazenamentoResumo {
   ativo: boolean;
 }
 
+export interface EnderecoEstoqueItem {
+  idItem: number;
+  nomeItem: string;
+  categoria: string;
+  unidadeMedida: string;
+  quantidade: number;
+}
+
 export interface EnderecoArmazenamentoDetalhe {
   id: number;
   nome: string;
@@ -39,6 +47,7 @@ export interface EnderecoArmazenamentoDetalhe {
   numero: string;
   complemento?: string;
   informacoesAdicionais?: string;
+  itens?: EnderecoEstoqueItem[];
   ativo?: boolean;
   dataInativo?: string;
 }
@@ -51,5 +60,4 @@ export interface EnderecoArmazenamentoFiltros {
 }
 
 export interface EnderecoArmazenamentoConsultaParametros
-  extends ParametrosConsulta,
-    EnderecoArmazenamentoFiltros {}
+  extends ParametrosConsulta, EnderecoArmazenamentoFiltros {}

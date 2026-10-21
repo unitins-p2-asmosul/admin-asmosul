@@ -6,7 +6,9 @@ import br.org.asmosul.api.comum.exceptions.ValidationException;
 import br.org.asmosul.api.comum.utils.PaginacaoUtils;
 import br.org.asmosul.api.doacoes.dtos.EnderecoArmazenamentoDTO;
 import br.org.asmosul.api.doacoes.models.EnderecoArmazenamento;
+import br.org.asmosul.api.doacoes.models.Estoque;
 import br.org.asmosul.api.doacoes.repositories.EnderecoArmazenamentoRepository;
+import br.org.asmosul.api.doacoes.repositories.EstoqueRepository;
 import br.org.asmosul.api.doacoes.repositories.specifications.EnderecoArmazenamentoSpecification;
 import br.org.asmosul.api.pessoas.models.Uf;
 import java.util.List;
@@ -24,13 +26,18 @@ public class EnderecoArmazenamentoService {
             Set.of("id", "nome", "cidade", "bairro", "dataInativo");
 
     private final EnderecoArmazenamentoRepository enderecoArmazenamentoRepository;
+    private final EstoqueRepository estoqueRepository;
 
-    public EnderecoArmazenamentoService(EnderecoArmazenamentoRepository enderecoArmazenamentoRepository) {
+    public EnderecoArmazenamentoService(
+            EnderecoArmazenamentoRepository enderecoArmazenamentoRepository,
+            EstoqueRepository estoqueRepository) {
         this.enderecoArmazenamentoRepository = enderecoArmazenamentoRepository;
+        this.estoqueRepository = estoqueRepository;
     }
 
     @Transactional
-    public EnderecoArmazenamentoDTO.Detalhe cadastrar(EnderecoArmazenamentoDTO.Requisicao requisicao) {
+    public EnderecoArmazenamentoDTO.Detalhe cadastrar(
+            EnderecoArmazenamentoDTO.Requisicao requisicao) {
         if (enderecoArmazenamentoRepository.existsByNomeIgnoreCase(requisicao.nome())) {
             throw ValidationException.ofConflito(
                     "nome", "Já existe um endereço de armazenamento cadastrado com este nome.");
@@ -39,7 +46,7 @@ public class EnderecoArmazenamentoService {
         EnderecoArmazenamento endereco = requisicao.paraEntidade();
         EnderecoArmazenamento enderecoSalvo = enderecoArmazenamentoRepository.save(endereco);
 
-        return EnderecoArmazenamentoDTO.Detalhe.deEntidade(enderecoSalvo);
+        return EnderecoArmazenamentoDTO.Detalhe.deEntidade(enderecoSalvo, List.of());
     }
 
     @Transactional(readOnly = true)
@@ -59,11 +66,20 @@ public class EnderecoArmazenamentoService {
 
         Specification<EnderecoArmazenamento> spec =
                 EnderecoArmazenamentoSpecification.comFiltro(
-                        nome, cep, uf, cidade, bairro, logradouro, incluirInativos, apenasInativos);
+                        nome,
+                        cep,
+                        uf,
+                        cidade,
+                        bairro,
+                        logradouro,
+                        incluirInativos,
+                        apenasInativos);
 
-        Page<EnderecoArmazenamento> pagina = enderecoArmazenamentoRepository.findAll(spec, paginacaoSanitizada);
+        Page<EnderecoArmazenamento> pagina =
+                enderecoArmazenamentoRepository.findAll(spec, paginacaoSanitizada);
 
-        Page<EnderecoArmazenamentoDTO.Resumo> paginaDtos = pagina.map(EnderecoArmazenamentoDTO.Resumo::deEntidade);
+        Page<EnderecoArmazenamentoDTO.Resumo> paginaDtos =
+                pagina.map(EnderecoArmazenamentoDTO.Resumo::deEntidade);
 
         return RespostaPaginada.dePage(paginaDtos);
     }
@@ -94,11 +110,29 @@ public class EnderecoArmazenamentoService {
                                                 "Endereço de armazenamento não encontrado com o ID informado: "
                                                         + id));
 
-        return EnderecoArmazenamentoDTO.Detalhe.deEntidade(endereco);
+        List<Estoque> estoques =
+                estoqueRepository.findAllByArmazenamentoIdAndQuantidadeGreaterThan(id, 0);
+
+        List<EnderecoArmazenamentoDTO.EnderecoEstoqueItemDTO> itens =
+                estoques.stream()
+                        .map(
+                                e ->
+                                        new EnderecoArmazenamentoDTO.EnderecoEstoqueItemDTO(
+                                                e.getItem().getId(),
+                                                e.getItem().getNome(),
+                                                e.getItem().getCategoria() != null
+                                                        ? e.getItem().getCategoria().getNome()
+                                                        : null,
+                                                e.getItem().getUnidadeMedida(),
+                                                e.getQuantidade()))
+                        .toList();
+
+        return EnderecoArmazenamentoDTO.Detalhe.deEntidade(endereco, itens);
     }
 
     @Transactional
-    public EnderecoArmazenamentoDTO.Detalhe atualizar(Long id, EnderecoArmazenamentoDTO.Atualizacao requisicao) {
+    public EnderecoArmazenamentoDTO.Detalhe atualizar(
+            Long id, EnderecoArmazenamentoDTO.Atualizacao requisicao) {
         EnderecoArmazenamento endereco =
                 enderecoArmazenamentoRepository
                         .findByIdAndDataInativoIsNull(id)
@@ -123,7 +157,24 @@ public class EnderecoArmazenamentoService {
         endereco.setComplemento(requisicao.complemento());
         endereco.setInformacoesAdicionais(requisicao.informacoesAdicionais());
 
-        return EnderecoArmazenamentoDTO.Detalhe.deEntidade(endereco);
+        List<Estoque> estoques =
+                estoqueRepository.findAllByArmazenamentoIdAndQuantidadeGreaterThan(id, 0);
+
+        List<EnderecoArmazenamentoDTO.EnderecoEstoqueItemDTO> itens =
+                estoques.stream()
+                        .map(
+                                e ->
+                                        new EnderecoArmazenamentoDTO.EnderecoEstoqueItemDTO(
+                                                e.getItem().getId(),
+                                                e.getItem().getNome(),
+                                                e.getItem().getCategoria() != null
+                                                        ? e.getItem().getCategoria().getNome()
+                                                        : null,
+                                                e.getItem().getUnidadeMedida(),
+                                                e.getQuantidade()))
+                        .toList();
+
+        return EnderecoArmazenamentoDTO.Detalhe.deEntidade(endereco, itens);
     }
 
     @Transactional
