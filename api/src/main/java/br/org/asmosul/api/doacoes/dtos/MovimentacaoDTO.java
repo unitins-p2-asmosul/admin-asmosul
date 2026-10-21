@@ -60,8 +60,6 @@ public final class MovimentacaoDTO {
     }
 
     public record Atualizacao(
-        @NotNull(message = "O novo local de armazenamento é obrigatório")
-        Long idNovoArmazenamento,
         String descricao) {}
 
     public record Resumo(
@@ -84,6 +82,42 @@ public final class MovimentacaoDTO {
                 localAntigo,
                 mov.getNovoArmazenamento() != null ? mov.getNovoArmazenamento().getNome() : null,
                 quantidade,
+                mov.getDataHora());
+        }
+
+        public static Resumo deEntidade(Movimentacao mov, List<MovimentacaoEstoque> itens) {
+            if (itens == null || itens.isEmpty()) {
+                return new Resumo(
+                    mov.getId(),
+                    null,
+                    null,
+                    mov.getNovoArmazenamento() != null ? mov.getNovoArmazenamento().getNome() : null,
+                    0,
+                    mov.getDataHora());
+            }
+
+            String nomesItens = itens.stream()
+                .map(i -> i.getItem() != null ? i.getItem().getNome() : null)
+                .filter(nome -> nome != null && !nome.isBlank())
+                .distinct()
+                .collect(java.util.stream.Collectors.joining(", "));
+
+            String locaisAntigos = itens.stream()
+                .map(i -> i.getArmazenamentoAntigo() != null ? i.getArmazenamentoAntigo().getNome() : null)
+                .filter(nome -> nome != null && !nome.isBlank())
+                .distinct()
+                .collect(java.util.stream.Collectors.joining(", "));
+
+            int totalQuantidade = itens.stream()
+                .mapToInt(i -> i.getQuantidade() != null ? i.getQuantidade() : 0)
+                .sum();
+
+            return new Resumo(
+                mov.getId(),
+                nomesItens.isEmpty() ? null : nomesItens,
+                locaisAntigos.isEmpty() ? null : locaisAntigos,
+                mov.getNovoArmazenamento() != null ? mov.getNovoArmazenamento().getNome() : null,
+                totalQuantidade,
                 mov.getDataHora());
         }
     }
