@@ -29,11 +29,19 @@ export interface ItemResumo {
   ativo: boolean;
 }
 
+export interface ItemEstoqueLocal {
+  idEndereco: number;
+  nomeEndereco?: string;
+  nomeLocalArmazenamento?: string;
+  quantidade: number;
+}
+
 export interface ItemDetalhe {
   id: number;
   nome: string;
   categoria?: CategoriaItemDetalhe;
   estoque: number;
+  locais?: ItemEstoqueLocal[];
   precoUnitario: number;
   unidadeMedida: UnidadeMedidaItem | UnidadeMedidaCodigo;
   descricao?: string;

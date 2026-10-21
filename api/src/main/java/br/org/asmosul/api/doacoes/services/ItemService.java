@@ -118,13 +118,13 @@ public class ItemService {
                                         new EntidadeNaoEncontradaException(
                                                 "Item não encontrado com o ID informado: " + id));
 
-        List<Estoque> estoques = estoqueRepository.findByItemIdComArmazenamento(id);
-        List<ItemDTO.EstoqueLocal> locais =
+        List<Estoque> estoques =
+                estoqueRepository.findAllByItemIdAndQuantidadeGreaterThan(id, 0);
+        List<ItemDTO.ItemEstoqueLocalDTO> locais =
                 estoques.stream()
-                        .filter(e -> e.getQuantidade() > 0)
                         .map(
                                 e ->
-                                        new ItemDTO.EstoqueLocal(
+                                        new ItemDTO.ItemEstoqueLocalDTO(
                                                 e.getArmazenamento().getId(),
                                                 e.getArmazenamento().getNome(),
                                                 e.getQuantidade()))
@@ -166,13 +166,13 @@ public class ItemService {
         item.setUnidadeMedida(requisicao.unidadeMedida());
         item.setDescricao(requisicao.descricao());
 
-        List<Estoque> estoques = estoqueRepository.findByItemIdComArmazenamento(id);
-        List<ItemDTO.EstoqueLocal> locais =
+        List<Estoque> estoques =
+                estoqueRepository.findAllByItemIdAndQuantidadeGreaterThan(id, 0);
+        List<ItemDTO.ItemEstoqueLocalDTO> locais =
                 estoques.stream()
-                        .filter(e -> e.getQuantidade() > 0)
                         .map(
                                 e ->
-                                        new ItemDTO.EstoqueLocal(
+                                        new ItemDTO.ItemEstoqueLocalDTO(
                                                 e.getArmazenamento().getId(),
                                                 e.getArmazenamento().getNome(),
                                                 e.getQuantidade()))

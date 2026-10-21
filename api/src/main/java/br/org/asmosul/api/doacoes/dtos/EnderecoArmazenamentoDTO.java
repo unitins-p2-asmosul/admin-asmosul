@@ -1,11 +1,13 @@
 package br.org.asmosul.api.doacoes.dtos;
 
 import br.org.asmosul.api.doacoes.models.EnderecoArmazenamento;
+import br.org.asmosul.api.doacoes.models.UnidadeMedida;
 import br.org.asmosul.api.pessoas.models.Uf;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import java.time.LocalDateTime;
+import java.util.List;
 
 public final class EnderecoArmazenamentoDTO {
 
@@ -100,6 +102,13 @@ public final class EnderecoArmazenamentoDTO {
         }
     }
 
+    public record EnderecoEstoqueItemDTO(
+            Long idItem,
+            String nomeItem,
+            String categoria,
+            UnidadeMedida unidadeMedida,
+            Integer quantidade) {}
+
     public record Detalhe(
             Long id,
             String nome,
@@ -111,10 +120,12 @@ public final class EnderecoArmazenamentoDTO {
             String numero,
             String complemento,
             String informacoesAdicionais,
+            List<EnderecoEstoqueItemDTO> itens,
             boolean ativo,
             LocalDateTime dataInativo) {
 
-        public static Detalhe deEntidade(EnderecoArmazenamento endereco) {
+        public static Detalhe deEntidade(
+                EnderecoArmazenamento endereco, List<EnderecoEstoqueItemDTO> itens) {
             return new Detalhe(
                     endereco.getId(),
                     endereco.getNome(),
@@ -126,8 +137,13 @@ public final class EnderecoArmazenamentoDTO {
                     endereco.getNumero(),
                     endereco.getComplemento(),
                     endereco.getInformacoesAdicionais(),
+                    itens != null ? itens : List.of(),
                     endereco.isAtivo(),
                     endereco.getDataInativo());
+        }
+
+        public static Detalhe deEntidade(EnderecoArmazenamento endereco) {
+            return deEntidade(endereco, List.of());
         }
     }
 }

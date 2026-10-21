@@ -69,4 +69,31 @@ export const DOACOES_ROUTES: Routes = [
       },
     ],
   },
+  {
+    path: 'itens',
+    children: [
+      {
+        path: 'adicionar',
+        loadComponent: () =>
+          import('./pages/item-cadastro-page/item-cadastro-page.component').then(
+            (modulo) => modulo.ItemCadastroPageComponent,
+          ),
+      },
+      {
+        path: ':id/editar',
+        loadComponent: () =>
+          import('./pages/item-cadastro-page/item-cadastro-page.component').then(
+            (modulo) => modulo.ItemCadastroPageComponent,
+          ),
+      },
+      {
+        path: ':id',
+        loadComponent: () =>
+          import('./pages/item-cadastro-page/item-cadastro-page.component').then(
+            (modulo) => modulo.ItemCadastroPageComponent,
+          ),
+        data: { visualizacao: true },
+      },
+    ],
+  },
 ];

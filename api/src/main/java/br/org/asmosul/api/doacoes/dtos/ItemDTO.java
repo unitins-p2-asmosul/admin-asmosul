@@ -16,30 +16,46 @@ public final class ItemDTO {
 
     public record Requisicao(
             @NotBlank(message = "O nome é obrigatório")
-                    @Size(max = 100, message = "O nome deve conter no máximo 100 caracteres")
-                    String nome,
-            @NotNull(message = "A categoria é obrigatória") Long idCategoria,
+            @Size(max = 100, message = "O nome deve conter no máximo 100 caracteres")
+            String nome,
+
+            @NotNull(message = "A categoria é obrigatória")
+            Long idCategoria,
+
             @NotNull(message = "O preço unitário é obrigatório")
-                    @PositiveOrZero(message = "O preço unitário deve ser maior ou igual a zero")
-                    Integer precoUnitario,
-            @NotNull(message = "A unidade de medida é obrigatória") UnidadeMedida unidadeMedida,
+            @PositiveOrZero(message = "O preço unitário deve ser maior ou igual a zero")
+            Integer precoUnitario,
+
+            @NotNull(message = "A unidade de medida é obrigatória")
+            UnidadeMedida unidadeMedida,
+
             String descricao) {
 
         public Item paraEntidade(CategoriaItem categoria) {
             return new Item(
-                    this.nome, categoria, this.precoUnitario, this.unidadeMedida, this.descricao);
+                    this.nome,
+                    categoria,
+                    this.precoUnitario,
+                    this.unidadeMedida,
+                    this.descricao);
         }
     }
 
     public record Atualizacao(
             @NotBlank(message = "O nome é obrigatório")
-                    @Size(max = 100, message = "O nome deve conter no máximo 100 caracteres")
-                    String nome,
-            @NotNull(message = "A categoria é obrigatória") Long idCategoria,
+            @Size(max = 100, message = "O nome deve conter no máximo 100 caracteres")
+            String nome,
+
+            @NotNull(message = "A categoria é obrigatória")
+            Long idCategoria,
+
             @NotNull(message = "O preço unitário é obrigatório")
-                    @PositiveOrZero(message = "O preço unitário deve ser maior ou igual a zero")
-                    Integer precoUnitario,
-            @NotNull(message = "A unidade de medida é obrigatória") UnidadeMedida unidadeMedida,
+            @PositiveOrZero(message = "O preço unitário deve ser maior ou igual a zero")
+            Integer precoUnitario,
+
+            @NotNull(message = "A unidade de medida é obrigatória")
+            UnidadeMedida unidadeMedida,
+
             String descricao) {}
 
     public record Resumo(
@@ -67,6 +83,17 @@ public final class ItemDTO {
         }
     }
 
+    public record ItemEstoqueLocalDTO(
+            Long idEndereco,
+            String nomeEndereco,
+            String nomeLocalArmazenamento,
+            Integer quantidade) {
+
+        public ItemEstoqueLocalDTO(Long idEndereco, String nomeEndereco, Integer quantidade) {
+            this(idEndereco, nomeEndereco, nomeEndereco, quantidade);
+        }
+    }
+
     public record EstoqueLocal(Long idEndereco, String nomeEndereco, Integer quantidade) {}
 
     public record Detalhe(
@@ -74,7 +101,7 @@ public final class ItemDTO {
             String nome,
             CategoriaItemDTO.Detalhe categoria,
             Integer estoque,
-            List<EstoqueLocal> locais,
+            List<ItemEstoqueLocalDTO> locais,
             Integer precoUnitario,
             UnidadeMedida unidadeMedida,
             String descricao,
@@ -82,7 +109,7 @@ public final class ItemDTO {
             LocalDateTime dataInativo) {
 
         public static Detalhe deEntidade(
-                Item item, Integer estoqueCalculado, List<EstoqueLocal> locais) {
+                Item item, Integer estoqueCalculado, List<ItemEstoqueLocalDTO> locais) {
             return new Detalhe(
                     item.getId(),
                     item.getNome(),
