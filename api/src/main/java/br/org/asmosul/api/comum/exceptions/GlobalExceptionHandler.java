@@ -12,6 +12,9 @@ import org.springframework.security.authentication.AuthenticationTrustResolverIm
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.validation.FieldError;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -20,6 +23,42 @@ public class GlobalExceptionHandler {
 
     private static final AuthenticationTrustResolver TRUST_RESOLVER =
             new AuthenticationTrustResolverImpl();
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ProblemDetail tratarMethodArgumentNotValidException(MethodArgumentNotValidException ex) {
+        ProblemDetail problemDetail =
+                ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, "Dados inválidos");
+
+        problemDetail.setTitle("Erro de Validação");
+        problemDetail.setType(URI.create("https://api.asmosul.org.br/erros/validacao"));
+
+        Map<String, String> errosMapeados =
+                ex.getBindingResult().getFieldErrors().stream()
+                        .collect(
+                                Collectors.toMap(
+                                        FieldError::getField,
+                                        fieldError ->
+                                                fieldError.getDefaultMessage() != null
+                                                        ? fieldError.getDefaultMessage()
+                                                        : "Inválido",
+                                        (m1, m2) -> m1));
+
+        problemDetail.setProperty("invalidFields", errosMapeados);
+
+        return problemDetail;
+    }
+
+    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+    public ProblemDetail tratarHttpRequestMethodNotSupportedException(
+            HttpRequestMethodNotSupportedException ex) {
+        ProblemDetail problemDetail =
+                ProblemDetail.forStatusAndDetail(HttpStatus.METHOD_NOT_ALLOWED, ex.getMessage());
+
+        problemDetail.setTitle("Método Não Permitido");
+        problemDetail.setType(URI.create("https://api.asmosul.org.br/erros/metodo-nao-permitido"));
+
+        return problemDetail;
+    }
 
     @ExceptionHandler(ValidationException.class)
     public ProblemDetail tratarValidationException(ValidationException ex) {
