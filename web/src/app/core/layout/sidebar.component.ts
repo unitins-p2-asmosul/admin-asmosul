@@ -58,7 +58,7 @@ export class SidebarComponent {
       icone: 'card_giftcard',
       perfil: Perfil.GERENCIADOR_DOACOES,
       itens: [
-        { rotulo: 'Itens', icone: 'inventory_2' },
+        { rotulo: 'Itens', icone: 'inventory_2', rota: '/doacoes/itens' },
         { rotulo: 'Categorias de Itens', icone: 'category', rota: '/doacoes/categorias' },
         { rotulo: 'Kits', icone: 'widgets' },
         { rotulo: 'Entradas', icone: 'input' },

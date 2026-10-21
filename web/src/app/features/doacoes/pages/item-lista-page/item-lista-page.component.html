@@ -1,0 +1,55 @@
+<app-pagina-gerenciamento
+  titulo="Itens"
+  icone=""
+  iconeAdicionar="inventory_2"
+  [adicionarNaToolbar]="true"
+  rotuloAdicionar="Adicionar Item"
+  [filtrosAtivos]="filtrosAtivos"
+  (aoAdicionar)="irParaAdicionar()"
+  (aoFiltrar)="abrirFiltros()"
+>
+  <div toolbar-actions class="flex items-center gap-1">
+    <button
+      mat-flat-button
+      type="button"
+      class="pagina-pessoas__filter"
+      [matTooltip]="
+        parametrosAtuais().apenasInativos ? 'Exibir itens ativos' : 'Exibir itens inativos'
+      "
+      [attr.aria-label]="
+        parametrosAtuais().apenasInativos ? 'Exibir itens ativos' : 'Exibir itens inativos'
+      "
+      (click)="alternarInativos()"
+    >
+      <mat-icon>{{
+        parametrosAtuais().apenasInativos ? 'inventory_2' : 'visibility_off'
+      }}</mat-icon>
+      {{ parametrosAtuais().apenasInativos ? 'Exibir ativos' : 'Exibir inativos' }}
+    </button>
+    @if (filtrosAtivos > 0 || parametrosAtuais().apenasInativos) {
+      <button
+        mat-icon-button
+        type="button"
+        matTooltip="Limpar filtros"
+        aria-label="Limpar filtros"
+        (click)="limparFiltros()"
+      >
+        <mat-icon>filter_alt_off</mat-icon>
+      </button>
+    }
+  </div>
+
+  <app-item-tabela
+    [dados]="resposta().dados"
+    [totalElementos]="resposta().totalElementos"
+    [tamanhoPagina]="resposta().tamanhoPagina"
+    [paginaAtual]="resposta().paginaAtual"
+    [carregando]="carregando()"
+    [ordenacao]="parametrosAtuais().sort ?? 'nome,asc'"
+    (aoMudarPagina)="mudarPagina($event)"
+    (aoMudarOrdem)="mudarOrdem($event)"
+    (aoVisualizar)="visualizar($event)"
+    (aoEditar)="editar($event)"
+    (aoAlternarEstado)="alternarEstado($event)"
+  />
+</app-pagina-gerenciamento>

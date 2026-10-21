@@ -109,9 +109,9 @@
             matInput
             type="number"
             min="0"
-            step="1"
+            step="0.01"
             formControlName="precoUnitario"
-            placeholder="Valor estimado"
+            placeholder="0,00"
           />
           @if (
             form.controls.precoUnitario.hasError('required') && form.controls.precoUnitario.touched
@@ -153,20 +153,22 @@
     @if (visualizacao()) {
       <div class="mt-8 border-t border-gray-200 pt-6">
         <h2 class="mb-4 text-xl font-bold text-[#0b3c5d]">
-          Distribuição por Local de Armazenamento
+          Locais de Armazenamento com este Item em Estoque (Distribuição do Estoque)
         </h2>
         @if (registro()?.locais && registro()!.locais!.length > 0) {
           <div class="overflow-x-auto rounded-lg border border-gray-200">
             <table class="w-full border-collapse text-left text-sm text-gray-700">
               <thead class="bg-gray-50 text-xs font-bold uppercase text-[#0b3c5d]">
                 <tr>
+                  <th scope="col" class="px-6 py-3">#</th>
                   <th scope="col" class="px-6 py-3">Local de Armazenamento</th>
-                  <th scope="col" class="px-6 py-3 text-right">Quantidade em Estoque</th>
+                  <th scope="col" class="px-6 py-3 text-right">Quantidade Armazenada</th>
                 </tr>
               </thead>
               <tbody class="divide-y divide-gray-200 bg-white">
                 @for (local of registro()?.locais; track local.idEndereco) {
                   <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 font-semibold text-gray-900">{{ local.idEndereco }}</td>
                     <td class="px-6 py-4 font-semibold text-gray-900">
                       {{ local.nomeLocalArmazenamento || local.nomeEndereco }}
                     </td>

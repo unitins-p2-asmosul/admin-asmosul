@@ -102,10 +102,12 @@ export class ItemCadastroPageComponent implements OnInit {
 
     this.carregando.set(true);
     const valores = this.form.getRawValue();
+    const precoCentavos = Math.round(Number(valores.precoUnitario) * 100);
+
     const requisicao: ItemRequisicao = {
       nome: valores.nome.trim(),
       idCategoria: valores.idCategoria!,
-      precoUnitario: Number(valores.precoUnitario),
+      precoUnitario: precoCentavos,
       unidadeMedida: valores.unidadeMedida,
       descricao: valores.descricao?.trim() || undefined,
     };
@@ -178,7 +180,7 @@ export class ItemCadastroPageComponent implements OnInit {
           this.form.patchValue({
             nome: item.nome,
             idCategoria: item.categoria?.id ?? null,
-            precoUnitario: item.precoUnitario,
+            precoUnitario: item.precoUnitario ? item.precoUnitario / 100 : 0,
             unidadeMedida: unidadeCodigo,
             descricao: item.descricao ?? '',
             estoque: item.estoque ?? 0,
@@ -202,7 +204,7 @@ export class ItemCadastroPageComponent implements OnInit {
     }
 
     if (erro.status === 409) {
-      const mensagem = corpo?.detail || 'Já existe um item com este nome.';
+      const mensagem = corpo?.detail || 'Já existe um item cadastrado com este nome.';
       this.form.controls.nome.setErrors({ backend: mensagem });
       this.notificacao.alerta(mensagem);
     } else if (erro.status !== 400 || !corpo?.erros?.length) {
