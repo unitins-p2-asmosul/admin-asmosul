@@ -1,0 +1,27 @@
+<div class="pagina-formulario !my-0 !w-full !max-w-none">
+  <h2 mat-dialog-title class="!text-2xl !font-bold !text-[#0b3c5d]">
+    Filtrar endereços de armazenamento
+  </h2>
+  <mat-dialog-content>
+    <form [formGroup]="form" class="grid gap-x-5 gap-y-2 sm:grid-cols-2">
+      <mat-form-field appearance="outline" class="w-full sm:col-span-2">
+        <mat-label>Nome</mat-label>
+        <input matInput formControlName="nome" />
+      </mat-form-field>
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>Bairro</mat-label>
+        <input matInput formControlName="bairro" />
+      </mat-form-field>
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>Logradouro</mat-label>
+        <input matInput formControlName="logradouro" />
+      </mat-form-field>
+    </form>
+  </mat-dialog-content>
+  <mat-dialog-actions align="center" class="pessoa-filtro__actions !gap-4 !pb-5">
+    <button mat-flat-button type="button" (click)="limpar()">Limpar</button>
+    <button mat-flat-button type="button" class="acao-primaria" (click)="aplicar()">
+      Aplicar filtros
+    </button>
+  </mat-dialog-actions>
+</div>

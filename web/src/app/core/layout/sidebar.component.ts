@@ -63,7 +63,7 @@ export class SidebarComponent {
         { rotulo: 'Kits', icone: 'widgets' },
         { rotulo: 'Entradas', icone: 'input' },
         { rotulo: 'Saídas', icone: 'output' },
-        { rotulo: 'Endereço', icone: 'location_on' },
+        { rotulo: 'Endereços de Armazenamento', icone: 'location_on', rota: '/doacoes/enderecos' },
       ],
     },
     {

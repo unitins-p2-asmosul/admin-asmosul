@@ -30,7 +30,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
-@DisplayName("Testes Unitários - EnderecoDoacaoService")
+@DisplayName("Testes Unitários - EnderecoArmazenamentoService")
 class EnderecoArmazenamentoServiceTest {
 
     @Mock private EnderecoArmazenamentoRepository enderecoArmazenamentoRepository;
@@ -124,7 +124,7 @@ class EnderecoArmazenamentoServiceTest {
 
             RespostaPaginada<EnderecoArmazenamentoDTO.Resumo> resposta =
                     enderecoArmazenamentoService.listar(
-                            paginacao, false, "Depósito", "77000", Uf.TO, "Palmas", "Centro", "Av");
+                            paginacao, false, false, "Depósito", "77000", Uf.TO, "Palmas", "Centro", "Av");
 
             assertThat(resposta).isNotNull();
             assertThat(resposta.dados()).hasSize(1);
@@ -172,8 +172,7 @@ class EnderecoArmazenamentoServiceTest {
         @DisplayName("Deve retornar detalhes do endereço quando ativo e encontrado")
         void buscarPorId_comIdExistenteEAtivo_retornaDetalhe() {
             EnderecoArmazenamento endereco = criarEnderecoExemplo(5L, "Depósito Sul");
-            when(enderecoArmazenamentoRepository.findByIdAndDataInativoIsNull(5L))
-                    .thenReturn(Optional.of(endereco));
+            when(enderecoArmazenamentoRepository.findById(5L)).thenReturn(Optional.of(endereco));
 
             EnderecoArmazenamentoDTO.Detalhe resultado = enderecoArmazenamentoService.buscarPorId(5L);
 
@@ -183,10 +182,9 @@ class EnderecoArmazenamentoServiceTest {
         }
 
         @Test
-        @DisplayName("Deve lançar EntidadeNaoEncontradaException quando não encontrado ou inativo")
-        void buscarPorId_comIdInexistenteOuInativo_lancaEntidadeNaoEncontradaException() {
-            when(enderecoArmazenamentoRepository.findByIdAndDataInativoIsNull(99L))
-                    .thenReturn(Optional.empty());
+        @DisplayName("Deve lançar EntidadeNaoEncontradaException quando não encontrado")
+        void buscarPorId_comIdInexistente_lancaEntidadeNaoEncontradaException() {
+            when(enderecoArmazenamentoRepository.findById(99L)).thenReturn(Optional.empty());
 
             assertThatThrownBy(() -> enderecoArmazenamentoService.buscarPorId(99L))
                     .isInstanceOf(EntidadeNaoEncontradaException.class);

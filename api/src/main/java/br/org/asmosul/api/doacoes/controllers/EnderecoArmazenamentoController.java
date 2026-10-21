@@ -27,7 +27,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.util.UriComponentsBuilder;
 
 @Tag(
-        name = "Endereços de Doação",
+        name = "Endereços de Armazenamento",
         description =
                 "Endpoints para gerenciamento de endereços de armazenamento de itens no módulo de doações")
 @RestController
@@ -79,6 +79,7 @@ public class EnderecoArmazenamentoController {
     public ResponseEntity<RespostaPaginada<EnderecoArmazenamentoDTO.Resumo>> listar(
             @ParameterObject @PageableDefault(size = 10, sort = "nome") Pageable paginacao,
             @RequestParam(defaultValue = "false") boolean incluirInativos,
+            @RequestParam(defaultValue = "false") boolean apenasInativos,
             @RequestParam(required = false) String nome,
             @RequestParam(required = false) String cep,
             @RequestParam(required = false) Uf uf,
@@ -88,7 +89,15 @@ public class EnderecoArmazenamentoController {
 
         RespostaPaginada<EnderecoArmazenamentoDTO.Resumo> resposta =
                 enderecoArmazenamentoService.listar(
-                        paginacao, incluirInativos, nome, cep, uf, cidade, bairro, logradouro);
+                        paginacao,
+                        incluirInativos,
+                        apenasInativos,
+                        nome,
+                        cep,
+                        uf,
+                        cidade,
+                        bairro,
+                        logradouro);
 
         return ResponseEntity.ok(resposta);
     }
@@ -109,13 +118,11 @@ public class EnderecoArmazenamentoController {
 
     @Operation(
             summary = "Buscar endereço de armazenamento por ID",
-            description = "Retorna os detalhes completos de um endereço de armazenamento ativo")
+            description = "Retorna os detalhes completos de um endereço de armazenamento, ativo ou inativo")
     @ApiResponses(
             value = {
                 @ApiResponse(responseCode = "200", description = "Endereço encontrado"),
-                @ApiResponse(
-                        responseCode = "404",
-                        description = "Endereço não encontrado ou inativo")
+                @ApiResponse(responseCode = "404", description = "Endereço não encontrado")
             })
     @GetMapping("/{id}")
     public ResponseEntity<EnderecoArmazenamentoDTO.Detalhe> buscarPorId(@PathVariable Long id) {
