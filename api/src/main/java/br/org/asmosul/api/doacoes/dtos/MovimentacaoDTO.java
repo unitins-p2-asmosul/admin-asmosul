@@ -12,7 +12,10 @@ import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.List;
+import java.util.Locale;
 
 public final class MovimentacaoDTO {
 
@@ -33,7 +36,8 @@ public final class MovimentacaoDTO {
         String nomeItem,
         Long idArmazenamentoAntigo,
         String nomeArmazenamentoAntigo,
-        Integer quantidade) {
+        Integer quantidade,
+        String unidadeMedida) {
 
         public static ItemMovimentacaoDetalhe deEntidade(MovimentacaoEstoque estoqueMov) {
             return new ItemMovimentacaoDetalhe(
@@ -42,7 +46,10 @@ public final class MovimentacaoDTO {
                 estoqueMov.getItem().getNome(),
                 estoqueMov.getArmazenamentoAntigo().getId(),
                 estoqueMov.getArmazenamentoAntigo().getNome(),
-                estoqueMov.getQuantidade());
+                estoqueMov.getQuantidade(),
+                estoqueMov.getItem().getUnidadeMedida() != null
+                    ? estoqueMov.getItem().getUnidadeMedida().getCodigo()
+                    : null);
         }
     }
 
@@ -67,23 +74,9 @@ public final class MovimentacaoDTO {
         String nomeItem,
         String localAntigo,
         String localNovo,
-        Integer quantidade,
+        String quantidade,
         @JsonFormat(pattern = "dd-MM-yyyy HH:mm:ss")
         LocalDateTime dataHora) {
-
-        public static Resumo deEntidade(
-            Movimentacao mov,
-            String nomeItem,
-            String localAntigo,
-            Integer quantidade) {
-            return new Resumo(
-                mov.getId(),
-                nomeItem,
-                localAntigo,
-                mov.getNovoArmazenamento() != null ? mov.getNovoArmazenamento().getNome() : null,
-                quantidade,
-                mov.getDataHora());
-        }
 
         public static Resumo deEntidade(Movimentacao mov, List<MovimentacaoEstoque> itens) {
             if (itens == null || itens.isEmpty()) {
@@ -92,7 +85,7 @@ public final class MovimentacaoDTO {
                     null,
                     null,
                     mov.getNovoArmazenamento() != null ? mov.getNovoArmazenamento().getNome() : null,
-                    0,
+                    "0",
                     mov.getDataHora());
             }
 
@@ -108,16 +101,23 @@ public final class MovimentacaoDTO {
                 .distinct()
                 .collect(java.util.stream.Collectors.joining(", "));
 
-            int totalQuantidade = itens.stream()
-                .mapToInt(i -> i.getQuantidade() != null ? i.getQuantidade() : 0)
-                .sum();
+            Map<String, Integer> quantidadesPorUnidade = new TreeMap<>();
+            itens.forEach(item -> {
+                String unidade = item.getItem() != null && item.getItem().getUnidadeMedida() != null
+                    ? item.getItem().getUnidadeMedida().getCodigo().toLowerCase(Locale.ROOT)
+                    : "un";
+                quantidadesPorUnidade.merge(unidade, item.getQuantidade() != null ? item.getQuantidade() : 0, Integer::sum);
+            });
+            String quantidadeFormatada = quantidadesPorUnidade.entrySet().stream()
+                .map(entry -> entry.getValue() + " " + entry.getKey())
+                .collect(java.util.stream.Collectors.joining(", "));
 
             return new Resumo(
                 mov.getId(),
                 nomesItens.isEmpty() ? null : nomesItens,
                 locaisAntigos.isEmpty() ? null : locaisAntigos,
                 mov.getNovoArmazenamento() != null ? mov.getNovoArmazenamento().getNome() : null,
-                totalQuantidade,
+                quantidadeFormatada,
                 mov.getDataHora());
         }
     }
@@ -147,5 +147,9 @@ public final class MovimentacaoDTO {
         Long localNovoId,
         Integer quantidade,
         @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-        LocalDate data) {}
+        LocalDate data,
+        @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+        LocalDateTime dataHoraInicio,
+        @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+        LocalDateTime dataHoraFim) {}
 }

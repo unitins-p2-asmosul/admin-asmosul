@@ -37,6 +37,11 @@ export class EnderecoArmazenamentoService {
     return this.http.get<EnderecoArmazenamentoDetalhe>(`${this.endpoint}/${id}`);
   }
 
+  listarTodas(incluirInativos = false): Observable<EnderecoArmazenamentoResumo[]> {
+    const params = new HttpParams().set('incluirInativos', incluirInativos);
+    return this.http.get<EnderecoArmazenamentoResumo[]>(`${this.endpoint}/todas`, { params });
+  }
+
   cadastrar(requisicao: EnderecoArmazenamentoRequisicao): Observable<EnderecoArmazenamentoDetalhe> {
     return this.http.post<EnderecoArmazenamentoDetalhe>(this.endpoint, requisicao);
   }

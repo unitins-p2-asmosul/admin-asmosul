@@ -64,6 +64,7 @@ export class SidebarComponent {
         { rotulo: 'Entradas', icone: 'input' },
         { rotulo: 'Saídas', icone: 'output' },
         { rotulo: 'Endereços de Armazenamento', icone: 'location_on', rota: '/doacoes/enderecos' },
+        { rotulo: 'Movimentações de Estoque', icone: 'swap_horiz', rota: '/doacoes/movimentacoes' },
       ],
     },
     {
@@ -116,11 +117,13 @@ export class SidebarComponent {
   protected readonly rotaAtiva = computed<string | null>(() => {
     const url = this.urlAtual();
 
-    return this.secoes()
-      .flatMap((secao) => (secao.rota ? [secao.rota] : secao.itens.map((item) => item.rota)))
-      .filter((rota): rota is string => !!rota)
-      .filter((rota) => url === rota || url.startsWith(`${rota}/`))
-      .sort((a, b) => b.length - a.length)[0] ?? null;
+    return (
+      this.secoes()
+        .flatMap((secao) => (secao.rota ? [secao.rota] : secao.itens.map((item) => item.rota)))
+        .filter((rota): rota is string => !!rota)
+        .filter((rota) => url === rota || url.startsWith(`${rota}/`))
+        .sort((a, b) => b.length - a.length)[0] ?? null
+    );
   });
 
   private readonly secaoAtiva = computed<string | null>(() => {
@@ -129,7 +132,9 @@ export class SidebarComponent {
       return null;
     }
 
-    return this.secoes().find((secao) => secao.itens.some((item) => item.rota === ativa))?.id ?? null;
+    return (
+      this.secoes().find((secao) => secao.itens.some((item) => item.rota === ativa))?.id ?? null
+    );
   });
 
   constructor() {
@@ -139,9 +144,7 @@ export class SidebarComponent {
         return;
       }
 
-      this.expandidas.update((atuais) =>
-        atuais.has(secao) ? atuais : new Set(atuais).add(secao),
-      );
+      this.expandidas.update((atuais) => (atuais.has(secao) ? atuais : new Set(atuais).add(secao)));
     });
   }
 
