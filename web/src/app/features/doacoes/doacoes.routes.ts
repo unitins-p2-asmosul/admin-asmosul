@@ -107,6 +107,13 @@ export const DOACOES_ROUTES: Routes = [
     path: 'itens',
     children: [
       {
+        path: '',
+        loadComponent: () =>
+          import('./pages/item-lista-page/item-lista-page.component').then(
+            (modulo) => modulo.ItemListaPageComponent,
+          ),
+      },
+      {
         path: 'adicionar',
         loadComponent: () =>
           import('./pages/item-cadastro-page/item-cadastro-page.component').then(
