@@ -6,6 +6,12 @@ export interface ItemEntradaRequisicao {
   quantidade: number;
 }
 
+export interface ItemEntradaResumo {
+  idItem: number;
+  nomeItem: string;
+  quantidade: number;
+}
+
 export interface ItemEntradaDetalhe {
   id: number;
   idItem: number;
@@ -28,8 +34,9 @@ export interface EntradaAtualizacao {
 
 export interface EntradaResumo {
   id: number;
-  nomeDoador?: string;
+  itens: ItemEntradaResumo[];
   quantidadeTotalItens: number;
+  nomeDoador?: string;
   dataHora: string;
 }
 
@@ -51,3 +58,15 @@ export interface EntradaFiltros {
 }
 
 export interface EntradaConsultaParametros extends ParametrosConsulta, EntradaFiltros {}
+
+export function formatarDataHoraEntrada(dataHora: string | null | undefined): string {
+  if (!dataHora) return '-';
+
+  const [data, hora] = dataHora.trim().split(' ');
+  const partes = data?.split('-') ?? [];
+  if (partes.length !== 3) return dataHora;
+
+  const [dia, mes, ano] = partes;
+  const horaMinuto = (hora ?? '').slice(0, 5);
+  return horaMinuto ? `${dia}/${mes}/${ano} às ${horaMinuto}` : `${dia}/${mes}/${ano}`;
+}

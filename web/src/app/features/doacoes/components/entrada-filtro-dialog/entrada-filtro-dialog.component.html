@@ -1,0 +1,72 @@
+<div class="pagina-formulario !my-0 !w-full !max-w-none">
+  <h2 mat-dialog-title class="flex items-center gap-3 !text-2xl !font-bold !text-[#0b3c5d]">
+    <mat-icon>tune</mat-icon>
+    Filtrar entradas
+  </h2>
+
+  <mat-dialog-content [formGroup]="form" class="grid gap-x-5 gap-y-2 sm:grid-cols-2">
+    <div class="sm:col-span-2">
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>Item</mat-label>
+        <mat-select formControlName="itemId" placeholder="Selecione o item">
+          <mat-option [value]="null">Todos os itens</mat-option>
+          @for (item of itens(); track item.id) {
+            <mat-option [value]="item.id">{{ item.nome }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    <div class="sm:col-span-2">
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>Doador</mat-label>
+        <mat-select formControlName="doadorId" placeholder="Selecione o doador">
+          <mat-option [value]="null">Todos os doadores</mat-option>
+          @for (doador of doadores(); track doador.id) {
+            <mat-option [value]="doador.id">{{ doador.nome }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    <div class="sm:col-span-2">
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>Endereço de armazenamento</mat-label>
+        <mat-select formControlName="enderecoId" placeholder="Selecione o endereço">
+          <mat-option [value]="null">Todos os endereços</mat-option>
+          @for (endereco of enderecos(); track endereco.id) {
+            <mat-option [value]="endereco.id">{{ endereco.nome }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    <div>
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>Quantidade</mat-label>
+        <input
+          matInput
+          type="number"
+          min="1"
+          formControlName="quantidade"
+          (keydown.enter)="aplicar()"
+          placeholder="Quantidade recebida"
+        />
+      </mat-form-field>
+    </div>
+
+    <div>
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>Data da entrada</mat-label>
+        <input matInput type="date" formControlName="data" (keydown.enter)="aplicar()" />
+      </mat-form-field>
+    </div>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="center" class="!gap-4 !pb-5">
+    <button mat-flat-button type="button" (click)="limpar()">Limpar</button>
+    <button mat-flat-button type="button" class="acao-primaria" (click)="aplicar()">
+      Aplicar filtros
+    </button>
+  </mat-dialog-actions>
+</div>

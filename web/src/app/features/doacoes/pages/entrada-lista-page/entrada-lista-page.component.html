@@ -1,0 +1,39 @@
+<app-pagina-gerenciamento
+  titulo="Gerenciamento de Entradas"
+  icone="input"
+  iconeAdicionar="add_circle_outline"
+  [adicionarNaToolbar]="true"
+  rotuloAdicionar="Adicionar Entrada"
+  [filtrosAtivos]="filtrosAtivos"
+  (aoAdicionar)="irParaAdicionar()"
+  (aoFiltrar)="abrirFiltros()"
+>
+  <div toolbar-actions class="flex items-center gap-1">
+    @if (filtrosAtivos > 0) {
+      <button
+        mat-icon-button
+        type="button"
+        matTooltip="Limpar filtros"
+        aria-label="Limpar filtros"
+        (click)="limparFiltros()"
+      >
+        <mat-icon>filter_alt_off</mat-icon>
+      </button>
+    }
+  </div>
+
+  <app-entrada-tabela
+    [dados]="resposta().dados"
+    [totalElementos]="resposta().totalElementos"
+    [tamanhoPagina]="resposta().tamanhoPagina"
+    [paginaAtual]="resposta().paginaAtual"
+    [carregando]="carregando()"
+    [ordenacao]="parametrosAtuais().sort ?? 'dataHora,desc'"
+    [siglasUnidade]="siglasUnidade()"
+    (aoMudarPagina)="mudarPagina($event)"
+    (aoMudarOrdem)="mudarOrdem($event)"
+    (aoVisualizar)="visualizar($event)"
+    (aoEditar)="editar($event)"
+    (aoExcluir)="excluir($event)"
+  />
+</app-pagina-gerenciamento>

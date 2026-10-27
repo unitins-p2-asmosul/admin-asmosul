@@ -61,7 +61,7 @@ export class SidebarComponent {
         { rotulo: 'Itens', icone: 'inventory_2', rota: '/doacoes/itens' },
         { rotulo: 'Categorias de Itens', icone: 'category', rota: '/doacoes/categorias' },
         { rotulo: 'Kits', icone: 'widgets' },
-        { rotulo: 'Entradas', icone: 'input' },
+        { rotulo: 'Entradas', icone: 'input', rota: '/doacoes/entradas' },
         { rotulo: 'Saídas', icone: 'output' },
         { rotulo: 'Endereços de Armazenamento', icone: 'location_on', rota: '/doacoes/enderecos' },
         { rotulo: 'Movimentações de Estoque', icone: 'swap_horiz', rota: '/doacoes/movimentacoes' },
