@@ -2,6 +2,40 @@ import { Routes } from '@angular/router';
 
 export const DOACOES_ROUTES: Routes = [
   {
+    path: 'saidas',
+    children: [
+      {
+        path: '',
+        loadComponent: () =>
+          import('./pages/saida-lista-page/saida-lista-page.component').then(
+            (modulo) => modulo.SaidaListaPageComponent,
+          ),
+      },
+      {
+        path: 'adicionar',
+        loadComponent: () =>
+          import('./pages/saida-cadastro-page/saida-cadastro-page.component').then(
+            (modulo) => modulo.SaidaCadastroPageComponent,
+          ),
+      },
+      {
+        path: ':id/editar',
+        loadComponent: () =>
+          import('./pages/saida-cadastro-page/saida-cadastro-page.component').then(
+            (modulo) => modulo.SaidaCadastroPageComponent,
+          ),
+      },
+      {
+        path: ':id',
+        loadComponent: () =>
+          import('./pages/saida-cadastro-page/saida-cadastro-page.component').then(
+            (modulo) => modulo.SaidaCadastroPageComponent,
+          ),
+        data: { visualizacao: true },
+      },
+    ],
+  },
+  {
     path: 'entradas',
     children: [
       {
