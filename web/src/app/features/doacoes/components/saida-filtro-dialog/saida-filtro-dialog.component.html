@@ -1,0 +1,60 @@
+<div class="pagina-formulario !my-0 !w-full !max-w-none">
+  <h2 mat-dialog-title class="flex items-center gap-3 !text-2xl !font-bold !text-[#0b3c5d]">
+    <mat-icon>tune</mat-icon>
+    Filtrar saídas
+  </h2>
+
+  <mat-dialog-content [formGroup]="form" class="grid gap-x-5 gap-y-2 sm:grid-cols-2">
+    <div class="sm:col-span-2">
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>Itens</mat-label>
+        <mat-select formControlName="itensIds" multiple placeholder="Selecione os itens">
+          @for (item of itens(); track item.id) {
+            <mat-option [value]="item.id">{{ item.nome }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    <div class="sm:col-span-2">
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>Recebedor</mat-label>
+        <mat-select formControlName="recebedorId" placeholder="Selecione o recebedor">
+          <mat-option [value]="null">Todos os recebedores</mat-option>
+          @for (recebedor of recebedores(); track recebedor.id) {
+            <mat-option [value]="recebedor.id">{{ recebedor.nome }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    <div>
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>Quantidade por item</mat-label>
+        <input
+          matInput
+          type="number"
+          min="1"
+          formControlName="quantidade"
+          (keydown.enter)="aplicar()"
+          placeholder="Ex.: 5"
+        />
+        <mat-hint>Busca saídas que entregaram esta quantidade de algum item</mat-hint>
+      </mat-form-field>
+    </div>
+
+    <div>
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>Data da saída</mat-label>
+        <input matInput type="date" formControlName="data" (keydown.enter)="aplicar()" />
+      </mat-form-field>
+    </div>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="center" class="!gap-4 !pb-5">
+    <button mat-flat-button type="button" (click)="limpar()">Limpar</button>
+    <button mat-flat-button type="button" class="acao-primaria" (click)="aplicar()">
+      Aplicar filtros
+    </button>
+  </mat-dialog-actions>
+</div>

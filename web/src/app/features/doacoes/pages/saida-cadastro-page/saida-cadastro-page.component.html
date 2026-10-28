@@ -1,0 +1,368 @@
+<section
+  class="pagina-formulario !my-0 !w-[calc(100%-32px)] !max-w-[1280px] pt-7 pb-10 sm:!w-[calc(100%-64px)]"
+  [class.pagina-formulario__visualizacao]="visualizacao()"
+>
+  <header class="mb-10">
+    <div class="flex flex-wrap items-center gap-3">
+      <button mat-icon-button type="button" aria-label="Voltar" (click)="voltar()">
+        <mat-icon>arrow_back</mat-icon>
+      </button>
+      <div>
+        <h1 class="m-0 text-[2.5rem] leading-tight font-bold text-[#0b3c5d]">{{ titulo }}</h1>
+        <p class="mt-2 text-lg font-semibold text-[#8298a9]">{{ descricaoPagina }}</p>
+      </div>
+    </div>
+  </header>
+
+  <form
+    [formGroup]="form"
+    (ngSubmit)="salvar()"
+    class="rounded-xl border border-[#dfe4ea] bg-white px-5 pt-7 pb-12 shadow-none sm:px-7 sm:pt-8"
+  >
+    <h2 class="mb-6 text-xl font-bold text-[#0b3c5d]">
+      @if (visualizacao()) {
+        Dados da Saída
+      } @else if (modoEdicao()) {
+        Alterar Dados da Saída
+      } @else {
+        Dados da Saída de Doação
+      }
+    </h2>
+
+    @if (modoCriacao()) {
+      <fieldset
+        [formGroup]="itemForm"
+        class="mb-8 rounded-lg border border-[#dfe4ea] bg-[#f8fafc] px-4 pt-5 pb-4 sm:px-5"
+      >
+        <legend class="px-2 text-sm font-bold text-[#344054]">
+          Adicionar Item Avulso (apenas locais com estoque disponível são exibidos)
+        </legend>
+
+        <div class="grid grid-cols-1 gap-y-3 sm:grid-cols-2 sm:gap-x-6">
+          <div>
+            <label for="idItem" class="mb-2 block text-sm font-semibold text-[#344054]">
+              Item e Estoque Geral *
+            </label>
+            <mat-form-field appearance="outline" class="w-full">
+              <mat-select id="idItem" formControlName="idItem" placeholder="Selecione o item">
+                @for (item of itens(); track item.id) {
+                  <mat-option [value]="item.id">{{ rotuloSaldoTotal(item) }}</mat-option>
+                }
+              </mat-select>
+              @if (itemForm.controls.idItem.hasError('required')) {
+                <mat-error>Selecione o item a ser retirado.</mat-error>
+              }
+            </mat-form-field>
+          </div>
+
+          <div>
+            <label for="quantidade" class="mb-2 block text-sm font-semibold text-[#344054]">
+              Quantidade{{ siglaSelecionada() ? ' (' + siglaSelecionada() + ')' : '' }} *
+            </label>
+            <mat-form-field appearance="outline" class="w-full">
+              <input
+                id="quantidade"
+                matInput
+                type="number"
+                min="1"
+                [max]="saldoDisponivelNoLocal() || null"
+                formControlName="quantidade"
+                placeholder="0"
+              />
+              @if (siglaSelecionada()) {
+                <span matTextSuffix class="pl-2 font-semibold text-[#8298a9]">
+                  {{ siglaSelecionada() }}
+                </span>
+              }
+              @if (itemForm.controls.quantidade.hasError('required')) {
+                <mat-error>Informe a quantidade a ser retirada.</mat-error>
+              } @else if (itemForm.controls.quantidade.hasError('min')) {
+                <mat-error>A quantidade deve ser maior que zero.</mat-error>
+              } @else if (
+                itemForm.controls.quantidade.hasError('saldo') ||
+                itemForm.controls.quantidade.hasError('max')
+              ) {
+                <mat-error>
+                  Quantidade acima do saldo disponível neste local ({{ saldoDisponivelNoLocal() }}
+                  {{ siglaSelecionada() }}).
+                </mat-error>
+              }
+            </mat-form-field>
+            @if (localSelecionado()) {
+              <p class="-mt-4 mb-3 text-sm text-[#8298a9]">
+                Disponível neste local: {{ saldoDisponivelNoLocal() }} {{ siglaSelecionada() }}
+              </p>
+            }
+          </div>
+        </div>
+
+        <div class="mb-4">
+          <p class="mb-2 text-sm font-semibold text-[#344054]">
+            Local de Origem com Estoque (escolha única) *
+          </p>
+          @if (carregandoLocais()) {
+            <p class="m-0 text-sm text-[#8298a9]">Carregando locais com estoque...</p>
+          } @else if (!itemSelecionado()) {
+            <p class="m-0 text-sm text-[#8298a9]">Selecione um item para ver os locais.</p>
+          } @else {
+            <div class="flex flex-wrap gap-2">
+              @for (local of locaisDoItem(); track local.idEndereco) {
+                <button
+                  type="button"
+                  class="saida-local"
+                  [class.saida-local--ativo]="localSelecionado() === local.idEndereco"
+                  [attr.aria-pressed]="localSelecionado() === local.idEndereco"
+                  [disabled]="saldoRestanteDoLocal(local) === 0"
+                  (click)="selecionarLocal(local)"
+                >
+                  {{ rotuloLocal(local) }}
+                </button>
+              } @empty {
+                <p class="m-0 text-sm font-medium text-[#b42318]">
+                  Nenhum local possui estoque deste item.
+                </p>
+              }
+            </div>
+          }
+        </div>
+
+        <div class="flex justify-end">
+          <button
+            mat-flat-button
+            type="button"
+            class="!min-w-40 !bg-[#0b3c5d] !text-white"
+            (click)="incluirItem()"
+          >
+            <mat-icon>add</mat-icon>
+            Incluir Item na Lista de Saída
+          </button>
+        </div>
+      </fieldset>
+
+      @if (itensIncluidos().length > 0) {
+        <div class="mb-8">
+          <h3 class="mb-3 text-base font-bold text-[#0b3c5d]">
+            Lista de saída ({{ itensIncluidos().length }})
+          </h3>
+          <ul class="flex flex-col gap-2">
+            @for (linha of itensIncluidos(); track $index) {
+              <li
+                class="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-[#dfe4ea] bg-white px-4 py-3"
+              >
+                <div>
+                  <p class="m-0 font-semibold text-[#344054]">
+                    {{ linha.nomeItem }} — {{ formatarQuantidade(linha) }}
+                  </p>
+                  <p class="m-0 text-sm text-[#8298a9]">
+                    Origem de Retirada: {{ linha.nomeArmazenamento }}
+                  </p>
+                </div>
+                <button
+                  mat-icon-button
+                  type="button"
+                  matTooltip="Remover item"
+                  aria-label="Remover item da saída"
+                  (click)="removerItemIncluido($index)"
+                >
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </li>
+            }
+          </ul>
+        </div>
+      }
+    }
+
+    @if (modoEdicao() && registro(); as saida) {
+      <div class="mb-8 rounded-lg border border-[#dfe4ea] bg-[#f8fafc] px-4 pt-4 pb-5 sm:px-5">
+        <p class="m-0 flex items-center gap-2 font-bold text-[#344054]">
+          <mat-icon class="!h-5 !w-5 !text-lg">lock</mat-icon>
+          Itens entregues desta saída (lista protegida — não é possível alterar itens):
+        </p>
+        <p class="mt-1 mb-4 text-sm italic text-[#8298a9]">
+          Para alterar itens ou locais de retirada, exclua esta saída e lance uma nova.
+        </p>
+        <ul class="flex flex-col gap-2">
+          @for (item of saida.itens; track item.id) {
+            <li class="rounded-lg border border-[#dfe4ea] bg-white px-4 py-3">
+              <p class="m-0 font-semibold text-[#344054]">
+                {{ item.nomeItem }} — {{ formatarQuantidadeDetalhe(item) }}
+              </p>
+              <p class="m-0 text-sm text-[#8298a9]">
+                Origem de Retirada: {{ item.nomeArmazenamento }}
+              </p>
+            </li>
+          }
+        </ul>
+      </div>
+    }
+
+    <div class="grid grid-cols-1 gap-y-3 sm:grid-cols-2 sm:gap-x-6">
+      <div>
+        <label for="idRecebedor" class="mb-2 block text-sm font-semibold text-[#344054]">
+          @if (visualizacao()) {
+            Recebedor (Beneficiário)
+          } @else {
+            Recebedor (Beneficiário) *
+          }
+        </label>
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-select
+            id="idRecebedor"
+            formControlName="idRecebedor"
+            placeholder="Selecione o recebedor"
+          >
+            @for (recebedor of recebedores(); track recebedor.id) {
+              <mat-option [value]="recebedor.id">{{ recebedor.nome }}</mat-option>
+            }
+          </mat-select>
+          @if (form.controls.idRecebedor.hasError('required')) {
+            <mat-error>Selecione o beneficiário recebedor.</mat-error>
+          } @else if (form.controls.idRecebedor.hasError('backend')) {
+            <mat-error>{{ form.controls.idRecebedor.getError('backend') }}</mat-error>
+          }
+        </mat-form-field>
+      </div>
+
+      @if (!modoCriacao()) {
+        <div>
+          <label class="mb-2 block text-sm font-semibold text-[#344054]">Data e Hora</label>
+          <p
+            class="m-0 rounded-lg border border-[#dfe4ea] bg-[#f8fafc] px-4 py-4 font-medium text-[#344054]"
+          >
+            {{ dataHoraFormatada }}
+          </p>
+        </div>
+      }
+
+      <div class="sm:col-span-2">
+        <label for="descricao" class="mb-2 block text-sm font-semibold text-[#344054]">
+          Descrição
+        </label>
+        <mat-form-field appearance="outline" class="w-full">
+          <textarea
+            id="descricao"
+            matInput
+            rows="3"
+            formControlName="descricao"
+            [maxlength]="tamanhoMaximoDescricao"
+            placeholder="Observações sobre a entrega realizada..."
+          ></textarea>
+          @if (form.controls.descricao.hasError('maxlength')) {
+            <mat-error>
+              A descrição deve conter no máximo {{ tamanhoMaximoDescricao }} caracteres.
+            </mat-error>
+          } @else if (form.controls.descricao.hasError('backend')) {
+            <mat-error>{{ form.controls.descricao.getError('backend') }}</mat-error>
+          }
+        </mat-form-field>
+      </div>
+    </div>
+
+    @if (visualizacao() && registro(); as saida) {
+      <div class="mt-4">
+        <h3 class="mb-3 text-base font-bold text-[#0b3c5d]">
+          Itens Entregues e Locais de Retirada ({{ saida.itens.length }})
+        </h3>
+        <div class="pessoa-tabela-shell">
+          <div class="pessoa-tabela-scroll">
+            <table class="pessoa-table pessoa-table--apoio tabela-asmosul w-full">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Item</th>
+                  <th>Quantidade Entregue</th>
+                  <th>Origem de Retirada</th>
+                  <th>Ações</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (item of saida.itens; track item.id; let i = $index) {
+                  <tr>
+                    <td class="pessoa-table__numero">{{ i + 1 }}</td>
+                    <td class="pessoa-table__texto font-semibold">{{ item.nomeItem }}</td>
+                    <td class="pessoa-table__texto font-medium">
+                      {{ formatarQuantidadeDetalhe(item) }}
+                    </td>
+                    <td class="pessoa-table__texto">{{ item.nomeArmazenamento }}</td>
+                    <td>
+                      @if (podeExcluirItem()) {
+                        <button
+                          mat-icon-button
+                          type="button"
+                          matTooltip="Excluir item da saída"
+                          aria-label="Excluir item da saída"
+                          [disabled]="carregando()"
+                          (click)="excluirItemSaida(item)"
+                        >
+                          <mat-icon>delete</mat-icon>
+                        </button>
+                      } @else {
+                        <span
+                          class="text-sm text-[#8298a9]"
+                          matTooltip="A saída precisa manter ao menos um item"
+                        >
+                          Único item
+                        </span>
+                      }
+                    </td>
+                  </tr>
+                } @empty {
+                  <tr>
+                    <td class="p-6 text-center text-gray-500" colspan="5">
+                      Nenhum item nesta saída.
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    }
+
+    @if (visualizacao()) {
+      <div class="mt-10 flex flex-wrap justify-center gap-4 pb-5">
+        <button mat-flat-button type="button" class="!min-w-40" (click)="editar()">
+          <mat-icon>edit</mat-icon>
+          Editar saída
+        </button>
+        <button
+          mat-flat-button
+          type="button"
+          class="!min-w-40"
+          [disabled]="carregando()"
+          (click)="excluirSaida()"
+        >
+          <mat-icon>delete</mat-icon>
+          Excluir saída
+        </button>
+      </div>
+    } @else {
+      <div class="mt-10 flex flex-wrap justify-center gap-4 pb-5">
+        <button
+          mat-flat-button
+          type="button"
+          class="!min-w-40 !bg-[#0b3c5d] !text-white"
+          (click)="voltar()"
+        >
+          Cancelar
+        </button>
+        <button
+          mat-flat-button
+          type="submit"
+          class="!min-w-40 !bg-[#0b3c5d] !text-white"
+          [disabled]="carregando() || form.disabled"
+        >
+          @if (carregando()) {
+            Salvando...
+          } @else if (modoCriacao()) {
+            Cadastrar saída
+          } @else {
+            Salvar alterações
+          }
+        </button>
+      </div>
+    }
+  </form>
+</section>
