@@ -17,7 +17,7 @@ https://drive.google.com/drive/folders/1bfP0ZZDRCmkgpsg-K3pjIAHjm1ROC_BD?usp=dri
 docs/padrao-arquitetura/padrao-arquitetura-backend
 ````
 
-Define os principais padrões do Backend, incluindo organização por módulos, DTOs, Controllers, Services, Repositories, entidades, validações, tratamento de erros, banco de dados, Flyway e testes.
+Define os principais padrões do Backend, incluindo organização por módulos, DTOs, Controller    s, Services, Repositories, entidades, valRepositidações, tratamento de erros, banco de dados, Flyway e testes.
 
 ### Arquitetura Frontend
 
@@ -161,3 +161,5 @@ Caso ocorram conflitos com alterações realizadas por outros contribuidores, re
 Após a aprovação, o Pull Request será integrado utilizando **Squash & Merge**.
 
 Depois da confirmação da integração, exclua a branch utilizada na tarefa.
+
+
