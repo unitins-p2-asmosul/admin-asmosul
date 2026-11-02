@@ -7,6 +7,11 @@ import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { formatarDataHoraEntrada } from '../../models/entrada.model';
 import { SaidaResumo } from '../../models/saida.model';
+import {
+  ColunaExportacao,
+  SolicitacaoExportacao,
+} from '@features/shared/models/exportacao.model';
+import { filtrarColunasExibidas } from '@features/shared/utils/colunas-tabela';
 
 export interface ExcluirSaidaEvento {
   id: number;
@@ -16,7 +21,13 @@ export interface ExcluirSaidaEvento {
 @Component({
   selector: 'app-saida-tabela',
   standalone: true,
-  imports: [MatTableModule, MatSortModule, MatIconModule, MatButtonModule, MatTooltipModule],
+  imports: [
+    MatTableModule,
+    MatSortModule,
+    MatIconModule,
+    MatButtonModule,
+    MatTooltipModule,
+  ],
   templateUrl: './saida-tabela.component.html',
 })
 export class SaidaTabelaComponent {
@@ -26,14 +37,32 @@ export class SaidaTabelaComponent {
   readonly paginaAtual = input.required<number>();
   readonly carregando = input.required<boolean>();
   readonly ordenacao = input<string>('dataHora,desc');
+  readonly colunasVisiveis = input<string[] | null>(null);
 
   readonly aoMudarPagina = output<PageEvent>();
   readonly aoMudarOrdem = output<Sort>();
   readonly aoVisualizar = output<number>();
   readonly aoEditar = output<number>();
   readonly aoExcluir = output<ExcluirSaidaEvento>();
+  readonly aoExportar = output<SolicitacaoExportacao<SaidaResumo>>();
 
-  protected readonly colunasExibidas = [
+  readonly colunasExportaveis: ColunaExportacao<SaidaResumo>[] = [
+    { id: 'indice', titulo: '#', valor: (saida) => saida.id },
+    { id: 'recebedor', titulo: 'Recebedor', valor: (saida) => saida.nomeRecebedor || '—' },
+    { id: 'itens', titulo: 'Itens entregues', valor: (saida) => this.formatarItens(saida) },
+    {
+      id: 'quantidadeTotal',
+      titulo: 'Quantidade total',
+      valor: (saida) => saida.quantidadeTotal,
+    },
+    {
+      id: 'dataHora',
+      titulo: 'Data e hora',
+      valor: (saida) => this.formatarDataHora(saida),
+    },
+  ];
+
+  private readonly colunasExibidasPadrao = [
     'indice',
     'acoes',
     'recebedor',
@@ -41,6 +70,14 @@ export class SaidaTabelaComponent {
     'quantidadeTotal',
     'dataHora',
   ];
+
+  protected get colunasExibidas(): string[] {
+    return filtrarColunasExibidas(
+      this.colunasExibidasPadrao,
+      this.colunasExportaveis.map((coluna) => coluna.id),
+      this.colunasVisiveis(),
+    );
+  }
 
   protected get campoOrdenado(): string {
     return this.ordenacao().split(',')[0] ?? 'dataHora';
@@ -65,6 +102,13 @@ export class SaidaTabelaComponent {
 
   protected formatarDataHora(saida: SaidaResumo): string {
     return formatarDataHoraEntrada(saida.dataHora);
+  }
+
+  exportar(solicitacao: { formato: 'xlsx' | 'csv'; idsColunas: string[] }): void {
+    const colunas = this.colunasExportaveis.filter((coluna) =>
+      solicitacao.idsColunas.includes(coluna.id),
+    );
+    this.aoExportar.emit({ formato: solicitacao.formato, colunas });
   }
 
   protected mudarPagina(pagina: number): void {

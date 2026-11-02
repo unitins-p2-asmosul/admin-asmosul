@@ -1,14 +1,17 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 import { MatDialog } from '@angular/material/dialog';
 import { ActivatedRoute, convertToParamMap, Router } from '@angular/router';
 import { DialogoConfirmacaoService } from '@features/shared/services/dialogo-confirmacao.service';
 import { NotificacaoService } from '@features/shared/services/notificacao.service';
+import { ControlesExportacaoComponent } from '@features/shared/components/controles-exportacao.component';
 import { BehaviorSubject, of } from 'rxjs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ContaFiltroDialogComponent } from '../../components/conta-filtro-dialog/conta-filtro-dialog.component';
 import { ContaRedefinirSenhaDialogComponent } from '../../components/conta-redefinir-senha-dialog/conta-redefinir-senha-dialog.component';
 import { ContaResumo } from '../../models/conta.model';
 import { ContaService } from '../../services/conta.service';
+import { ContaTabelaComponent } from '../../components/conta-tabela/conta-tabela.component';
 import { ContaListaPageComponent } from './conta-lista-page.component';
 
 const CONTA: ContaResumo = {
@@ -95,6 +98,20 @@ describe('ContaListaPageComponent', () => {
       dataCriacao: undefined,
       dataInativo: undefined,
     });
+  });
+
+  it('propaga a seleção de colunas dos controles para a tabela', () => {
+    const controles = fixture.debugElement.query(
+      By.directive(ControlesExportacaoComponent),
+    ).componentInstance as ControlesExportacaoComponent;
+    const tabela = fixture.debugElement.query(
+      By.directive(ContaTabelaComponent),
+    ).componentInstance as ContaTabelaComponent;
+
+    controles.aoMudarColunas.emit(['email']);
+    fixture.detectChanges();
+
+    expect(tabela['colunasExibidas']).toEqual(['indice', 'acoes', 'email']);
   });
 
   it('abre filtros e sincroniza valores sanitizados na URL', () => {

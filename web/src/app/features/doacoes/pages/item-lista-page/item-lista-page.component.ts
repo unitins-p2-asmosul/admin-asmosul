@@ -8,8 +8,11 @@ import { MatSortModule, Sort } from '@angular/material/sort';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { ActivatedRoute, Router } from '@angular/router';
 import { PaginaGerenciamentoComponent } from '@features/shared/components/pagina-gerenciamento/pagina-gerenciamento.component';
+import { ControlesExportacaoComponent } from '@features/shared/components/controles-exportacao.component';
 import { DialogoConfirmacaoService } from '@features/shared/services/dialogo-confirmacao.service';
 import { NotificacaoService } from '@features/shared/services/notificacao.service';
+import { ExportacaoService } from '@features/shared/services/exportacao.service';
+import { SolicitacaoExportacao } from '@features/shared/models/exportacao.model';
 import { of } from 'rxjs';
 import { catchError, finalize, map, switchMap, tap } from 'rxjs/operators';
 import { ItemFiltroDialogComponent } from '../../components/item-filtro-dialog/item-filtro-dialog.component';
@@ -41,6 +44,7 @@ const RESPOSTA_VAZIA = {
   imports: [
     PaginaGerenciamentoComponent,
     ItemTabelaComponent,
+    ControlesExportacaoComponent,
     MatButtonModule,
     MatIconModule,
     MatTooltipModule,
@@ -49,7 +53,9 @@ const RESPOSTA_VAZIA = {
   templateUrl: './item-lista-page.component.html',
 })
 export class ItemListaPageComponent {
+  readonly idsColunasVisiveis = signal<string[] | null>(null);
   private readonly itemService = inject(ItemService);
+  private readonly exportacao = inject(ExportacaoService);
   private readonly confirmacao = inject(DialogoConfirmacaoService);
   private readonly notificacao = inject(NotificacaoService);
   private readonly router = inject(Router);
@@ -203,6 +209,15 @@ export class ItemListaPageComponent {
         this.atualizarUrl({ _refresh: Date.now() });
       },
     });
+  }
+
+  protected exportar(solicitacao: SolicitacaoExportacao<ItemResumo>): void {
+    const parametros = { ...this.parametrosAtuais(), page: 0, size: 99999 };
+    this.exportacao.exportarDados(
+      this.itemService.listar(parametros).pipe(map((resposta) => resposta.dados)),
+      solicitacao,
+      'itens',
+    );
   }
 
   private atualizarUrl(novosParametros: Record<string, string | number | null>): void {

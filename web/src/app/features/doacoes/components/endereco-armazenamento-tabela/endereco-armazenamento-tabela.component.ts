@@ -6,6 +6,11 @@ import { MatSortModule, Sort } from '@angular/material/sort';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { EnderecoArmazenamentoResumo } from '../../models/endereco-armazenamento.model';
+import {
+  ColunaExportacao,
+  SolicitacaoExportacao,
+} from '@features/shared/models/exportacao.model';
+import { filtrarColunasExibidas } from '@features/shared/utils/colunas-tabela';
 
 export interface AlternarEstadoEnderecoArmazenamentoEvento {
   id: number;
@@ -16,7 +21,13 @@ export interface AlternarEstadoEnderecoArmazenamentoEvento {
 @Component({
   selector: 'app-endereco-armazenamento-tabela',
   standalone: true,
-  imports: [MatTableModule, MatSortModule, MatIconModule, MatButtonModule, MatTooltipModule],
+  imports: [
+    MatTableModule,
+    MatSortModule,
+    MatIconModule,
+    MatButtonModule,
+    MatTooltipModule,
+  ],
   templateUrl: './endereco-armazenamento-tabela.component.html',
 })
 export class EnderecoArmazenamentoTabelaComponent {
@@ -26,14 +37,23 @@ export class EnderecoArmazenamentoTabelaComponent {
   readonly paginaAtual = input.required<number>();
   readonly carregando = input.required<boolean>();
   readonly ordenacao = input<string>('nome,asc');
+  readonly colunasVisiveis = input<string[] | null>(null);
 
   readonly aoMudarPagina = output<PageEvent>();
   readonly aoMudarOrdem = output<Sort>();
   readonly aoVisualizar = output<number>();
   readonly aoEditar = output<number>();
   readonly aoAlternarEstado = output<AlternarEstadoEnderecoArmazenamentoEvento>();
+  readonly aoExportar = output<SolicitacaoExportacao<EnderecoArmazenamentoResumo>>();
 
-  protected readonly colunasExibidas = [
+  readonly colunasExportaveis: ColunaExportacao<EnderecoArmazenamentoResumo>[] = [
+    { id: 'nome', titulo: 'Nome', valor: (endereco) => endereco.nome },
+    { id: 'bairro', titulo: 'Bairro', valor: (endereco) => endereco.bairro },
+    { id: 'logradouro', titulo: 'Logradouro', valor: (endereco) => endereco.logradouro },
+    { id: 'status', titulo: 'Status', valor: (endereco) => (endereco.ativo ? 'Ativo' : 'Inativo') },
+  ];
+
+  private readonly colunasExibidasPadrao = [
     'indice',
     'acoes',
     'nome',
@@ -42,12 +62,27 @@ export class EnderecoArmazenamentoTabelaComponent {
     'status',
   ];
 
+  protected get colunasExibidas(): string[] {
+    return filtrarColunasExibidas(
+      this.colunasExibidasPadrao,
+      this.colunasExportaveis.map((coluna) => coluna.id),
+      this.colunasVisiveis(),
+    );
+  }
+
   protected get campoOrdenado(): string {
     return this.ordenacao().split(',')[0] ?? 'nome';
   }
 
   protected get direcaoOrdenada(): 'asc' | 'desc' {
     return this.ordenacao().split(',')[1] === 'desc' ? 'desc' : 'asc';
+  }
+
+  exportar(solicitacao: { formato: 'xlsx' | 'csv'; idsColunas: string[] }): void {
+    const colunas = this.colunasExportaveis.filter((coluna) =>
+      solicitacao.idsColunas.includes(coluna.id),
+    );
+    this.aoExportar.emit({ formato: solicitacao.formato, colunas });
   }
 
   protected get totalPaginas(): number {

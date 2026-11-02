@@ -6,6 +6,11 @@ import { MatSortModule, Sort } from '@angular/material/sort';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { ContaResumo } from '../../models/conta.model';
+import {
+  ColunaExportacao,
+  SolicitacaoExportacao,
+} from '@features/shared/models/exportacao.model';
+import { filtrarColunasExibidas } from '@features/shared/utils/colunas-tabela';
 
 export interface AlternarEstadoContaEvento {
   id: number;
@@ -16,7 +21,13 @@ export interface AlternarEstadoContaEvento {
 @Component({
   selector: 'app-conta-tabela',
   standalone: true,
-  imports: [MatTableModule, MatSortModule, MatIconModule, MatButtonModule, MatTooltipModule],
+  imports: [
+    MatTableModule,
+    MatSortModule,
+    MatIconModule,
+    MatButtonModule,
+    MatTooltipModule,
+  ],
   templateUrl: './conta-tabela.component.html',
 })
 export class ContaTabelaComponent {
@@ -26,6 +37,7 @@ export class ContaTabelaComponent {
   readonly paginaAtual = input.required<number>();
   readonly carregando = input.required<boolean>();
   readonly ordenacao = input<string>('nomeUsuario,asc');
+  readonly colunasVisiveis = input<string[] | null>(null);
 
   readonly aoMudarPagina = output<PageEvent>();
   readonly aoMudarOrdem = output<Sort>();
@@ -33,8 +45,26 @@ export class ContaTabelaComponent {
   readonly aoEditar = output<number>();
   readonly aoAlternarEstado = output<AlternarEstadoContaEvento>();
   readonly aoRedefinirSenha = output<ContaResumo>();
+  readonly aoExportar = output<SolicitacaoExportacao<ContaResumo>>();
 
-  protected readonly colunasExibidas = [
+  readonly colunasExportaveis: ColunaExportacao<ContaResumo>[] = [
+    { id: 'nomePessoa', titulo: 'Nome da pessoa associada', valor: (conta) => conta.nomePessoa },
+    { id: 'nomeUsuario', titulo: 'Nome de usuário', valor: (conta) => conta.nomeUsuario },
+    { id: 'email', titulo: 'E-mail', valor: (conta) => conta.email || '-' },
+    {
+      id: 'perfis',
+      titulo: 'Perfis',
+      valor: (conta) =>
+        `${conta.perfis.map((perfil) => perfil.descricao).join(', ')} (${
+          conta.redefinirSenha ? 'Senha pendente' : 'Sem pendência'
+        })`,
+    },
+    { id: 'dataCriacao', titulo: 'Data de criação', valor: (conta) => this.formatarData(conta.dataCriacao) },
+    { id: 'dataInativo', titulo: 'Data inativo', valor: (conta) => this.formatarDataInativo(conta) },
+    { id: 'status', titulo: 'Status', valor: (conta) => (conta.ativo ? 'Ativo' : 'Desativado') },
+  ];
+
+  private readonly colunasExibidasPadrao = [
     'indice',
     'acoes',
     'nomePessoa',
@@ -46,12 +76,27 @@ export class ContaTabelaComponent {
     'status',
   ];
 
+  protected get colunasExibidas(): string[] {
+    return filtrarColunasExibidas(
+      this.colunasExibidasPadrao,
+      this.colunasExportaveis.map((coluna) => coluna.id),
+      this.colunasVisiveis(),
+    );
+  }
+
   protected get campoOrdenado(): string {
     return this.ordenacao().split(',')[0] ?? 'nomeUsuario';
   }
 
   protected get direcaoOrdenada(): 'asc' | 'desc' {
     return this.ordenacao().split(',')[1] === 'desc' ? 'desc' : 'asc';
+  }
+
+  exportar(solicitacao: { formato: 'xlsx' | 'csv'; idsColunas: string[] }): void {
+    const colunas = this.colunasExportaveis.filter((coluna) =>
+      solicitacao.idsColunas.includes(coluna.id),
+    );
+    this.aoExportar.emit({ formato: solicitacao.formato, colunas });
   }
 
   protected get totalPaginas(): number {

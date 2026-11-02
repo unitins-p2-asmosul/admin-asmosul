@@ -10,6 +10,9 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { PaginaGerenciamentoComponent } from '@features/shared/components/pagina-gerenciamento/pagina-gerenciamento.component';
 import { DialogoConfirmacaoService } from '@features/shared/services/dialogo-confirmacao.service';
 import { NotificacaoService } from '@features/shared/services/notificacao.service';
+import { ControlesExportacaoComponent } from '@features/shared/components/controles-exportacao.component';
+import { ExportacaoService } from '@features/shared/services/exportacao.service';
+import { SolicitacaoExportacao } from '@features/shared/models/exportacao.model';
 import { of } from 'rxjs';
 import { catchError, finalize, map, switchMap, tap } from 'rxjs/operators';
 import { SaidaFiltroDialogComponent } from '../../components/saida-filtro-dialog/saida-filtro-dialog.component';
@@ -41,6 +44,7 @@ const RESPOSTA_VAZIA = {
   imports: [
     PaginaGerenciamentoComponent,
     SaidaTabelaComponent,
+    ControlesExportacaoComponent,
     MatButtonModule,
     MatIconModule,
     MatTooltipModule,
@@ -49,7 +53,9 @@ const RESPOSTA_VAZIA = {
   templateUrl: './saida-lista-page.component.html',
 })
 export class SaidaListaPageComponent {
+  readonly idsColunasVisiveis = signal<string[] | null>(null);
   private readonly saidaService = inject(SaidaService);
+  private readonly exportacao = inject(ExportacaoService);
   private readonly confirmacao = inject(DialogoConfirmacaoService);
   private readonly notificacao = inject(NotificacaoService);
   private readonly router = inject(Router);
@@ -185,6 +191,15 @@ export class SaidaListaPageComponent {
         this.notificacao.erro('Não foi possível excluir a saída.');
       },
     });
+  }
+
+  protected exportar(solicitacao: SolicitacaoExportacao<SaidaResumo>): void {
+    const parametros = { ...this.parametrosAtuais(), page: 0, size: 99999 };
+    this.exportacao.exportarDados(
+      this.saidaService.listar(parametros).pipe(map((resposta) => resposta.dados)),
+      solicitacao,
+      'saidas',
+    );
   }
 
   private atualizarUrl(novosParametros: Record<string, string | number | null>): void {

@@ -66,6 +66,13 @@ describe('ItemTabelaComponent', () => {
     expect(texto).toContain('Inativo');
   });
 
+  it('exibe apenas as colunas selecionadas e mantém índice e ações', () => {
+    fixture.componentRef.setInput('colunasVisiveis', ['descricao', 'nome']);
+    fixture.detectChanges();
+
+    expect(component['colunasExibidas']).toEqual(['indice', 'acoes', 'nome', 'descricao']);
+  });
+
   it('emite evento ao clicar nos botões de ação', () => {
     const spyVisualizar = vi.spyOn(component.aoVisualizar, 'emit');
     const spyEditar = vi.spyOn(component.aoEditar, 'emit');

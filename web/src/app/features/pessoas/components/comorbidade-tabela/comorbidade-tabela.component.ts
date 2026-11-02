@@ -6,6 +6,11 @@ import { MatSortModule, Sort } from '@angular/material/sort';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { ComorbidadeResumo } from '../../models/comorbidade.model';
+import {
+  ColunaExportacao,
+  SolicitacaoExportacao,
+} from '@features/shared/models/exportacao.model';
+import { filtrarColunasExibidas } from '@features/shared/utils/colunas-tabela';
 
 export interface AlternarEstadoEvento {
   id: number;
@@ -31,14 +36,31 @@ export class ComorbidadeTabelaComponent {
   readonly paginaAtual = input.required<number>();
   readonly carregando = input.required<boolean>();
   readonly ordenacao = input<string>('nome,asc');
+  readonly colunasVisiveis = input<string[] | null>(null);
 
   readonly aoMudarPagina = output<PageEvent>();
   readonly aoMudarOrdem = output<Sort>();
   readonly aoVisualizar = output<number>();
   readonly aoEditar = output<number>();
   readonly aoAlternarEstado = output<AlternarEstadoEvento>();
+  readonly aoExportar = output<SolicitacaoExportacao<ComorbidadeResumo>>();
 
-  protected readonly colunasExibidas = ['id', 'acoes', 'nome', 'descricao', 'status'];
+  readonly colunasExportaveis: ColunaExportacao<ComorbidadeResumo>[] = [
+    { id: 'id', titulo: '#', valor: (item) => item.id },
+    { id: 'nome', titulo: 'Nome', valor: (item) => item.nome },
+    { id: 'descricao', titulo: 'Descrição', valor: (item) => item.descricao || '-' },
+    { id: 'status', titulo: 'Status', valor: (item) => (item.ativo ? 'Ativo' : 'Desativado') },
+  ];
+
+  private readonly colunasExibidasPadrao = ['id', 'acoes', 'nome', 'descricao', 'status'];
+
+  protected get colunasExibidas(): string[] {
+    return filtrarColunasExibidas(
+      this.colunasExibidasPadrao,
+      this.colunasExportaveis.map((coluna) => coluna.id),
+      this.colunasVisiveis(),
+    );
+  }
 
   /** Campo e direção atuais, extraídos de "campo,direcao", para o mat-sort refletir a URL. */
   protected get campoOrdenado(): string {
@@ -47,6 +69,13 @@ export class ComorbidadeTabelaComponent {
 
   protected get direcaoOrdenada(): 'asc' | 'desc' {
     return this.ordenacao().split(',')[1] === 'desc' ? 'desc' : 'asc';
+  }
+
+  exportar(solicitacao: { formato: 'xlsx' | 'csv'; idsColunas: string[] }): void {
+    const colunas = this.colunasExportaveis.filter((coluna) =>
+      solicitacao.idsColunas.includes(coluna.id),
+    );
+    this.aoExportar.emit({ formato: solicitacao.formato, colunas });
   }
 
   protected get totalPaginas(): number {

@@ -6,11 +6,23 @@ import { MatSortModule, Sort } from '@angular/material/sort';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MovimentacaoResumo } from '../../models/movimentacao.model';
+import { formatarDataHoraEntrada } from '../../models/entrada.model';
+import {
+  ColunaExportacao,
+  SolicitacaoExportacao,
+} from '@features/shared/models/exportacao.model';
+import { filtrarColunasExibidas } from '@features/shared/utils/colunas-tabela';
 
 @Component({
   selector: 'app-movimentacao-tabela',
   standalone: true,
-  imports: [MatTableModule, MatSortModule, MatIconModule, MatButtonModule, MatTooltipModule],
+  imports: [
+    MatTableModule,
+    MatSortModule,
+    MatIconModule,
+    MatButtonModule,
+    MatTooltipModule,
+  ],
   templateUrl: './movimentacao-tabela.component.html',
 })
 export class MovimentacaoTabelaComponent {
@@ -20,12 +32,35 @@ export class MovimentacaoTabelaComponent {
   readonly paginaAtual = input.required<number>();
   readonly carregando = input.required<boolean>();
   readonly ordenacao = input<string>('dataHora,desc');
+  readonly colunasVisiveis = input<string[] | null>(null);
 
   readonly aoMudarPagina = output<PageEvent>();
   readonly aoMudarOrdem = output<Sort>();
   readonly aoVisualizar = output<number>();
+  readonly aoExportar = output<SolicitacaoExportacao<MovimentacaoResumo>>();
 
-  protected readonly colunasExibidas = [
+  readonly colunasExportaveis: ColunaExportacao<MovimentacaoResumo>[] = [
+    { id: 'indice', titulo: '#', valor: (movimentacao) => movimentacao.id },
+    { id: 'item', titulo: 'Item', valor: (movimentacao) => movimentacao.nomeItem || '—' },
+    {
+      id: 'localAntigo',
+      titulo: 'Local antigo',
+      valor: (movimentacao) => movimentacao.localAntigo || '—',
+    },
+    {
+      id: 'localNovo',
+      titulo: 'Local novo',
+      valor: (movimentacao) => movimentacao.localNovo || '—',
+    },
+    { id: 'quantidade', titulo: 'Quantidade', valor: (movimentacao) => movimentacao.quantidade },
+    {
+      id: 'dataHora',
+      titulo: 'Data hora',
+      valor: (movimentacao) => formatarDataHoraEntrada(movimentacao.dataHora),
+    },
+  ];
+
+  private readonly colunasExibidasPadrao = [
     'indice',
     'acoes',
     'item',
@@ -35,12 +70,27 @@ export class MovimentacaoTabelaComponent {
     'dataHora',
   ];
 
+  protected get colunasExibidas(): string[] {
+    return filtrarColunasExibidas(
+      this.colunasExibidasPadrao,
+      this.colunasExportaveis.map((coluna) => coluna.id),
+      this.colunasVisiveis(),
+    );
+  }
+
   protected get campoOrdenado(): string {
     return this.ordenacao().split(',')[0] ?? 'dataHora';
   }
 
   protected get direcaoOrdenada(): 'asc' | 'desc' {
     return this.ordenacao().split(',')[1] === 'asc' ? 'asc' : 'desc';
+  }
+
+  exportar(solicitacao: { formato: 'xlsx' | 'csv'; idsColunas: string[] }): void {
+    const colunas = this.colunasExportaveis.filter((coluna) =>
+      solicitacao.idsColunas.includes(coluna.id),
+    );
+    this.aoExportar.emit({ formato: solicitacao.formato, colunas });
   }
 
   protected get totalPaginas(): number {

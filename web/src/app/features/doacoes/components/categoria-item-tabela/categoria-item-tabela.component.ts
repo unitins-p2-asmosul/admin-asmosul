@@ -6,6 +6,11 @@ import { MatSortModule, Sort } from '@angular/material/sort';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { CategoriaItemResumo } from '../../models/categoria-item.model';
+import {
+  ColunaExportacao,
+  SolicitacaoExportacao,
+} from '@features/shared/models/exportacao.model';
+import { filtrarColunasExibidas } from '@features/shared/utils/colunas-tabela';
 
 export interface AlternarEstadoCategoriaItemEvento {
   id: number;
@@ -15,7 +20,13 @@ export interface AlternarEstadoCategoriaItemEvento {
 @Component({
   selector: 'app-categoria-item-tabela',
   standalone: true,
-  imports: [MatTableModule, MatSortModule, MatIconModule, MatButtonModule, MatTooltipModule],
+  imports: [
+    MatTableModule,
+    MatSortModule,
+    MatIconModule,
+    MatButtonModule,
+    MatTooltipModule,
+  ],
   templateUrl: './categoria-item-tabela.component.html',
 })
 export class CategoriaItemTabelaComponent {
@@ -25,14 +36,34 @@ export class CategoriaItemTabelaComponent {
   readonly paginaAtual = input.required<number>();
   readonly carregando = input.required<boolean>();
   readonly ordenacao = input<string>('nome,asc');
+  readonly colunasVisiveis = input<string[] | null>(null);
 
   readonly aoMudarPagina = output<PageEvent>();
   readonly aoMudarOrdem = output<Sort>();
   readonly aoVisualizar = output<number>();
   readonly aoEditar = output<number>();
   readonly aoAlternarEstado = output<AlternarEstadoCategoriaItemEvento>();
+  readonly aoExportar = output<SolicitacaoExportacao<CategoriaItemResumo>>();
 
-  protected readonly colunasExibidas = ['indice', 'acoes', 'nome', 'descricao', 'status'];
+  readonly colunasExportaveis: ColunaExportacao<CategoriaItemResumo>[] = [
+    { id: 'nome', titulo: 'Nome', valor: (categoria) => categoria.nome },
+    { id: 'descricao', titulo: 'Descrição', valor: (categoria) => categoria.descricao || '-' },
+    {
+      id: 'status',
+      titulo: 'Status',
+      valor: (categoria) => (categoria.ativo ? 'Ativo' : 'Inativo'),
+    },
+  ];
+
+  private readonly colunasExibidasPadrao = ['indice', 'acoes', 'nome', 'descricao', 'status'];
+
+  protected get colunasExibidas(): string[] {
+    return filtrarColunasExibidas(
+      this.colunasExibidasPadrao,
+      this.colunasExportaveis.map((coluna) => coluna.id),
+      this.colunasVisiveis(),
+    );
+  }
 
   protected get campoOrdenado(): string {
     return this.ordenacao().split(',')[0] ?? 'nome';
@@ -40,6 +71,13 @@ export class CategoriaItemTabelaComponent {
 
   protected get direcaoOrdenada(): 'asc' | 'desc' {
     return this.ordenacao().split(',')[1] === 'desc' ? 'desc' : 'asc';
+  }
+
+  exportar(solicitacao: { formato: 'xlsx' | 'csv'; idsColunas: string[] }): void {
+    const colunas = this.colunasExportaveis.filter((coluna) =>
+      solicitacao.idsColunas.includes(coluna.id),
+    );
+    this.aoExportar.emit({ formato: solicitacao.formato, colunas });
   }
 
   protected get totalPaginas(): number {

@@ -1,70 +1,69 @@
-import { Component, effect, input, model, OnInit } from '@angular/core';
+import { Component, input, OnInit, output, signal } from '@angular/core';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatButtonModule } from '@angular/material/button';
-import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatIconModule } from '@angular/material/icon';
 
-export interface OpcaoColuna {
+export interface ColunaSeletor {
   id: string;
-  rotulo: string;
+  titulo: string;
 }
 
 @Component({
   selector: 'app-seletor-colunas',
   standalone: true,
-  imports: [MatMenuModule, MatButtonModule, MatCheckboxModule, MatIconModule],
-  templateUrl: './seletor-colunas.component.html'
+  imports: [MatButtonModule, MatCheckboxModule, MatIconModule, MatMenuModule],
+  templateUrl: './seletor-colunas.component.html',
 })
 export class SeletorColunasComponent implements OnInit {
-  storageKey = input<string>();
-  colunasDisponiveis = input.required<OpcaoColuna[]>();
-  colunasVisiveis = model.required<string[]>();
+  readonly colunas = input.required<ColunaSeletor[]>();
+  readonly chaveStorage = input.required<string>();
+  readonly aoMudarSelecao = output<string[]>();
 
-  constructor() {
-    effect(() => {
-      const chave = this.storageKey();
-      const colunas = this.colunasVisiveis();
-
-      if (chave && typeof window !== 'undefined' && window.localStorage) {
-        localStorage.setItem(`colunas_${chave}`, JSON.stringify(colunas));
-      }
-    });
-  }
+  protected readonly selecionadas = signal<string[]>([]);
 
   ngOnInit(): void {
-    const chave = this.storageKey();
-    if (!chave || typeof window === 'undefined' || !window.localStorage) {
-      return;
-    }
+    this.selecionadas.set(this.carregarSelecao());
+    this.aoMudarSelecao.emit(this.selecionadas());
+  }
 
-    const salvo = localStorage.getItem(`colunas_${chave}`);
-    if (salvo) {
-      try {
-        const colunasSalvas: string[] = JSON.parse(salvo);
-        const colunasValidas = this.colunasDisponiveis().map(c => c.id);
-        const filtradas = colunasSalvas.filter(c => colunasValidas.includes(c));
+  protected alternar(id: string, marcado: boolean): void {
+    const ids = this.colunas()
+      .filter((coluna) => (coluna.id === id ? marcado : this.selecionadas().includes(coluna.id)))
+      .map((coluna) => coluna.id);
 
-        if (filtradas.length > 0) {
-          this.colunasVisiveis.set(filtradas);
-        }
-      } catch {
-        localStorage.removeItem(`colunas_${chave}`);
-      }
+    this.selecionadas.set(ids);
+    this.salvarSelecao(ids);
+    this.aoMudarSelecao.emit(ids);
+  }
+
+  private carregarSelecao(): string[] {
+    const todas = this.colunas().map((coluna) => coluna.id);
+
+    try {
+      const salvo = localStorage.getItem(this.obterChaveStorage());
+      if (!salvo) return todas;
+
+      const ids: unknown = JSON.parse(salvo);
+      if (!Array.isArray(ids)) return todas;
+
+      const selecionadas = todas.filter((id) => ids.includes(id));
+      return selecionadas.length > 0 ? selecionadas : todas;
+    } catch (erro) {
+      console.error('Não foi possível carregar as colunas salvas.', erro);
+      return todas;
     }
   }
 
-  alternarColuna(id: string): void {
-    const ativas = [...this.colunasVisiveis()];
-    const indice = ativas.indexOf(id);
-
-    if (indice > -1) {
-      if (ativas.length > 1) {
-        ativas.splice(indice, 1);
-      }
-    } else {
-      ativas.push(id);
+  private salvarSelecao(ids: string[]): void {
+    try {
+      localStorage.setItem(this.obterChaveStorage(), JSON.stringify(ids));
+    } catch (erro) {
+      console.error('Não foi possível salvar as colunas selecionadas.', erro);
     }
+  }
 
-    this.colunasVisiveis.set(ativas);
+  private obterChaveStorage(): string {
+    return `asmosul:colunas:${this.chaveStorage()}`;
   }
 }

@@ -74,6 +74,13 @@ describe('ContaTabelaComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('Sem pendência');
   });
 
+  it('exibe apenas as colunas selecionadas e mantém índice e ações', () => {
+    fixture.componentRef.setInput('colunasVisiveis', ['email']);
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance['colunasExibidas']).toEqual(['indice', 'acoes', 'email']);
+  });
+
   it('emite as ações de visualizar, editar, redefinir senha e desativar', () => {
     const component = fixture.componentInstance;
     const visualizar = vi.fn();
