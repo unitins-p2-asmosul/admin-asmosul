@@ -56,6 +56,7 @@ const RESPOSTA_VAZIA = {
   templateUrl: './categoria-item-lista-page.component.html',
 })
 export class CategoriaItemListaPageComponent {
+  readonly idsColunasVisiveis = signal<string[] | null>(null);
   private readonly categoriaItemService = inject(CategoriaItemService);
   private readonly exportacao = inject(ExportacaoService);
   private readonly confirmacao = inject(DialogoConfirmacaoService);

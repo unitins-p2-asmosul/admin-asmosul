@@ -53,6 +53,7 @@ const RESPOSTA_VAZIA = {
   templateUrl: './movimentacao-lista-page.component.html',
 })
 export class MovimentacaoListaPageComponent {
+  readonly idsColunasVisiveis = signal<string[] | null>(null);
   private readonly movimentacaoService = inject(MovimentacaoService);
   private readonly exportacao = inject(ExportacaoService);
   private readonly notificacao = inject(NotificacaoService);

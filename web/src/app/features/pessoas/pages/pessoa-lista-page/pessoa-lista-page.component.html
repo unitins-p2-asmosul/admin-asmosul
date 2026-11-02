@@ -11,6 +11,7 @@
       [colunas]="tabela.colunasExportaveis"
       chaveStorage="pessoas"
       (aoExportar)="tabela.exportar($event)"
+      (aoMudarColunas)="idsColunasVisiveis.set($event)"
     />
   </div>
   <app-pessoa-tabela
@@ -20,6 +21,7 @@
     [tamanhoPagina]="resposta().tamanhoPagina"
     [paginaAtual]="resposta().paginaAtual"
     [carregando]="carregando()"
+    [colunasVisiveis]="idsColunasVisiveis()"
     [ordenacao]="parametrosAtuais().sort ?? 'nome,asc'"
     (aoMudarPagina)="mudarPagina($event)"
     (aoMudarOrdem)="mudarOrdem($event)"

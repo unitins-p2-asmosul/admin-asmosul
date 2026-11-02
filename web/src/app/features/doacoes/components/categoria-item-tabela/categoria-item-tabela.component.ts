@@ -10,6 +10,7 @@ import {
   ColunaExportacao,
   SolicitacaoExportacao,
 } from '@features/shared/models/exportacao.model';
+import { filtrarColunasExibidas } from '@features/shared/utils/colunas-tabela';
 
 export interface AlternarEstadoCategoriaItemEvento {
   id: number;
@@ -35,6 +36,7 @@ export class CategoriaItemTabelaComponent {
   readonly paginaAtual = input.required<number>();
   readonly carregando = input.required<boolean>();
   readonly ordenacao = input<string>('nome,asc');
+  readonly colunasVisiveis = input<string[] | null>(null);
 
   readonly aoMudarPagina = output<PageEvent>();
   readonly aoMudarOrdem = output<Sort>();
@@ -53,7 +55,15 @@ export class CategoriaItemTabelaComponent {
     },
   ];
 
-  protected readonly colunasExibidas = ['indice', 'acoes', 'nome', 'descricao', 'status'];
+  private readonly colunasExibidasPadrao = ['indice', 'acoes', 'nome', 'descricao', 'status'];
+
+  protected get colunasExibidas(): string[] {
+    return filtrarColunasExibidas(
+      this.colunasExibidasPadrao,
+      this.colunasExportaveis.map((coluna) => coluna.id),
+      this.colunasVisiveis(),
+    );
+  }
 
   protected get campoOrdenado(): string {
     return this.ordenacao().split(',')[0] ?? 'nome';

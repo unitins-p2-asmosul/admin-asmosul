@@ -18,11 +18,13 @@ export class ControlesExportacaoComponent {
   readonly colunas = input.required<ColunaSeletor[]>();
   readonly chaveStorage = input.required<string>();
   readonly aoExportar = output<SolicitacaoControlesExportacao>();
+  readonly aoMudarColunas = output<string[]>();
 
   private readonly idsSelecionados = signal<string[]>([]);
 
   protected selecionarColunas(ids: string[]): void {
     this.idsSelecionados.set(ids);
+    this.aoMudarColunas.emit(ids);
   }
 
   protected solicitarExportacao(formato: FormatoExportacao): void {

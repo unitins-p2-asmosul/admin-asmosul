@@ -10,6 +10,7 @@
       [colunas]="tabela.colunasExportaveis"
       chaveStorage="categorias-pessoas"
       (aoExportar)="tabela.exportar($event)"
+      (aoMudarColunas)="idsColunasVisiveis.set($event)"
     />
   </div>
   <app-categoria-tabela
@@ -19,6 +20,7 @@
     [tamanhoPagina]="20"
     [paginaAtual]="resposta().paginaAtual"
     [carregando]="carregando()"
+    [colunasVisiveis]="idsColunasVisiveis()"
     [ordenacao]="parametrosAtuais().sort ?? 'nome,asc'"
     (aoMudarPagina)="irParaPagina($event.pageIndex)"
     (aoMudarOrdem)="ordenar($event.active)"

@@ -60,6 +60,7 @@ const RESPOSTA_VAZIA = {
   templateUrl: './conta-lista-page.component.html',
 })
 export class ContaListaPageComponent {
+  readonly idsColunasVisiveis = signal<string[] | null>(null);
   private readonly contaService = inject(ContaService);
   private readonly exportacao = inject(ExportacaoService);
   private readonly confirmacao = inject(DialogoConfirmacaoService);

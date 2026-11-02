@@ -24,6 +24,7 @@
       [colunas]="tabela.colunasExportaveis"
       chaveStorage="entradas"
       (aoExportar)="tabela.exportar($event)"
+      (aoMudarColunas)="idsColunasVisiveis.set($event)"
     />
   </div>
 
@@ -34,6 +35,7 @@
     [tamanhoPagina]="resposta().tamanhoPagina"
     [paginaAtual]="resposta().paginaAtual"
     [carregando]="carregando()"
+    [colunasVisiveis]="idsColunasVisiveis()"
     [ordenacao]="parametrosAtuais().sort ?? 'dataHora,desc'"
     [siglasUnidade]="siglasUnidade()"
     (aoMudarPagina)="mudarPagina($event)"

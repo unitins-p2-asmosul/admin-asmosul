@@ -10,6 +10,7 @@ import {
   ColunaExportacao,
   SolicitacaoExportacao,
 } from '@features/shared/models/exportacao.model';
+import { filtrarColunasExibidas } from '@features/shared/utils/colunas-tabela';
 
 export interface AlternarEstadoEvento {
   id: number;
@@ -35,6 +36,7 @@ export class ComorbidadeTabelaComponent {
   readonly paginaAtual = input.required<number>();
   readonly carregando = input.required<boolean>();
   readonly ordenacao = input<string>('nome,asc');
+  readonly colunasVisiveis = input<string[] | null>(null);
 
   readonly aoMudarPagina = output<PageEvent>();
   readonly aoMudarOrdem = output<Sort>();
@@ -50,7 +52,15 @@ export class ComorbidadeTabelaComponent {
     { id: 'status', titulo: 'Status', valor: (item) => (item.ativo ? 'Ativo' : 'Desativado') },
   ];
 
-  protected readonly colunasExibidas = ['id', 'acoes', 'nome', 'descricao', 'status'];
+  private readonly colunasExibidasPadrao = ['id', 'acoes', 'nome', 'descricao', 'status'];
+
+  protected get colunasExibidas(): string[] {
+    return filtrarColunasExibidas(
+      this.colunasExibidasPadrao,
+      this.colunasExportaveis.map((coluna) => coluna.id),
+      this.colunasVisiveis(),
+    );
+  }
 
   /** Campo e direção atuais, extraídos de "campo,direcao", para o mat-sort refletir a URL. */
   protected get campoOrdenado(): string {

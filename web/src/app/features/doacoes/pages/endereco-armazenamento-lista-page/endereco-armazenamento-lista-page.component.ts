@@ -57,6 +57,7 @@ const RESPOSTA_VAZIA = {
   templateUrl: './endereco-armazenamento-lista-page.component.html',
 })
 export class EnderecoArmazenamentoListaPageComponent {
+  readonly idsColunasVisiveis = signal<string[] | null>(null);
   private readonly enderecoService = inject(EnderecoArmazenamentoService);
   private readonly exportacao = inject(ExportacaoService);
   private readonly confirmacao = inject(DialogoConfirmacaoService);

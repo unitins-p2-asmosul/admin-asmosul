@@ -41,6 +41,7 @@
       [colunas]="tabela.colunasExportaveis"
       chaveStorage="locais-armazenamento"
       (aoExportar)="tabela.exportar($event)"
+      (aoMudarColunas)="idsColunasVisiveis.set($event)"
     />
   </div>
 
@@ -51,6 +52,7 @@
     [tamanhoPagina]="resposta().tamanhoPagina"
     [paginaAtual]="resposta().paginaAtual"
     [carregando]="carregando()"
+    [colunasVisiveis]="idsColunasVisiveis()"
     [ordenacao]="parametrosAtuais().sort ?? 'nome,asc'"
     (aoMudarPagina)="mudarPagina($event)"
     (aoMudarOrdem)="mudarOrdem($event)"

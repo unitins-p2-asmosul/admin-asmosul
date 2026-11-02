@@ -10,6 +10,7 @@ import {
   ColunaExportacao,
   SolicitacaoExportacao,
 } from '@features/shared/models/exportacao.model';
+import { filtrarColunasExibidas } from '@features/shared/utils/colunas-tabela';
 
 export interface AlternarEstadoEnderecoArmazenamentoEvento {
   id: number;
@@ -36,6 +37,7 @@ export class EnderecoArmazenamentoTabelaComponent {
   readonly paginaAtual = input.required<number>();
   readonly carregando = input.required<boolean>();
   readonly ordenacao = input<string>('nome,asc');
+  readonly colunasVisiveis = input<string[] | null>(null);
 
   readonly aoMudarPagina = output<PageEvent>();
   readonly aoMudarOrdem = output<Sort>();
@@ -51,7 +53,7 @@ export class EnderecoArmazenamentoTabelaComponent {
     { id: 'status', titulo: 'Status', valor: (endereco) => (endereco.ativo ? 'Ativo' : 'Inativo') },
   ];
 
-  protected readonly colunasExibidas = [
+  private readonly colunasExibidasPadrao = [
     'indice',
     'acoes',
     'nome',
@@ -59,6 +61,14 @@ export class EnderecoArmazenamentoTabelaComponent {
     'logradouro',
     'status',
   ];
+
+  protected get colunasExibidas(): string[] {
+    return filtrarColunasExibidas(
+      this.colunasExibidasPadrao,
+      this.colunasExportaveis.map((coluna) => coluna.id),
+      this.colunasVisiveis(),
+    );
+  }
 
   protected get campoOrdenado(): string {
     return this.ordenacao().split(',')[0] ?? 'nome';

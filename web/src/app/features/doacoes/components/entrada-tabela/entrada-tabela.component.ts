@@ -10,6 +10,7 @@ import {
   ColunaExportacao,
   SolicitacaoExportacao,
 } from '@features/shared/models/exportacao.model';
+import { filtrarColunasExibidas } from '@features/shared/utils/colunas-tabela';
 
 export interface ExcluirEntradaEvento {
   id: number;
@@ -35,6 +36,7 @@ export class EntradaTabelaComponent {
   readonly paginaAtual = input.required<number>();
   readonly carregando = input.required<boolean>();
   readonly ordenacao = input<string>('dataHora,desc');
+  readonly colunasVisiveis = input<string[] | null>(null);
   readonly siglasUnidade = input<Record<number, string>>({});
 
   readonly aoMudarPagina = output<PageEvent>();
@@ -59,7 +61,15 @@ export class EntradaTabelaComponent {
     },
   ];
 
-  protected readonly colunasExibidas = ['indice', 'acoes', 'itens', 'doador', 'dataHora'];
+  private readonly colunasExibidasPadrao = ['indice', 'acoes', 'itens', 'doador', 'dataHora'];
+
+  protected get colunasExibidas(): string[] {
+    return filtrarColunasExibidas(
+      this.colunasExibidasPadrao,
+      this.colunasExportaveis.map((coluna) => coluna.id),
+      this.colunasVisiveis(),
+    );
+  }
 
   protected get campoOrdenado(): string {
     return this.ordenacao().split(',')[0] ?? 'dataHora';

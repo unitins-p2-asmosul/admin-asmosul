@@ -330,6 +330,7 @@ A listagem adota a divisão **Smart/Dumb Components** orientada pela **URL como 
 
 - **Exportação de Tabelas:**
     - Use os controles compartilhados de exportação e o seletor de colunas nas listagens, persistindo a seleção por tabela em `localStorage`.
+    - Propague a seleção dos controles para a tabela por um evento da página inteligente e um input de IDs de colunas visíveis; mantenha as ações e colunas sem opção de seleção.
     - O componente de página deve consultar o mesmo endpoint paginado com os filtros atuais e `page: 0`, `size: 99999`, sem depender das linhas carregadas para a página visível.
     - Centralize a geração CSV/XLSX em `ExportacaoService`; o XLSX deve preservar a data de exportação, cabeçalho destacado e linhas alternadas.
 

@@ -11,6 +11,7 @@ import {
   ColunaExportacao,
   SolicitacaoExportacao,
 } from '@features/shared/models/exportacao.model';
+import { filtrarColunasExibidas } from '@features/shared/utils/colunas-tabela';
 
 export interface ExcluirSaidaEvento {
   id: number;
@@ -36,6 +37,7 @@ export class SaidaTabelaComponent {
   readonly paginaAtual = input.required<number>();
   readonly carregando = input.required<boolean>();
   readonly ordenacao = input<string>('dataHora,desc');
+  readonly colunasVisiveis = input<string[] | null>(null);
 
   readonly aoMudarPagina = output<PageEvent>();
   readonly aoMudarOrdem = output<Sort>();
@@ -60,7 +62,7 @@ export class SaidaTabelaComponent {
     },
   ];
 
-  protected readonly colunasExibidas = [
+  private readonly colunasExibidasPadrao = [
     'indice',
     'acoes',
     'recebedor',
@@ -68,6 +70,14 @@ export class SaidaTabelaComponent {
     'quantidadeTotal',
     'dataHora',
   ];
+
+  protected get colunasExibidas(): string[] {
+    return filtrarColunasExibidas(
+      this.colunasExibidasPadrao,
+      this.colunasExportaveis.map((coluna) => coluna.id),
+      this.colunasVisiveis(),
+    );
+  }
 
   protected get campoOrdenado(): string {
     return this.ordenacao().split(',')[0] ?? 'dataHora';

@@ -49,6 +49,7 @@ const RESPOSTA_VAZIA: RespostaPaginada<ComorbidadeResumo> = {
   templateUrl: './comorbidade-lista-page.component.html',
 })
 export class ComorbidadeListaPageComponent {
+  readonly idsColunasVisiveis = signal<string[] | null>(null);
   private readonly comorbidadeService = inject(ComorbidadeService);
   private readonly exportacao = inject(ExportacaoService);
   private readonly confirmacao = inject(DialogoConfirmacaoService);

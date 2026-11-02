@@ -10,6 +10,7 @@ import {
   ColunaExportacao,
   SolicitacaoExportacao,
 } from '@features/shared/models/exportacao.model';
+import { filtrarColunasExibidas } from '@features/shared/utils/colunas-tabela';
 
 export interface AlternarEstadoContaEvento {
   id: number;
@@ -36,6 +37,7 @@ export class ContaTabelaComponent {
   readonly paginaAtual = input.required<number>();
   readonly carregando = input.required<boolean>();
   readonly ordenacao = input<string>('nomeUsuario,asc');
+  readonly colunasVisiveis = input<string[] | null>(null);
 
   readonly aoMudarPagina = output<PageEvent>();
   readonly aoMudarOrdem = output<Sort>();
@@ -62,7 +64,7 @@ export class ContaTabelaComponent {
     { id: 'status', titulo: 'Status', valor: (conta) => (conta.ativo ? 'Ativo' : 'Desativado') },
   ];
 
-  protected readonly colunasExibidas = [
+  private readonly colunasExibidasPadrao = [
     'indice',
     'acoes',
     'nomePessoa',
@@ -73,6 +75,14 @@ export class ContaTabelaComponent {
     'dataInativo',
     'status',
   ];
+
+  protected get colunasExibidas(): string[] {
+    return filtrarColunasExibidas(
+      this.colunasExibidasPadrao,
+      this.colunasExportaveis.map((coluna) => coluna.id),
+      this.colunasVisiveis(),
+    );
+  }
 
   protected get campoOrdenado(): string {
     return this.ordenacao().split(',')[0] ?? 'nomeUsuario';

@@ -59,6 +59,7 @@ const RESPOSTA_VAZIA = {
   templateUrl: './entrada-lista-page.component.html',
 })
 export class EntradaListaPageComponent implements OnInit {
+  readonly idsColunasVisiveis = signal<string[] | null>(null);
   private readonly entradaService = inject(EntradaService);
   private readonly exportacao = inject(ExportacaoService);
   private readonly itemService = inject(ItemService);

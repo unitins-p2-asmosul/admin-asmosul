@@ -21,6 +21,7 @@ import { ControlesExportacaoComponent } from '@features/shared/components/contro
   templateUrl: './categoria-lista-page.component.html',
 })
 export class CategoriaListaPageComponent {
+  readonly idsColunasVisiveis = signal<string[] | null>(null);
   private readonly categoriaService = inject(CategoriaService);
   private readonly exportacao = inject(ExportacaoService);
   private readonly confirmacao = inject(DialogoConfirmacaoService);

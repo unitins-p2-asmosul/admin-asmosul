@@ -53,6 +53,7 @@ const RESPOSTA_VAZIA = {
   templateUrl: './item-lista-page.component.html',
 })
 export class ItemListaPageComponent {
+  readonly idsColunasVisiveis = signal<string[] | null>(null);
   private readonly itemService = inject(ItemService);
   private readonly exportacao = inject(ExportacaoService);
   private readonly confirmacao = inject(DialogoConfirmacaoService);

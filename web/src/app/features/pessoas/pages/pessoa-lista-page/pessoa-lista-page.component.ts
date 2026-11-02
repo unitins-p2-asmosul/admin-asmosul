@@ -42,6 +42,7 @@ const RESPOSTA_VAZIA: RespostaPaginada<PessoaResumo> = {
   templateUrl: './pessoa-lista-page.component.html',
 })
 export class PessoaListaPageComponent {
+  readonly idsColunasVisiveis = signal<string[] | null>(null);
   private readonly pessoaService = inject(PessoaService);
   private readonly exportacao = inject(ExportacaoService);
   private readonly confirmacao = inject(DialogoConfirmacaoService);
