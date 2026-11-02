@@ -1,0 +1,59 @@
+<section class="pagina-home">
+  <header class="pagina-home__hero">
+    <span class="pagina-home__selo">
+      <mat-icon aria-hidden="true">auto_awesome</mat-icon>
+      Sistema Integrado de Gestão Comunitária
+    </span>
+    <h1>Boas Vindas ao sistema de Gestão da ASMOSUL!</h1>
+    <p>
+      Plataforma centralizada da Associação de Moradores do Sul para controle de beneficiários,
+      gestão física e financeira de doações, rastreamento detalhado de estoque e relatórios
+      analíticos.
+    </p>
+  </header>
+
+  <div class="pagina-home__secao">
+    <h2>Atalhos para os Módulos do Sistema</h2>
+    <span>Selecione para navegar diretamente</span>
+  </div>
+
+  <div class="pagina-home__grade">
+    @for (modulo of modulos(); track modulo.id) {
+      <app-card-modulo
+        [titulo]="modulo.titulo"
+        [descricao]="modulo.descricao"
+        [icone]="modulo.icone"
+        [rotuloAcao]="modulo.rotuloAcao"
+        [variante]="modulo.variante"
+        [rota]="modulo.rota"
+        [motivoBloqueio]="modulo.motivoBloqueio"
+      />
+    }
+  </div>
+
+  <article class="card-asmosul pagina-home__guia">
+    <span class="pagina-home__guia-icone" aria-hidden="true">
+      <mat-icon>menu_book</mat-icon>
+    </span>
+
+    <div class="pagina-home__guia-texto">
+      <span class="pagina-home__guia-selo">Manual Operacional</span>
+      <h3>Tutorial e Guia Prático de Uso da Plataforma ASMOSUL</h3>
+      <p>
+        Consulte as instruções detalhadas de como cadastrar pessoas, lançar entradas e saídas item a
+        item, controlar kits e estoques, auditar contas e exportar relatórios para Excel e CSV.
+      </p>
+    </div>
+
+    <a
+      mat-flat-button
+      class="pagina-home__guia-acao"
+      [href]="urlGuiaUsuario"
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      <mat-icon>menu_book</mat-icon>
+      Abrir Tutorial do Sistema
+    </a>
+  </article>
+</section>
