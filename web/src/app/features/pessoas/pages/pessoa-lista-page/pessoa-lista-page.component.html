@@ -6,7 +6,15 @@
   (aoAdicionar)="irParaAdicionar()"
   (aoFiltrar)="abrirFiltros()"
 >
+  <div toolbar-actions class="flex min-w-0 flex-1 items-center">
+    <app-controles-exportacao
+      [colunas]="tabela.colunasExportaveis"
+      chaveStorage="pessoas"
+      (aoExportar)="tabela.exportar($event)"
+    />
+  </div>
   <app-pessoa-tabela
+    #tabela
     [dados]="resposta().dados"
     [totalElementos]="resposta().totalElementos"
     [tamanhoPagina]="resposta().tamanhoPagina"
@@ -18,5 +26,6 @@
     (aoVisualizar)="visualizar($event)"
     (aoEditar)="editar($event)"
     (aoAlternarEstado)="alternarEstado($event)"
+    (aoExportar)="exportar($event)"
   />
 </app-pagina-gerenciamento>

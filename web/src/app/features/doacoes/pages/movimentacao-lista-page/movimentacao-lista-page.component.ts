@@ -10,6 +10,9 @@ import { Sort } from '@angular/material/sort';
 import { ActivatedRoute, Router } from '@angular/router';
 import { PaginaGerenciamentoComponent } from '@features/shared/components/pagina-gerenciamento/pagina-gerenciamento.component';
 import { NotificacaoService } from '@features/shared/services/notificacao.service';
+import { ControlesExportacaoComponent } from '@features/shared/components/controles-exportacao.component';
+import { ExportacaoService } from '@features/shared/services/exportacao.service';
+import { SolicitacaoExportacao } from '@features/shared/models/exportacao.model';
 import { of } from 'rxjs';
 import { catchError, finalize, map, switchMap, tap } from 'rxjs/operators';
 import { MovimentacaoFiltroDialogComponent } from '../../components/movimentacao-filtro-dialog/movimentacao-filtro-dialog.component';
@@ -42,6 +45,7 @@ const RESPOSTA_VAZIA = {
   imports: [
     PaginaGerenciamentoComponent,
     MovimentacaoTabelaComponent,
+    ControlesExportacaoComponent,
     MatButtonModule,
     MatIconModule,
     MatTooltipModule,
@@ -50,6 +54,7 @@ const RESPOSTA_VAZIA = {
 })
 export class MovimentacaoListaPageComponent {
   private readonly movimentacaoService = inject(MovimentacaoService);
+  private readonly exportacao = inject(ExportacaoService);
   private readonly notificacao = inject(NotificacaoService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
@@ -171,6 +176,15 @@ export class MovimentacaoListaPageComponent {
       dataHoraInicio: null,
       dataHoraFim: null,
     });
+  }
+
+  protected exportar(solicitacao: SolicitacaoExportacao<MovimentacaoResumo>): void {
+    const parametros = { ...this.parametrosAtuais(), page: 0, size: 99999 };
+    this.exportacao.exportarDados(
+      this.movimentacaoService.listar(parametros).pipe(map((resposta) => resposta.dados)),
+      solicitacao,
+      'movimentacoes',
+    );
   }
 
   private numeroParametro(valor: string | null): number | undefined {

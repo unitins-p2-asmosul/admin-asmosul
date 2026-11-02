@@ -1,0 +1,28 @@
+<button
+  mat-stroked-button
+  type="button"
+  class="exportacao-btn exportacao-btn--colunas"
+  [matMenuTriggerFor]="menuColunas"
+  aria-label="Selecionar colunas para exportação"
+>
+  <mat-icon>tune</mat-icon>
+  Colunas ({{ selecionadas().length }}/{{ colunas().length }})
+</button>
+
+<mat-menu #menuColunas="matMenu">
+  <div class="min-w-56 px-3 py-2">
+    @for (coluna of colunas(); track coluna.id) {
+      <mat-checkbox
+        class="block"
+        [checked]="selecionadas().includes(coluna.id)"
+        [disabled]="selecionadas().length === 1 && selecionadas().includes(coluna.id)"
+        (click)="$event.stopPropagation()"
+        (change)="alternar(coluna.id, $event.checked)"
+      >
+        {{ coluna.titulo }}
+      </mat-checkbox>
+    } @empty {
+      <span class="text-sm text-slate-500">Nenhuma coluna disponível</span>
+    }
+  </div>
+</mat-menu>

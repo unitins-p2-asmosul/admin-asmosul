@@ -6,6 +6,10 @@ import { MatSortModule, Sort } from '@angular/material/sort';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { ContaResumo } from '../../models/conta.model';
+import {
+  ColunaExportacao,
+  SolicitacaoExportacao,
+} from '@features/shared/models/exportacao.model';
 
 export interface AlternarEstadoContaEvento {
   id: number;
@@ -16,7 +20,13 @@ export interface AlternarEstadoContaEvento {
 @Component({
   selector: 'app-conta-tabela',
   standalone: true,
-  imports: [MatTableModule, MatSortModule, MatIconModule, MatButtonModule, MatTooltipModule],
+  imports: [
+    MatTableModule,
+    MatSortModule,
+    MatIconModule,
+    MatButtonModule,
+    MatTooltipModule,
+  ],
   templateUrl: './conta-tabela.component.html',
 })
 export class ContaTabelaComponent {
@@ -33,6 +43,24 @@ export class ContaTabelaComponent {
   readonly aoEditar = output<number>();
   readonly aoAlternarEstado = output<AlternarEstadoContaEvento>();
   readonly aoRedefinirSenha = output<ContaResumo>();
+  readonly aoExportar = output<SolicitacaoExportacao<ContaResumo>>();
+
+  readonly colunasExportaveis: ColunaExportacao<ContaResumo>[] = [
+    { id: 'nomePessoa', titulo: 'Nome da pessoa associada', valor: (conta) => conta.nomePessoa },
+    { id: 'nomeUsuario', titulo: 'Nome de usuário', valor: (conta) => conta.nomeUsuario },
+    { id: 'email', titulo: 'E-mail', valor: (conta) => conta.email || '-' },
+    {
+      id: 'perfis',
+      titulo: 'Perfis',
+      valor: (conta) =>
+        `${conta.perfis.map((perfil) => perfil.descricao).join(', ')} (${
+          conta.redefinirSenha ? 'Senha pendente' : 'Sem pendência'
+        })`,
+    },
+    { id: 'dataCriacao', titulo: 'Data de criação', valor: (conta) => this.formatarData(conta.dataCriacao) },
+    { id: 'dataInativo', titulo: 'Data inativo', valor: (conta) => this.formatarDataInativo(conta) },
+    { id: 'status', titulo: 'Status', valor: (conta) => (conta.ativo ? 'Ativo' : 'Desativado') },
+  ];
 
   protected readonly colunasExibidas = [
     'indice',
@@ -52,6 +80,13 @@ export class ContaTabelaComponent {
 
   protected get direcaoOrdenada(): 'asc' | 'desc' {
     return this.ordenacao().split(',')[1] === 'desc' ? 'desc' : 'asc';
+  }
+
+  exportar(solicitacao: { formato: 'xlsx' | 'csv'; idsColunas: string[] }): void {
+    const colunas = this.colunasExportaveis.filter((coluna) =>
+      solicitacao.idsColunas.includes(coluna.id),
+    );
+    this.aoExportar.emit({ formato: solicitacao.formato, colunas });
   }
 
   protected get totalPaginas(): number {

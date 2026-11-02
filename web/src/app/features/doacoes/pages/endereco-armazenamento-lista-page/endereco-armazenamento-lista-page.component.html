@@ -2,13 +2,12 @@
   titulo="Endereços de Armazenamento"
   icone=""
   iconeAdicionar="add_location_alt"
-  [adicionarNaToolbar]="true"
   rotuloAdicionar="Adicionar Endereço"
   [filtrosAtivos]="filtrosAtivos"
   (aoAdicionar)="irParaAdicionar()"
   (aoFiltrar)="abrirFiltros()"
 >
-  <div toolbar-actions class="flex items-center gap-1">
+  <div toolbar-actions class="flex min-w-0 flex-1 items-center gap-1">
     <button
       mat-flat-button
       type="button"
@@ -37,9 +36,16 @@
         <mat-icon>filter_alt_off</mat-icon>
       </button>
     }
+    <app-controles-exportacao
+      class="min-w-0 flex-1"
+      [colunas]="tabela.colunasExportaveis"
+      chaveStorage="locais-armazenamento"
+      (aoExportar)="tabela.exportar($event)"
+    />
   </div>
 
   <app-endereco-armazenamento-tabela
+    #tabela
     [dados]="resposta().dados"
     [totalElementos]="resposta().totalElementos"
     [tamanhoPagina]="resposta().tamanhoPagina"
@@ -51,5 +57,6 @@
     (aoVisualizar)="visualizar($event)"
     (aoEditar)="editar($event)"
     (aoAlternarEstado)="alternarEstado($event)"
+    (aoExportar)="exportar($event)"
   />
 </app-pagina-gerenciamento>

@@ -360,12 +360,12 @@ html, body {
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
-  gap: 1px;
-  min-width: 52px !important;
-  height: 48px !important;
-  min-height: 48px !important;
-  border-radius: 10px !important;
-  padding: 0 16px !important;
+  gap: 8px;
+  min-width: 84px !important;
+  height: 38px !important;
+  min-height: 38px !important;
+  border-radius: 11px !important;
+  padding: 0 14px !important;
   background: #0b3c5d !important;
   color: #fff !important;
   border-color: #0b3c5d !important;
@@ -376,13 +376,10 @@ html, body {
 }
 
 .pagina-pessoas__filter .mdc-button__label {
-  position: absolute;
-  inset: 0;
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 8px;
-  width: auto;
 }
 
 .pagina-pessoas__filter .mat-icon {
@@ -390,6 +387,66 @@ html, body {
   align-items: center;
   justify-content: center;
   margin: 0 !important;
+}
+
+.exportacao-toolbar {
+  display: flex;
+  min-width: 0;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.exportacao-toolbar__botoes,
+.exportacao-toolbar__colunas {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+app-botoes-exportacao {
+  display: flex;
+  gap: 8px;
+}
+
+.exportacao-toolbar__colunas {
+  margin-left: auto;
+}
+
+.exportacao-btn {
+  height: 38px !important;
+  min-height: 38px !important;
+  border-radius: 11px !important;
+  padding: 0 12px !important;
+  font-size: 0.8rem !important;
+  font-weight: 600 !important;
+  box-shadow: none !important;
+}
+
+.exportacao-btn .mat-icon {
+  width: 18px !important;
+  height: 18px !important;
+  margin: 0 6px 0 0 !important;
+  font-size: 18px !important;
+}
+
+.exportacao-btn--xlsx {
+  border-color: #9de8c5 !important;
+  background: #f0fdf7 !important;
+  color: #047857 !important;
+}
+
+.exportacao-btn--csv {
+  border-color: #dce3eb !important;
+  background: #f8fafc !important;
+  color: #475569 !important;
+}
+
+.exportacao-btn--colunas {
+  border-color: #dce3eb !important;
+  background: #fff !important;
+  color: #334155 !important;
 }
 
 .pessoa-tabela-shell {

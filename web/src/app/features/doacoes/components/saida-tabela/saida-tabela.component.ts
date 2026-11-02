@@ -7,6 +7,10 @@ import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { formatarDataHoraEntrada } from '../../models/entrada.model';
 import { SaidaResumo } from '../../models/saida.model';
+import {
+  ColunaExportacao,
+  SolicitacaoExportacao,
+} from '@features/shared/models/exportacao.model';
 
 export interface ExcluirSaidaEvento {
   id: number;
@@ -16,7 +20,13 @@ export interface ExcluirSaidaEvento {
 @Component({
   selector: 'app-saida-tabela',
   standalone: true,
-  imports: [MatTableModule, MatSortModule, MatIconModule, MatButtonModule, MatTooltipModule],
+  imports: [
+    MatTableModule,
+    MatSortModule,
+    MatIconModule,
+    MatButtonModule,
+    MatTooltipModule,
+  ],
   templateUrl: './saida-tabela.component.html',
 })
 export class SaidaTabelaComponent {
@@ -32,6 +42,23 @@ export class SaidaTabelaComponent {
   readonly aoVisualizar = output<number>();
   readonly aoEditar = output<number>();
   readonly aoExcluir = output<ExcluirSaidaEvento>();
+  readonly aoExportar = output<SolicitacaoExportacao<SaidaResumo>>();
+
+  readonly colunasExportaveis: ColunaExportacao<SaidaResumo>[] = [
+    { id: 'indice', titulo: '#', valor: (saida) => saida.id },
+    { id: 'recebedor', titulo: 'Recebedor', valor: (saida) => saida.nomeRecebedor || '—' },
+    { id: 'itens', titulo: 'Itens entregues', valor: (saida) => this.formatarItens(saida) },
+    {
+      id: 'quantidadeTotal',
+      titulo: 'Quantidade total',
+      valor: (saida) => saida.quantidadeTotal,
+    },
+    {
+      id: 'dataHora',
+      titulo: 'Data e hora',
+      valor: (saida) => this.formatarDataHora(saida),
+    },
+  ];
 
   protected readonly colunasExibidas = [
     'indice',
@@ -65,6 +92,13 @@ export class SaidaTabelaComponent {
 
   protected formatarDataHora(saida: SaidaResumo): string {
     return formatarDataHoraEntrada(saida.dataHora);
+  }
+
+  exportar(solicitacao: { formato: 'xlsx' | 'csv'; idsColunas: string[] }): void {
+    const colunas = this.colunasExportaveis.filter((coluna) =>
+      solicitacao.idsColunas.includes(coluna.id),
+    );
+    this.aoExportar.emit({ formato: solicitacao.formato, colunas });
   }
 
   protected mudarPagina(pagina: number): void {

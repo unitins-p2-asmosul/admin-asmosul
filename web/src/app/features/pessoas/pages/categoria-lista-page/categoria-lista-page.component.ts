@@ -5,20 +5,24 @@ import { MatDialog } from '@angular/material/dialog';
 import { catchError, finalize, map, of, switchMap, tap } from 'rxjs';
 import { DialogoConfirmacaoService } from '@features/shared/services/dialogo-confirmacao.service';
 import { NotificacaoService } from '@features/shared/services/notificacao.service';
+import { ExportacaoService } from '@features/shared/services/exportacao.service';
+import { SolicitacaoExportacao } from '@features/shared/models/exportacao.model';
 import { CategoriaFiltroData, CategoriaFiltroDialogComponent } from '../../components/categoria-filtro-dialog/categoria-filtro-dialog.component';
 import { AlternarEstadoCategoriaEvento, CategoriaTabelaComponent } from '../../components/categoria-tabela/categoria-tabela.component';
-import { CategoriaConsultaParametros } from '../../models/categoria.model';
+import { CategoriaConsultaParametros, CategoriaResumo } from '../../models/categoria.model';
 import { CategoriaService } from '../../services/categoria.service';
 import { PaginaGerenciamentoComponent } from '@features/shared/components/pagina-gerenciamento/pagina-gerenciamento.component';
+import { ControlesExportacaoComponent } from '@features/shared/components/controles-exportacao.component';
 
 @Component({
   selector: 'app-categoria-lista-page',
   standalone: true,
-  imports: [PaginaGerenciamentoComponent, CategoriaTabelaComponent],
+  imports: [PaginaGerenciamentoComponent, CategoriaTabelaComponent, ControlesExportacaoComponent],
   templateUrl: './categoria-lista-page.component.html',
 })
 export class CategoriaListaPageComponent {
   private readonly categoriaService = inject(CategoriaService);
+  private readonly exportacao = inject(ExportacaoService);
   private readonly confirmacao = inject(DialogoConfirmacaoService);
   private readonly notificacao = inject(NotificacaoService);
   private readonly router = inject(Router);
@@ -132,6 +136,15 @@ export class CategoriaListaPageComponent {
         this.atualizarUrl({ _refresh: Date.now() });
       },
     });
+  }
+
+  protected exportar(solicitacao: SolicitacaoExportacao<CategoriaResumo>): void {
+    const parametros = { ...this.parametrosAtuais(), page: 0, size: 99999 };
+    this.exportacao.exportarDados(
+      this.categoriaService.listar(parametros).pipe(map((resposta) => resposta.dados)),
+      solicitacao,
+      'categorias-pessoas',
+    );
   }
 
   private atualizarUrl(parametros: Record<string, string | number | null>): void {

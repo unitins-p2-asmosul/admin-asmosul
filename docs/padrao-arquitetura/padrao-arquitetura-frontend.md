@@ -131,18 +131,26 @@ src/
 │       │   └── pessoas.routes.ts
 │       └── shared/
 │           ├── components/
+│           │   ├── botoes-exportacao.component.html
+│           │   ├── botoes-exportacao.component.ts
+│           │   ├── controles-exportacao.component.html
+│           │   ├── controles-exportacao.component.ts
 │           │   ├── dialogo-confirmacao.component.html
 │           │   ├── dialogo-confirmacao.component.ts
+│           │   ├── seletor-colunas.component.html
+│           │   ├── seletor-colunas.component.ts
 │           │   └── pagina-gerenciamento/
 │           │       ├── pagina-gerenciamento.component.html
 │           │       └── pagina-gerenciamento.component.ts
 │           ├── models/
 │           │   ├── erro-api.model.ts
+│           │   ├── exportacao.model.ts
 │           │   ├── item-dominio.model.ts
 │           │   ├── parametros-consulta.model.ts
 │           │   └── resposta-paginada.model.ts
 │           └── services/
 │               ├── dialogo-confirmacao.service.ts
+│               ├── exportacao.service.ts
 │               └── notificacao.service.ts
 ├── enviroments/
 │   ├── enviroment.prod.ts
@@ -320,11 +328,17 @@ A listagem adota a divisão **Smart/Dumb Components** orientada pela **URL como 
     - Container modal envolto pela classe `.pagina-formulario`.
     - Injeção de `MAT_DIALOG_DATA` tipado para pré-carregar os filtros ativos e fechamento higienizado com `dialogRef.close(...)`.
 
+- **Exportação de Tabelas:**
+    - Use os controles compartilhados de exportação e o seletor de colunas nas listagens, persistindo a seleção por tabela em `localStorage`.
+    - O componente de página deve consultar o mesmo endpoint paginado com os filtros atuais e `page: 0`, `size: 99999`, sem depender das linhas carregadas para a página visível.
+    - Centralize a geração CSV/XLSX em `ExportacaoService`; o XLSX deve preservar a data de exportação, cabeçalho destacado e linhas alternadas.
+
 ### Arquivos de Referência
 
 | Tipo | Arquivo |
 | --- | --- |
 | Componente Casca de Layout para Listagens | `src/app/features/shared/components/pagina-gerenciamento/` |
+| Seletor, controles e serviço de exportação | `src/app/features/shared/components/seletor-colunas.component.ts`, `controles-exportacao.component.ts`, `botoes-exportacao.component.ts` e `src/app/features/shared/services/exportacao.service.ts` |
 | Página Inteligente de Listagem (Smart Component) | `src/app/features/pessoas/pages/pessoa-lista-page/` e `categoria-lista-page/` |
 | Componentes Dumb de Tabela | `src/app/features/pessoas/components/pessoa-tabela/` e `categoria-tabela/` |
 | Componentes Dumb de Filtro Modal | `src/app/features/pessoas/components/categoria-filtro-dialog/` e `comorbidade-filtro-dialog/` |

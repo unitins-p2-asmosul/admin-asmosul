@@ -6,6 +6,10 @@ import { MatSortModule, Sort } from '@angular/material/sort';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import {
+  ColunaExportacao,
+  SolicitacaoExportacao,
+} from '@features/shared/models/exportacao.model';
+import {
   formatarEstoqueComUnidade,
   formatarPrecoUnitario,
   ItemResumo,
@@ -20,7 +24,13 @@ export interface AlternarEstadoItemEvento {
 @Component({
   selector: 'app-item-tabela',
   standalone: true,
-  imports: [MatTableModule, MatSortModule, MatIconModule, MatButtonModule, MatTooltipModule],
+  imports: [
+    MatTableModule,
+    MatSortModule,
+    MatIconModule,
+    MatButtonModule,
+    MatTooltipModule,
+  ],
   templateUrl: './item-tabela.component.html',
 })
 export class ItemTabelaComponent {
@@ -36,6 +46,25 @@ export class ItemTabelaComponent {
   readonly aoVisualizar = output<number>();
   readonly aoEditar = output<number>();
   readonly aoAlternarEstado = output<AlternarEstadoItemEvento>();
+  readonly aoExportar = output<SolicitacaoExportacao<ItemResumo>>();
+
+  readonly colunasExportaveis: ColunaExportacao<ItemResumo>[] = [
+    { id: 'nome', titulo: 'Nome do item', valor: (item) => item.nome },
+    { id: 'categoria', titulo: 'Categoria', valor: (item) => item.categoria?.nome || '-' },
+    { id: 'estoque', titulo: 'Estoque', valor: (item) => this.formatarEstoque(item) },
+    {
+      id: 'precoUnitario',
+      titulo: 'Preço unitário',
+      valor: (item) => this.formatarPreco(item),
+    },
+    {
+      id: 'unidadeMedida',
+      titulo: 'Unidade de medida',
+      valor: (item) => this.obterDescricaoUnidade(item),
+    },
+    { id: 'descricao', titulo: 'Descrição', valor: (item) => item.descricao || '-' },
+    { id: 'status', titulo: 'Status', valor: (item) => (item.ativo ? 'Ativo' : 'Inativo') },
+  ];
 
   protected readonly colunasExibidas = [
     'indice',
@@ -55,6 +84,13 @@ export class ItemTabelaComponent {
 
   protected get direcaoOrdenada(): 'asc' | 'desc' {
     return this.ordenacao().split(',')[1] === 'desc' ? 'desc' : 'asc';
+  }
+
+  exportar(solicitacao: { formato: 'xlsx' | 'csv'; idsColunas: string[] }): void {
+    const colunas = this.colunasExportaveis.filter((coluna) =>
+      solicitacao.idsColunas.includes(coluna.id),
+    );
+    this.aoExportar.emit({ formato: solicitacao.formato, colunas });
   }
 
   protected get totalPaginas(): number {

@@ -1,0 +1,12 @@
+<div class="exportacao-toolbar">
+  <div class="exportacao-toolbar__botoes">
+    <app-botoes-exportacao (aoExportar)="solicitarExportacao($event)" />
+  </div>
+  <div class="exportacao-toolbar__colunas">
+    <app-seletor-colunas
+      [colunas]="colunas()"
+      [chaveStorage]="chaveStorage()"
+      (aoMudarSelecao)="selecionarColunas($event)"
+    />
+  </div>
+</div>

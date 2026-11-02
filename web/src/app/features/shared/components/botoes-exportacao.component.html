@@ -1,0 +1,18 @@
+<button
+  mat-stroked-button
+  type="button"
+  class="exportacao-btn exportacao-btn--xlsx"
+  (click)="aoExportar.emit('xlsx')"
+>
+  <mat-icon>table_view</mat-icon>
+  Excel
+</button>
+<button
+  mat-stroked-button
+  type="button"
+  class="exportacao-btn exportacao-btn--csv"
+  (click)="aoExportar.emit('csv')"
+>
+  <mat-icon>download</mat-icon>
+  CSV
+</button>

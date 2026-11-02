@@ -21,7 +21,7 @@
     class="pagina-pessoas__toolbar"
     [class.pagina-pessoas__toolbar--distribuida]="adicionarNaToolbar()"
   >
-    <div class="flex items-center gap-2">
+    <div class="flex w-full items-center gap-2">
       <button
         mat-stroked-button
         type="button"
@@ -31,6 +31,7 @@
         (click)="aoFiltrar.emit()"
       >
         <mat-icon>filter_list</mat-icon>
+        <span>Filtros</span>
         @if (filtrosAtivos() > 0) {
           <span>{{ filtrosAtivos() }}</span>
         }

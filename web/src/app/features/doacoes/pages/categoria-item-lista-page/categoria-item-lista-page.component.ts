@@ -10,6 +10,9 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { PaginaGerenciamentoComponent } from '@features/shared/components/pagina-gerenciamento/pagina-gerenciamento.component';
 import { DialogoConfirmacaoService } from '@features/shared/services/dialogo-confirmacao.service';
 import { NotificacaoService } from '@features/shared/services/notificacao.service';
+import { ControlesExportacaoComponent } from '@features/shared/components/controles-exportacao.component';
+import { ExportacaoService } from '@features/shared/services/exportacao.service';
+import { SolicitacaoExportacao } from '@features/shared/models/exportacao.model';
 import { of } from 'rxjs';
 import { catchError, finalize, map, switchMap, tap } from 'rxjs/operators';
 import { CategoriaItemFiltroDialogComponent } from '../../components/categoria-item-filtro-dialog/categoria-item-filtro-dialog.component';
@@ -45,6 +48,7 @@ const RESPOSTA_VAZIA = {
   imports: [
     PaginaGerenciamentoComponent,
     CategoriaItemTabelaComponent,
+    ControlesExportacaoComponent,
     MatButtonModule,
     MatIconModule,
     MatTooltipModule,
@@ -53,6 +57,7 @@ const RESPOSTA_VAZIA = {
 })
 export class CategoriaItemListaPageComponent {
   private readonly categoriaItemService = inject(CategoriaItemService);
+  private readonly exportacao = inject(ExportacaoService);
   private readonly confirmacao = inject(DialogoConfirmacaoService);
   private readonly notificacao = inject(NotificacaoService);
   private readonly router = inject(Router);
@@ -180,6 +185,15 @@ export class CategoriaItemListaPageComponent {
         this.atualizarUrl({ _refresh: Date.now() });
       },
     });
+  }
+
+  protected exportar(solicitacao: SolicitacaoExportacao<CategoriaItemResumo>): void {
+    const parametros = { ...this.parametrosAtuais(), page: 0, size: 99999 };
+    this.exportacao.exportarDados(
+      this.categoriaItemService.listar(parametros).pipe(map((resposta) => resposta.dados)),
+      solicitacao,
+      'categorias-itens',
+    );
   }
 
   private atualizarUrl(novosParametros: Record<string, string | number | null>): void {

@@ -7,6 +7,8 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { RespostaPaginada } from '@features/shared/models/resposta-paginada.model';
 import { DialogoConfirmacaoService } from '@features/shared/services/dialogo-confirmacao.service';
 import { NotificacaoService } from '@features/shared/services/notificacao.service';
+import { ExportacaoService } from '@features/shared/services/exportacao.service';
+import { SolicitacaoExportacao } from '@features/shared/models/exportacao.model';
 import { of } from 'rxjs';
 import { catchError, finalize, map, switchMap, tap } from 'rxjs/operators';
 import { PessoaFiltroDialogComponent } from '../../components/pessoa-filtro-dialog/pessoa-filtro-dialog.component';
@@ -14,6 +16,7 @@ import { AlternarEstadoPessoaEvento, PessoaTabelaComponent } from '../../compone
 import { PessoaConsultaParametros, PessoaFiltros, PessoaResumo } from '../../models/pessoa.model';
 import { PessoaService } from '../../services/pessoa.service';
 import { PaginaGerenciamentoComponent } from '@features/shared/components/pagina-gerenciamento/pagina-gerenciamento.component';
+import { ControlesExportacaoComponent } from '@features/shared/components/controles-exportacao.component';
 
 const ORDENACAO_PADRAO = 'nome,asc';
 const TAMANHO_PAGINA_PADRAO = 20;
@@ -35,11 +38,12 @@ const RESPOSTA_VAZIA: RespostaPaginada<PessoaResumo> = {
 @Component({
   selector: 'app-pessoa-lista-page',
   standalone: true,
-  imports: [PaginaGerenciamentoComponent, PessoaTabelaComponent],
+  imports: [PaginaGerenciamentoComponent, PessoaTabelaComponent, ControlesExportacaoComponent],
   templateUrl: './pessoa-lista-page.component.html',
 })
 export class PessoaListaPageComponent {
   private readonly pessoaService = inject(PessoaService);
+  private readonly exportacao = inject(ExportacaoService);
   private readonly confirmacao = inject(DialogoConfirmacaoService);
   private readonly notificacao = inject(NotificacaoService);
   private readonly router = inject(Router);
@@ -193,6 +197,15 @@ export class PessoaListaPageComponent {
         this.atualizarUrl({ _refresh: Date.now() });
       },
     });
+  }
+
+  protected exportar(solicitacao: SolicitacaoExportacao<PessoaResumo>): void {
+    const parametros = { ...this.parametrosAtuais(), page: 0, size: 99999 };
+    this.exportacao.exportarDados(
+      this.pessoaService.listar(parametros).pipe(map((resposta) => resposta.dados)),
+      solicitacao,
+      'pessoas',
+    );
   }
 
   private atualizarUrl(novosParametros: Record<string, string | number | null>): void {

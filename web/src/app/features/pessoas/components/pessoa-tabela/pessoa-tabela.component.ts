@@ -8,6 +8,10 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { ItemRelacionadoResumo, PessoaResumo, TipoPessoa} from '../../models/pessoa.model';
 import { CpfCnpjPipe } from '@features/shared/pipes/cpf-cnpj.pipe';
 import { TelefonePipe } from '@features/shared/pipes/telefone.pipe';
+import {
+  ColunaExportacao,
+  SolicitacaoExportacao,
+} from '@features/shared/models/exportacao.model';
 
 export interface AlternarEstadoPessoaEvento {
   id: number;
@@ -41,6 +45,65 @@ export class PessoaTabelaComponent {
   readonly aoVisualizar = output<number>();
   readonly aoEditar = output<number>();
   readonly aoAlternarEstado = output<AlternarEstadoPessoaEvento>();
+  readonly aoExportar = output<SolicitacaoExportacao<PessoaResumo>>();
+
+  readonly colunasExportaveis: ColunaExportacao<PessoaResumo>[] = [
+    { id: 'indice', titulo: '#', valor: (item) => item.id },
+    { id: 'nome', titulo: 'Nome', valor: (item) => item.nome },
+    { id: 'cpf', titulo: 'CPF/CNPJ', valor: (item) => item.cpfCnpj },
+    { id: 'telefone', titulo: 'Telefone', valor: (item) => item.telefone },
+    {
+      id: 'tipoPessoa',
+      titulo: 'Tipo de pessoa',
+      valor: (item) => (this.ehPessoaJuridica(item) ? 'Jurídica' : 'Física'),
+    },
+    {
+      id: 'dataNascimento',
+      titulo: 'Data de nascimento',
+      valor: (item) => item.dataNascimento?.replace('-', '/') ?? 'Não se aplica',
+    },
+    { id: 'email', titulo: 'E-mail', valor: (item) => item.email || '-' },
+    { id: 'sexo', titulo: 'Sexo', valor: (item) => item.sexo?.descricao || '-' },
+    {
+      id: 'escolaridade',
+      titulo: 'Escolaridade',
+      valor: (item) => item.escolaridade?.descricao || '-',
+    },
+    { id: 'profissao', titulo: 'Profissão', valor: (item) => item.profissao || '-' },
+    { id: 'bairro', titulo: 'Bairro', valor: (item) => item.bairro || '-' },
+    {
+      id: 'rendaFamiliar',
+      titulo: 'Renda familiar',
+      valor: (item) => item.rendaFamiliar?.descricao || '-',
+    },
+    {
+      id: 'comorbidades',
+      titulo: 'Comorbidades',
+      valor: (item) => this.nomesRelacionados(item.comorbidades),
+    },
+    {
+      id: 'categorias',
+      titulo: 'Categorias',
+      valor: (item) => this.nomesRelacionados(item.categorias),
+    },
+    {
+      id: 'quantidadeCoabitantes',
+      titulo: 'Quantidade de coabitantes',
+      valor: (item) => item.quantidadeCoabitantes ?? 'Não se aplica',
+    },
+    {
+      id: 'ehBeneficiario',
+      titulo: 'Beneficiário?',
+      valor: (item) =>
+        item.ehBeneficiario === undefined ? 'Não se aplica' : item.ehBeneficiario ? 'Sim' : 'Não',
+    },
+    {
+      id: 'ehDoador',
+      titulo: 'Doador?',
+      valor: (item) => (item.ehDoador === undefined ? 'Não se aplica' : item.ehDoador ? 'Sim' : 'Não'),
+    },
+    { id: 'status', titulo: 'Status', valor: (item) => (item.ativo ? 'Ativo' : 'Inativo') },
+  ];
 
   protected readonly colunasExibidas = [
     'indice',
@@ -70,6 +133,13 @@ export class PessoaTabelaComponent {
 
   protected get direcaoOrdenada(): 'asc' | 'desc' {
     return this.ordenacao().split(',')[1] === 'desc' ? 'desc' : 'asc';
+  }
+
+  exportar(solicitacao: { formato: 'xlsx' | 'csv'; idsColunas: string[] }): void {
+    const colunas = this.colunasExportaveis.filter((coluna) =>
+      solicitacao.idsColunas.includes(coluna.id),
+    );
+    this.aoExportar.emit({ formato: solicitacao.formato, colunas });
   }
 
   protected get totalPaginas(): number {

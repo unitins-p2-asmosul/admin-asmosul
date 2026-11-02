@@ -6,6 +6,10 @@ import { MatSortModule, Sort } from '@angular/material/sort';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { ComorbidadeResumo } from '../../models/comorbidade.model';
+import {
+  ColunaExportacao,
+  SolicitacaoExportacao,
+} from '@features/shared/models/exportacao.model';
 
 export interface AlternarEstadoEvento {
   id: number;
@@ -37,6 +41,14 @@ export class ComorbidadeTabelaComponent {
   readonly aoVisualizar = output<number>();
   readonly aoEditar = output<number>();
   readonly aoAlternarEstado = output<AlternarEstadoEvento>();
+  readonly aoExportar = output<SolicitacaoExportacao<ComorbidadeResumo>>();
+
+  readonly colunasExportaveis: ColunaExportacao<ComorbidadeResumo>[] = [
+    { id: 'id', titulo: '#', valor: (item) => item.id },
+    { id: 'nome', titulo: 'Nome', valor: (item) => item.nome },
+    { id: 'descricao', titulo: 'Descrição', valor: (item) => item.descricao || '-' },
+    { id: 'status', titulo: 'Status', valor: (item) => (item.ativo ? 'Ativo' : 'Desativado') },
+  ];
 
   protected readonly colunasExibidas = ['id', 'acoes', 'nome', 'descricao', 'status'];
 
@@ -47,6 +59,13 @@ export class ComorbidadeTabelaComponent {
 
   protected get direcaoOrdenada(): 'asc' | 'desc' {
     return this.ordenacao().split(',')[1] === 'desc' ? 'desc' : 'asc';
+  }
+
+  exportar(solicitacao: { formato: 'xlsx' | 'csv'; idsColunas: string[] }): void {
+    const colunas = this.colunasExportaveis.filter((coluna) =>
+      solicitacao.idsColunas.includes(coluna.id),
+    );
+    this.aoExportar.emit({ formato: solicitacao.formato, colunas });
   }
 
   protected get totalPaginas(): number {

@@ -6,6 +6,10 @@ import { MatSortModule, Sort } from '@angular/material/sort';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { CategoriaItemResumo } from '../../models/categoria-item.model';
+import {
+  ColunaExportacao,
+  SolicitacaoExportacao,
+} from '@features/shared/models/exportacao.model';
 
 export interface AlternarEstadoCategoriaItemEvento {
   id: number;
@@ -15,7 +19,13 @@ export interface AlternarEstadoCategoriaItemEvento {
 @Component({
   selector: 'app-categoria-item-tabela',
   standalone: true,
-  imports: [MatTableModule, MatSortModule, MatIconModule, MatButtonModule, MatTooltipModule],
+  imports: [
+    MatTableModule,
+    MatSortModule,
+    MatIconModule,
+    MatButtonModule,
+    MatTooltipModule,
+  ],
   templateUrl: './categoria-item-tabela.component.html',
 })
 export class CategoriaItemTabelaComponent {
@@ -31,6 +41,17 @@ export class CategoriaItemTabelaComponent {
   readonly aoVisualizar = output<number>();
   readonly aoEditar = output<number>();
   readonly aoAlternarEstado = output<AlternarEstadoCategoriaItemEvento>();
+  readonly aoExportar = output<SolicitacaoExportacao<CategoriaItemResumo>>();
+
+  readonly colunasExportaveis: ColunaExportacao<CategoriaItemResumo>[] = [
+    { id: 'nome', titulo: 'Nome', valor: (categoria) => categoria.nome },
+    { id: 'descricao', titulo: 'Descrição', valor: (categoria) => categoria.descricao || '-' },
+    {
+      id: 'status',
+      titulo: 'Status',
+      valor: (categoria) => (categoria.ativo ? 'Ativo' : 'Inativo'),
+    },
+  ];
 
   protected readonly colunasExibidas = ['indice', 'acoes', 'nome', 'descricao', 'status'];
 
@@ -40,6 +61,13 @@ export class CategoriaItemTabelaComponent {
 
   protected get direcaoOrdenada(): 'asc' | 'desc' {
     return this.ordenacao().split(',')[1] === 'desc' ? 'desc' : 'asc';
+  }
+
+  exportar(solicitacao: { formato: 'xlsx' | 'csv'; idsColunas: string[] }): void {
+    const colunas = this.colunasExportaveis.filter((coluna) =>
+      solicitacao.idsColunas.includes(coluna.id),
+    );
+    this.aoExportar.emit({ formato: solicitacao.formato, colunas });
   }
 
   protected get totalPaginas(): number {
