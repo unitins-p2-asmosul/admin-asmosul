@@ -3,11 +3,10 @@ package br.org.asmosul.api.doacoes.repositories;
 import br.org.asmosul.api.doacoes.models.Estoque;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import org.springframework.stereotype.Repository;
-import java.util.Optional;
 
 public interface EstoqueRepository extends JpaRepository<Estoque, Long> {
 
@@ -35,6 +34,14 @@ public interface EstoqueRepository extends JpaRepository<Estoque, Long> {
     @Query(
             "SELECT e.item.id, COALESCE(SUM(e.quantidade), 0) FROM Estoque e WHERE e.item.id IN :itemIds GROUP BY e.item.id")
     List<Object[]> somarQuantidadePorItemIds(@Param("itemIds") Collection<Long> itemIds);
-  
+
+    @Query(
+            "SELECT e.armazenamento.id, COALESCE(SUM(e.quantidade), 0) "
+                    + "FROM Estoque e "
+                    + "WHERE e.armazenamento.id IN :armazenamentoIds AND e.item.dataInativo IS NULL "
+                    + "GROUP BY e.armazenamento.id")
+    List<Object[]> somarVolumeFisicoPorArmazenamentoIds(
+            @Param("armazenamentoIds") Collection<Long> armazenamentoIds);
+
     Optional<Estoque> findByItemIdAndArmazenamentoId(Long itemId, Long armazenamentoId);
 }

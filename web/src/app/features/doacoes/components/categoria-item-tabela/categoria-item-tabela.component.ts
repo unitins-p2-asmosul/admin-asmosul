@@ -49,13 +49,25 @@ export class CategoriaItemTabelaComponent {
     { id: 'nome', titulo: 'Nome', valor: (categoria) => categoria.nome },
     { id: 'descricao', titulo: 'Descrição', valor: (categoria) => categoria.descricao || '-' },
     {
+      id: 'itensPertencentes',
+      titulo: 'Itens Pertencentes',
+      valor: (categoria) => categoria.itensPertencentes ?? 0,
+    },
+    {
       id: 'status',
       titulo: 'Status',
       valor: (categoria) => (categoria.ativo ? 'Ativo' : 'Inativo'),
     },
   ];
 
-  private readonly colunasExibidasPadrao = ['indice', 'acoes', 'nome', 'descricao', 'status'];
+  private readonly colunasExibidasPadrao = [
+    'indice',
+    'acoes',
+    'nome',
+    'descricao',
+    'itensPertencentes',
+    'status',
+  ];
 
   protected get colunasExibidas(): string[] {
     return filtrarColunasExibidas(

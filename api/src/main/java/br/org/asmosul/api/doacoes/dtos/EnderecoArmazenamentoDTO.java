@@ -85,9 +85,14 @@ public final class EnderecoArmazenamentoDTO {
             String logradouro,
             String numero,
             String complemento,
+            Integer volumeFisico,
             boolean ativo) {
 
         public static Resumo deEntidade(EnderecoArmazenamento endereco) {
+            return deEntidade(endereco, 0);
+        }
+
+        public static Resumo deEntidade(EnderecoArmazenamento endereco, Integer volumeFisico) {
             return new Resumo(
                     endereco.getId(),
                     endereco.getNome(),
@@ -98,6 +103,7 @@ public final class EnderecoArmazenamentoDTO {
                     endereco.getLogradouro(),
                     endereco.getNumero(),
                     endereco.getComplemento(),
+                    volumeFisico != null ? volumeFisico : 0,
                     endereco.isAtivo());
         }
     }

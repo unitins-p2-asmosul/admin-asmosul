@@ -25,6 +25,7 @@ export interface EnderecoArmazenamentoResumo {
   logradouro: string;
   numero: string;
   complemento?: string;
+  volumeFisico?: number;
   ativo: boolean;
 }
 

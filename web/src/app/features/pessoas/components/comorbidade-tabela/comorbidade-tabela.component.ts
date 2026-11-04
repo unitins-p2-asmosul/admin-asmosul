@@ -49,10 +49,22 @@ export class ComorbidadeTabelaComponent {
     { id: 'id', titulo: '#', valor: (item) => item.id },
     { id: 'nome', titulo: 'Nome', valor: (item) => item.nome },
     { id: 'descricao', titulo: 'Descrição', valor: (item) => item.descricao || '-' },
+    {
+      id: 'pessoasAfetadas',
+      titulo: 'Pessoas Afetadas',
+      valor: (item) => item.pessoasAfetadas ?? 0,
+    },
     { id: 'status', titulo: 'Status', valor: (item) => (item.ativo ? 'Ativo' : 'Desativado') },
   ];
 
-  private readonly colunasExibidasPadrao = ['id', 'acoes', 'nome', 'descricao', 'status'];
+  private readonly colunasExibidasPadrao = [
+    'id',
+    'acoes',
+    'nome',
+    'descricao',
+    'pessoasAfetadas',
+    'status',
+  ];
 
   protected get colunasExibidas(): string[] {
     return filtrarColunasExibidas(

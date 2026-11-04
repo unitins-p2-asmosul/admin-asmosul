@@ -42,10 +42,12 @@ class CategoriaItemControllerTest extends BaseAPITest {
     class Cadastrar {
 
         @Test
-        @DisplayName("Deve cadastrar categoria de item com sucesso retornando status 201 e Location header")
+        @DisplayName(
+                "Deve cadastrar categoria de item com sucesso retornando status 201 e Location header")
         void cadastrar_comDadosValidos_retornaStatus201ELocationHeader() throws Exception {
             var requisicao =
-                    new CategoriaItemDTO.Requisicao("Alimentos Não Perecíveis", "Arroz, feijão, etc.");
+                    new CategoriaItemDTO.Requisicao(
+                            "Alimentos Não Perecíveis", "Arroz, feijão, etc.");
 
             mockMvc.perform(
                             post("/doacoes/categorias")
@@ -110,15 +112,27 @@ class CategoriaItemControllerTest extends BaseAPITest {
     class ListarPaginado {
 
         @Test
-        @DisplayName("Deve retornar listagem paginada de categorias de itens com status 200")
+        @DisplayName(
+                "Deve retornar listagem paginada de categorias de itens com itensPertencentes calculado")
         void listar_comPaginacao_retornaStatus200EListaPaginada() throws Exception {
-            categoriaItemRepository.save(new CategoriaItem("Alimentos", "Desc 1"));
+            CategoriaItem alimentos =
+                    categoriaItemRepository.save(new CategoriaItem("Alimentos", "Desc 1"));
             categoriaItemRepository.save(new CategoriaItem("Roupas", "Desc 2"));
+
+            itemRepository.save(new Item("Arroz", alimentos, 2000, UnidadeMedida.PACOTE, ""));
+            itemRepository.save(new Item("Feijão", alimentos, 800, UnidadeMedida.PACOTE, ""));
+            Item inativo = new Item("Óleo", alimentos, 900, UnidadeMedida.UNIDADE, "");
+            inativo.desativar();
+            itemRepository.save(inativo);
 
             mockMvc.perform(get("/doacoes/categorias").param("page", "0").param("size", "10"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.dados").isArray())
-                    .andExpect(jsonPath("$.totalElementos").value(2));
+                    .andExpect(jsonPath("$.totalElementos").value(2))
+                    .andExpect(jsonPath("$.dados[0].nome").value("Alimentos"))
+                    .andExpect(jsonPath("$.dados[0].itensPertencentes").value(2))
+                    .andExpect(jsonPath("$.dados[1].nome").value("Roupas"))
+                    .andExpect(jsonPath("$.dados[1].itensPertencentes").value(0));
         }
 
         @Test
@@ -185,7 +199,8 @@ class CategoriaItemControllerTest extends BaseAPITest {
         @DisplayName("Deve retornar detalhes da categoria de item com status 200 quando existir")
         void buscarPorId_comIdExistente_retornaStatus200() throws Exception {
             CategoriaItem cat =
-                    categoriaItemRepository.save(new CategoriaItem("Eletrônicos", "TVs e computadores"));
+                    categoriaItemRepository.save(
+                            new CategoriaItem("Eletrônicos", "TVs e computadores"));
 
             mockMvc.perform(get("/doacoes/categorias/{id}", cat.getId()))
                     .andExpect(status().isOk())
@@ -214,7 +229,8 @@ class CategoriaItemControllerTest extends BaseAPITest {
                     categoriaItemRepository.save(new CategoriaItem("Brinquedos", "Para crianças"));
 
             var requisicao =
-                    new CategoriaItemDTO.Atualizacao("Brinquedos Infantis", "Para crianças e bebês");
+                    new CategoriaItemDTO.Atualizacao(
+                            "Brinquedos Infantis", "Para crianças e bebês");
 
             mockMvc.perform(
                             put("/doacoes/categorias/{id}", cat.getId())
@@ -263,7 +279,8 @@ class CategoriaItemControllerTest extends BaseAPITest {
         @DisplayName("Deve desativar categoria com sucesso retornando status 204")
         void desativar_comIdExistente_retornaStatus204() throws Exception {
             CategoriaItem cat =
-                    categoriaItemRepository.save(new CategoriaItem("Categoria Para Desativar", "Desc"));
+                    categoriaItemRepository.save(
+                            new CategoriaItem("Categoria Para Desativar", "Desc"));
 
             mockMvc.perform(patch("/doacoes/categorias/{id}/desativar", cat.getId()))
                     .andExpect(status().isNoContent());
@@ -275,7 +292,8 @@ class CategoriaItemControllerTest extends BaseAPITest {
         }
 
         @Test
-        @DisplayName("Deve retornar status 404 ao tentar desativar categoria inexistente ou já inativa")
+        @DisplayName(
+                "Deve retornar status 404 ao tentar desativar categoria inexistente ou já inativa")
         void desativar_comIdInexistenteOuJaInativo_retornaStatus404() throws Exception {
             mockMvc.perform(patch("/doacoes/categorias/{id}/desativar", 99999L))
                     .andExpect(status().isNotFound());
@@ -291,8 +309,10 @@ class CategoriaItemControllerTest extends BaseAPITest {
 
             mockMvc.perform(patch("/doacoes/categorias/{id}/desativar", categoria.getId()))
                     .andExpect(status().isConflict())
-                    .andExpect(jsonPath("$.detail").value(
-                            "Não é possível inativar a categoria porque ela está vinculada a um ou mais itens."));
+                    .andExpect(
+                            jsonPath("$.detail")
+                                    .value(
+                                            "Não é possível inativar a categoria porque ela está vinculada a um ou mais itens."));
 
             mockMvc.perform(get("/doacoes/categorias/{id}", categoria.getId()))
                     .andExpect(status().isOk())

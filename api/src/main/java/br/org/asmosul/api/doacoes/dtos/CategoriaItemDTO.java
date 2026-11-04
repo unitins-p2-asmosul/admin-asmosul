@@ -25,12 +25,18 @@ public final class CategoriaItemDTO {
                     String nome,
             String descricao) {}
 
-    public record Resumo(Long id, String nome, String descricao, boolean ativo) {
+    public record Resumo(
+            Long id, String nome, String descricao, Integer itensPertencentes, boolean ativo) {
         public static Resumo deEntidade(CategoriaItem categoria) {
+            return deEntidade(categoria, 0);
+        }
+
+        public static Resumo deEntidade(CategoriaItem categoria, Integer itensPertencentes) {
             return new Resumo(
                     categoria.getId(),
                     categoria.getNome(),
                     categoria.getDescricao(),
+                    itensPertencentes != null ? itensPertencentes : 0,
                     categoria.isAtivo());
         }
     }

@@ -42,6 +42,13 @@
         </td>
       </ng-container>
 
+      <ng-container matColumnDef="volumeFisico">
+        <th mat-header-cell *matHeaderCellDef>Volume Físico</th>
+        <td mat-cell *matCellDef="let endereco" class="pessoa-table__texto font-medium">
+          {{ endereco.volumeFisico ?? 0 }}
+        </td>
+      </ng-container>
+
       <ng-container matColumnDef="status">
         <th mat-header-cell *matHeaderCellDef>Status</th>
         <td mat-cell *matCellDef="let endereco" class="pessoa-table__status-cell">

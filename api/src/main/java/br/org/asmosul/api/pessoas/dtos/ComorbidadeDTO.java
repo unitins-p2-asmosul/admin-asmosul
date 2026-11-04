@@ -31,12 +31,18 @@ public final class ComorbidadeDTO {
         }
     }
 
-    public record Resumo(Long id, String nome, String descricao, boolean ativo) {
+    public record Resumo(
+            Long id, String nome, String descricao, Integer pessoasAfetadas, boolean ativo) {
         public static Resumo deEntidade(Comorbidade comorbidade) {
+            return deEntidade(comorbidade, 0);
+        }
+
+        public static Resumo deEntidade(Comorbidade comorbidade, Integer pessoasAfetadas) {
             return new Resumo(
                     comorbidade.getId(),
                     comorbidade.getNome(),
                     comorbidade.getDescricao(),
+                    pessoasAfetadas != null ? pessoasAfetadas : 0,
                     comorbidade.isAtivo());
         }
     }

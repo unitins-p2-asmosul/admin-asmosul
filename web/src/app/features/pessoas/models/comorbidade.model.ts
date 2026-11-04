@@ -10,6 +10,7 @@ export interface ComorbidadeResumo {
   id: number;
   nome: string;
   descricao?: string;
+  pessoasAfetadas?: number;
   ativo: boolean;
 }
 
