@@ -3,10 +3,17 @@ package br.org.asmosul.api.pessoas.services;
 import br.org.asmosul.api.comum.dtos.RespostaPaginada;
 import br.org.asmosul.api.comum.exceptions.ConflitoDadosException;
 import br.org.asmosul.api.comum.exceptions.EntidadeNaoEncontradaException;
+import br.org.asmosul.api.comum.utils.PaginacaoUtils;
 import br.org.asmosul.api.pessoas.dtos.CategoriaDTO;
 import br.org.asmosul.api.pessoas.models.Categoria;
 import br.org.asmosul.api.pessoas.repositories.CategoriaRepository;
 import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -15,8 +22,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class CategoriaService {
 
-    private static final java.util.Set<String> CAMPOS_ORDENACAO_VALIDOS =
-            java.util.Set.of("id", "nome", "descricao", "dataInativo");
+    private static final Set<String> CAMPOS_ORDENACAO_VALIDOS =
+            Set.of("id", "nome", "descricao", "dataInativo");
 
     private final CategoriaRepository categoriaRepository;
 
@@ -38,50 +45,66 @@ public class CategoriaService {
 
     @Transactional(readOnly = true)
     public RespostaPaginada<CategoriaDTO.Resumo> listar(
-                Pageable paginacao, boolean incluirInativos, String nome) {
+            Pageable paginacao, boolean incluirInativos, String nome) {
 
-                Pageable paginacaoSanitizada =
-                        br.org.asmosul.api.comum.utils.PaginacaoUtils.sanitizarPaginacao(
-                                paginacao, CAMPOS_ORDENACAO_VALIDOS, "nome");
+        Pageable paginacaoSanitizada =
+                PaginacaoUtils.sanitizarPaginacao(paginacao, CAMPOS_ORDENACAO_VALIDOS, "nome");
 
         String nomeNormalizado = nome == null ? "" : nome.trim();
 
         Page<Categoria> pagina;
 
         if (!nomeNormalizado.isBlank()) {
-                pagina =
-                        incluirInativos
-                                ? categoriaRepository.findByNomeContainingIgnoreCase(
-                                        nomeNormalizado, paginacaoSanitizada)
-                                : categoriaRepository
-                                        .findByNomeContainingIgnoreCaseAndDataInativoIsNull(
-                                                nomeNormalizado, paginacaoSanitizada);
-            } else {
-                pagina =
-                        incluirInativos
-                                ? categoriaRepository.findAll(paginacaoSanitizada)
-                                : categoriaRepository.findAllByDataInativoIsNull(
-                                        paginacaoSanitizada);
-            }
-
-            Page<CategoriaDTO.Resumo> paginaDtos =
-                    pagina.map(CategoriaDTO.Resumo::deEntidade);
-
-            return RespostaPaginada.dePage(paginaDtos);
+            pagina =
+                    incluirInativos
+                            ? categoriaRepository.findByNomeContainingIgnoreCase(
+                                    nomeNormalizado, paginacaoSanitizada)
+                            : categoriaRepository
+                                    .findByNomeContainingIgnoreCaseAndDataInativoIsNull(
+                                            nomeNormalizado, paginacaoSanitizada);
+        } else {
+            pagina =
+                    incluirInativos
+                            ? categoriaRepository.findAll(paginacaoSanitizada)
+                            : categoriaRepository.findAllByDataInativoIsNull(paginacaoSanitizada);
         }
 
+        Map<Long, Integer> pessoasPertencentesPorCategoria =
+                buscarPessoasPertencentesPorCategorias(pagina.getContent());
+
+        Page<CategoriaDTO.Resumo> paginaDtos =
+                pagina.map(
+                        categoria ->
+                                CategoriaDTO.Resumo.deEntidade(
+                                        categoria,
+                                        pessoasPertencentesPorCategoria.getOrDefault(
+                                                categoria.getId(), 0)));
+
+        return RespostaPaginada.dePage(paginaDtos);
+    }
+
     @Transactional(readOnly = true)
-    public java.util.List<CategoriaDTO.Resumo> listarTodas(boolean incluirInativos) {
-        java.util.List<Categoria> categorias =
+    public List<CategoriaDTO.Resumo> listarTodas(boolean incluirInativos) {
+        List<Categoria> categorias =
                 incluirInativos
                         ? categoriaRepository.findAll()
                         : categoriaRepository.findAllByDataInativoIsNull();
 
-        return categorias.stream().map(CategoriaDTO.Resumo::deEntidade).toList();
+        Map<Long, Integer> pessoasPertencentesPorCategoria =
+                buscarPessoasPertencentesPorCategorias(categorias);
+
+        return categorias.stream()
+                .map(
+                        categoria ->
+                                CategoriaDTO.Resumo.deEntidade(
+                                        categoria,
+                                        pessoasPertencentesPorCategoria.getOrDefault(
+                                                categoria.getId(), 0)))
+                .toList();
     }
 
     @Transactional(readOnly = true)
-    public java.util.List<CategoriaDTO.Resumo> listarTodas() {
+    public List<CategoriaDTO.Resumo> listarTodas() {
         return listarTodas(false);
     }
 
@@ -146,5 +169,28 @@ public class CategoriaService {
                                                         + id));
 
         categoria.setDataInativo(null);
+    }
+
+    private Map<Long, Integer> buscarPessoasPertencentesPorCategorias(List<Categoria> categorias) {
+        if (categorias == null || categorias.isEmpty()) {
+            return Collections.emptyMap();
+        }
+
+        List<Long> ids =
+                categorias.stream().map(Categoria::getId).filter(Objects::nonNull).toList();
+        if (ids.isEmpty()) {
+            return Collections.emptyMap();
+        }
+
+        List<Object[]> resultados = categoriaRepository.contarPessoasAtivasPorCategoriaIds(ids);
+        Map<Long, Integer> mapa = new HashMap<>();
+        if (resultados != null) {
+            for (Object[] linha : resultados) {
+                Long id = ((Number) linha[0]).longValue();
+                Number total = (Number) linha[1];
+                mapa.put(id, total != null ? total.intValue() : 0);
+            }
+        }
+        return mapa;
     }
 }

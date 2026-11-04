@@ -11,7 +11,11 @@ import br.org.asmosul.api.doacoes.repositories.EnderecoArmazenamentoRepository;
 import br.org.asmosul.api.doacoes.repositories.EstoqueRepository;
 import br.org.asmosul.api.doacoes.repositories.specifications.EnderecoArmazenamentoSpecification;
 import br.org.asmosul.api.pessoas.models.Uf;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -78,8 +82,15 @@ public class EnderecoArmazenamentoService {
         Page<EnderecoArmazenamento> pagina =
                 enderecoArmazenamentoRepository.findAll(spec, paginacaoSanitizada);
 
+        Map<Long, Integer> volumesPorEndereco =
+                buscarVolumesFisicosPorEnderecos(pagina.getContent());
+
         Page<EnderecoArmazenamentoDTO.Resumo> paginaDtos =
-                pagina.map(EnderecoArmazenamentoDTO.Resumo::deEntidade);
+                pagina.map(
+                        endereco ->
+                                EnderecoArmazenamentoDTO.Resumo.deEntidade(
+                                        endereco,
+                                        volumesPorEndereco.getOrDefault(endereco.getId(), 0)));
 
         return RespostaPaginada.dePage(paginaDtos);
     }
@@ -91,7 +102,15 @@ public class EnderecoArmazenamentoService {
                         ? enderecoArmazenamentoRepository.findAll()
                         : enderecoArmazenamentoRepository.findAllByDataInativoIsNull();
 
-        return enderecos.stream().map(EnderecoArmazenamentoDTO.Resumo::deEntidade).toList();
+        Map<Long, Integer> volumesPorEndereco = buscarVolumesFisicosPorEnderecos(enderecos);
+
+        return enderecos.stream()
+                .map(
+                        endereco ->
+                                EnderecoArmazenamentoDTO.Resumo.deEntidade(
+                                        endereco,
+                                        volumesPorEndereco.getOrDefault(endereco.getId(), 0)))
+                .toList();
     }
 
     @Transactional(readOnly = true)
@@ -213,5 +232,32 @@ public class EnderecoArmazenamentoService {
                     "endereco",
                     "Não é possível desativar um endereço que possui itens armazenados vinculados (RN012)");
         }
+    }
+
+    private Map<Long, Integer> buscarVolumesFisicosPorEnderecos(
+            List<EnderecoArmazenamento> enderecos) {
+        if (enderecos == null || enderecos.isEmpty()) {
+            return Collections.emptyMap();
+        }
+
+        List<Long> ids =
+                enderecos.stream()
+                        .map(EnderecoArmazenamento::getId)
+                        .filter(Objects::nonNull)
+                        .toList();
+        if (ids.isEmpty()) {
+            return Collections.emptyMap();
+        }
+
+        List<Object[]> resultados = estoqueRepository.somarVolumeFisicoPorArmazenamentoIds(ids);
+        Map<Long, Integer> mapa = new HashMap<>();
+        if (resultados != null) {
+            for (Object[] linha : resultados) {
+                Long id = ((Number) linha[0]).longValue();
+                Number soma = (Number) linha[1];
+                mapa.put(id, soma != null ? soma.intValue() : 0);
+            }
+        }
+        return mapa;
     }
 }
