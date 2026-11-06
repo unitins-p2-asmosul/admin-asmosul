@@ -24,6 +24,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -32,6 +34,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class SaidaService {
+
+    private static final Logger log = LoggerFactory.getLogger(SaidaService.class);
 
     private static final Set<String> CAMPOS_ORDENACAO_VALIDOS = Set.of("id", "dataHora");
 
@@ -248,6 +252,11 @@ public class SaidaService {
 
         estoque.setQuantidade(saldo - quantidadeSaida);
         estoqueRepository.save(estoque);
+        log.info(
+                "Estoque diminuído por saída: item='{}', diminuição={}, saldo={}",
+                item.getNome(),
+                quantidadeSaida,
+                estoque.getQuantidade());
     }
 
     private void estornarEstoque(SaidaEstoque saidaEstoque) {
@@ -266,6 +275,11 @@ public class SaidaService {
         int quantidadeAtual = estoque.getQuantidade() != null ? estoque.getQuantidade() : 0;
         estoque.setQuantidade(quantidadeAtual + saidaEstoque.getQuantidade());
         estoqueRepository.save(estoque);
+        log.info(
+                "Estoque aumentado pela remoção de saída: item='{}', aumento={}, saldo={}",
+                saidaEstoque.getItem().getNome(),
+                saidaEstoque.getQuantidade(),
+                estoque.getQuantidade());
     }
 
     private SaidaDTO.Detalhe montarDetalhe(Saida saida, List<SaidaEstoque> itensSaida) {
