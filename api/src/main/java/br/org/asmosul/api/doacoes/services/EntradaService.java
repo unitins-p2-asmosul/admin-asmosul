@@ -23,6 +23,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -31,6 +33,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class EntradaService {
+
+    private static final Logger log = LoggerFactory.getLogger(EntradaService.class);
 
     private static final Set<String> CAMPOS_ORDENACAO_VALIDOS = Set.of("id", "dataHora");
 
@@ -71,10 +75,7 @@ public class EntradaService {
             EntradaEstoque entradaEstoque =
                     entradaEstoqueRepository.save(
                             new EntradaEstoque(
-                                    item,
-                                    armazenamento,
-                                    entrada,
-                                    itemRequisicao.quantidade()));
+                                    item, armazenamento, entrada, itemRequisicao.quantidade()));
             itensSalvos.add(entradaEstoque);
 
             incrementarEstoque(item, armazenamento, itemRequisicao.quantidade());
@@ -92,8 +93,7 @@ public class EntradaService {
     public RespostaPaginada<EntradaDTO.Resumo> listar(
             Pageable paginacao, EntradaDTO.EntradaFiltroDTO filtro) {
         Pageable paginacaoSanitizada =
-                PaginacaoUtils.sanitizarPaginacao(
-                        paginacao, CAMPOS_ORDENACAO_VALIDOS, "dataHora");
+                PaginacaoUtils.sanitizarPaginacao(paginacao, CAMPOS_ORDENACAO_VALIDOS, "dataHora");
 
         Specification<Entrada> spec = EntradaSpecification.comFiltro(filtro);
         Page<Entrada> pagina = entradaRepository.findAll(spec, paginacaoSanitizada);
@@ -221,13 +221,17 @@ public class EntradaService {
         int quantidadeAtual = estoque.getQuantidade() != null ? estoque.getQuantidade() : 0;
         estoque.setQuantidade(quantidadeAtual + quantidadeEntrada);
         estoqueRepository.save(estoque);
+        log.info(
+                "Estoque aumentado: item='{}', aumento={}, saldo={}",
+                item.getNome(),
+                quantidadeEntrada,
+                estoque.getQuantidade());
     }
 
     private void estornarEstoque(EntradaEstoque entradaEstoque) {
         estoqueRepository
                 .findByItemIdAndArmazenamentoId(
-                        entradaEstoque.getItem().getId(),
-                        entradaEstoque.getArmazenamento().getId())
+                        entradaEstoque.getItem().getId(), entradaEstoque.getArmazenamento().getId())
                 .ifPresent(
                         estoque -> {
                             int quantidadeAtual =
@@ -236,13 +240,19 @@ public class EntradaService {
                                     entradaEstoque.getQuantidade() != null
                                             ? entradaEstoque.getQuantidade()
                                             : 0;
+                            boolean abaixoDoLimite = quantidadeEntrada > quantidadeAtual;
+                            log.info(
+                                    "Item '{}' removido de entrada: diminuição={}, saldo atual={}, ultrapassa zero={}",
+                                    entradaEstoque.getItem().getNome(),
+                                    quantidadeEntrada,
+                                    quantidadeAtual,
+                                    abaixoDoLimite);
                             estoque.setQuantidade(Math.max(0, quantidadeAtual - quantidadeEntrada));
                             estoqueRepository.save(estoque);
                         });
     }
 
-    private EntradaDTO.Detalhe montarDetalhe(
-            Entrada entrada, List<EntradaEstoque> itensEntrada) {
+    private EntradaDTO.Detalhe montarDetalhe(Entrada entrada, List<EntradaEstoque> itensEntrada) {
         List<EntradaDTO.ItemEntradaDetalhe> itens =
                 itensEntrada.stream().map(EntradaDTO.ItemEntradaDetalhe::deEntidade).toList();
         return EntradaDTO.Detalhe.deEntidade(entrada, itens);
@@ -258,7 +268,8 @@ public class EntradaService {
         Map<Long, List<EntradaEstoque>> agrupados = new HashMap<>();
 
         for (EntradaEstoque item : itens) {
-            agrupados.computeIfAbsent(item.getEntrada().getId(), ignored -> new ArrayList<>())
+            agrupados
+                    .computeIfAbsent(item.getEntrada().getId(), ignored -> new ArrayList<>())
                     .add(item);
         }
 

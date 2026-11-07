@@ -17,14 +17,19 @@ import br.org.asmosul.api.pessoas.repositories.PessoaRepository;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Set;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class ContaService {
+
+    private static final Logger log = LoggerFactory.getLogger(ContaService.class);
 
     private static final Set<String> CAMPOS_ORDENACAO_VALIDOS =
             Set.of("id", "nomeUsuario", "dataCriacao", "dataInativo", "redefinirSenha");
@@ -140,6 +145,10 @@ public class ContaService {
 
         validarTamanhoSenha("novaSenhaTemporaria", requisicao.novaSenhaTemporaria());
         conta.definirSenhaTemporaria(passwordEncoder.encode(requisicao.novaSenhaTemporaria()));
+        log.info(
+                "Redefinição de senha solicitada por '{}' para o usuário '{}'",
+                usuarioAutenticado(),
+                conta.getNomeUsuario());
     }
 
     // US-46 - O próprio usuário, identificado pelo token, define a senha definitiva
@@ -159,6 +168,10 @@ public class ContaService {
 
         validarTamanhoSenha("novaSenha", requisicao.novaSenha());
         conta.definirSenhaDefinitiva(passwordEncoder.encode(requisicao.novaSenha()));
+        log.info(
+                "Redefinição de senha solicitada por '{}' para o usuário '{}'",
+                usuarioAutenticado(),
+                conta.getNomeUsuario());
     }
 
     @Transactional
@@ -199,12 +212,12 @@ public class ContaService {
     @Transactional(readOnly = true)
     public ContaDTO.Detalhe buscarPorNomeUsuario(String nomeUsuario) {
         Conta conta =
-            contaRepository
-                .findByNomeUsuarioAndDataInativoIsNull(nomeUsuario)
-                .orElseThrow(
-                    () ->
-                        new EntidadeNaoEncontradaException(
-                            "Conta ativa não encontrada para o usuário autenticado."));
+                contaRepository
+                        .findByNomeUsuarioAndDataInativoIsNull(nomeUsuario)
+                        .orElseThrow(
+                                () ->
+                                        new EntidadeNaoEncontradaException(
+                                                "Conta ativa não encontrada para o usuário autenticado."));
 
         return ContaDTO.Detalhe.deEntidade(conta);
     }
@@ -222,5 +235,10 @@ public class ContaService {
         if (senha.getBytes(StandardCharsets.UTF_8).length > TAMANHO_MAXIMO_SENHA_BYTES) {
             throw ValidationException.of(campo, "A senha deve ter no máximo 72 bytes.");
         }
+    }
+
+    private String usuarioAutenticado() {
+        var autenticacao = SecurityContextHolder.getContext().getAuthentication();
+        return autenticacao == null ? "desconhecido" : autenticacao.getName();
     }
 }

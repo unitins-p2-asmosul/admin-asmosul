@@ -8,7 +8,7 @@ server:
   forward-headers-strategy: framework
 
 spring:
-  applicatio  n:
+  application:
     name: api
 
   # Define o profile padrão como 'dev' caso nenhum seja passado
@@ -53,6 +53,18 @@ springdoc:
     path: /swagger-ui.html
     operations-sorter: method
     tags-sorter: alpha
+
+logging:
+  file:
+    name: /var/log/asmosul/app.log
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [ASMOSUL-API] %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [ASMOSUL-API] %logger{36} - %msg%n"
+  logback:
+    rollingpolicy:
+      max-file-size: 10MB
+      max-history: 30
+      total-size-cap: 1GB
 
 ---
 # ==========================================
