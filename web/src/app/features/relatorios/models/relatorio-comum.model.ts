@@ -1,11 +1,12 @@
 export interface ItemGrafico {
-  chave: string;
-  total: number;
-  porcentagem?: number;
+  rotulo: string;
+  quantidade: number;
+  percentual?: number;
 }
 
 export interface ItemRanking {
   posicao: number;
+  id?: number | null;
   nome: string;
-  total: number;
+  quantidade: number;
 }
