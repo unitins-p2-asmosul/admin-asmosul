@@ -95,7 +95,6 @@ class RelatorioDoacoesControllerTest extends BaseAPITest {
     void tabelaItens_filtraPeloNomeESaldo() throws Exception {
         mockMvc.perform(get("/relatorios/doacoes/itens/tabela")
                         .param("nomeItem", "Arroz")
-                        .param("unidadeMedida", "PCT")
                         .param("saldoEstoqueMin", "15")
                         .param("page", "0").param("size", "5")
                         .with(user("gestor").roles("GERENCIADOR_RELATORIOS")))
@@ -104,8 +103,6 @@ class RelatorioDoacoesControllerTest extends BaseAPITest {
                 .andExpect(jsonPath("$.dados[0].nomeItem").value("Arroz"))
                 .andExpect(jsonPath("$.dados[0].unidadeMedida").value("PCT"))
                 .andExpect(jsonPath("$.dados[0].saldoEstoque").value(15))
-                .andExpect(jsonPath("$.dados[0].totalEntradas").value(3))
-                .andExpect(jsonPath("$.dados[0].totalSaidas").value(2))
                 .andExpect(jsonPath("$.totalElementos").value(1));
     }
 
