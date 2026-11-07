@@ -2,7 +2,6 @@ package br.org.asmosul.api.relatorios.dtos;
 
 import br.org.asmosul.api.comum.dtos.ItemGrafico;
 import br.org.asmosul.api.comum.dtos.ItemRanking;
-import br.org.asmosul.api.doacoes.models.UnidadeMedida;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.math.BigDecimal;
@@ -34,7 +33,8 @@ public final class RelatorioDoacoesDTO {
     public record FiltroGiroEstoque(
         String nomeItem,
         Long categoriaId,
-        UnidadeMedida unidadeMedida,
+        @Schema(description = "Código/sigla ou nome da unidade de medida (ex.: PCT ou PACOTE)")
+        String unidadeMedida,
         Integer saldoEstoqueMin,
         Integer saldoEstoqueMax,
         Integer totalEntradasMin,
