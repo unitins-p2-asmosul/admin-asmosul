@@ -1,8 +1,8 @@
-import { Routes } from '@angular/router';
-import { LoginComponent } from '@features/acessos/pages/login/login.component';
-import { authGuard } from './core/auth/guards/auth.guard';
-import { perfilGuard } from './core/auth/guards/perfil.guard';
-import { Perfil } from "@core/auth/models/auth.model";
+import {Routes} from '@angular/router';
+import {LoginComponent} from '@features/acessos/pages/login/login.component';
+import {authGuard} from './core/auth/guards/auth.guard';
+import {perfilGuard} from './core/auth/guards/perfil.guard';
+import {Perfil} from "@core/auth/models/auth.model";
 
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
@@ -29,4 +29,10 @@ export const routes: Routes = [
     loadChildren: () =>
       import('@features/doacoes/doacoes.routes').then((m) => m.DOACOES_ROUTES),
   },
+  {
+    path: 'relatorios',
+    canActivate: [perfilGuard(Perfil.GERENCIADOR_RELATORIOS)],
+    loadChildren: () =>
+      import('@features/relatorios/relatorios.routes').then((m) => m.RELATORIOS_ROUTES),
+  }
 ];

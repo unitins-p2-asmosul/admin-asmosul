@@ -76,46 +76,38 @@ public interface RelatorioPessoaRepository extends JpaRepository<Pessoa, Long> {
     List<AgrupamentoContagemProjection> buscarDistribuicaoComorbidades();
 
     @Query(value = """
-        SELECT
-            p.id AS idPessoa,
-            p.nome AS nome,
-            p.cpf_cnpj AS cpfCnpj,
-            p.telefone AS telefone,
-            p.sexo AS sexo,
-            GROUP_CONCAT(c.nome ORDER BY c.nome SEPARATOR ', ') AS comorbidadesConcatenadas
-        FROM pessoa p
-        INNER JOIN pessoa_comorbidade pc ON pc.id_pessoa = p.id
-        INNER JOIN comorbidade c ON c.id = pc.id_comorbidade AND c.data_inativo IS NULL
-        WHERE p.data_inativo IS NULL
-          AND (
-            :termoBusca IS NULL
-            OR LOWER(p.nome) LIKE LOWER(CONCAT('%', :termoBusca, '%'))
-            OR p.cpf_cnpj LIKE CONCAT('%', :termoBusca, '%')
-          )
-          AND (
-            (:comorbidadeIds) IS NULL
-            OR pc.id_comorbidade IN (:comorbidadeIds)
-          )
-        GROUP BY p.id, p.nome, p.cpf_cnpj, p.telefone, p.sexo
-        ORDER BY p.nome ASC
+    SELECT DISTINCT p
+    FROM Pessoa p
+    JOIN p.comorbidades c
+    WHERE p.dataInativo IS NULL
+      AND c.dataInativo IS NULL
+      AND (
+          :termoBusca IS NULL
+          OR LOWER(p.nome) LIKE LOWER(CONCAT('%', :termoBusca, '%'))
+          OR p.cpfCnpj LIKE CONCAT('%', :termoBusca, '%')
+      )
+      AND (
+          (:comorbidadeIds) IS NULL
+          OR c.id IN (:comorbidadeIds)
+      )
     """,
         countQuery = """
-        SELECT COUNT(DISTINCT p.id)
-        FROM pessoa p
-        INNER JOIN pessoa_comorbidade pc ON pc.id_pessoa = p.id
-        INNER JOIN comorbidade c ON c.id = pc.id_comorbidade AND c.data_inativo IS NULL
-        WHERE p.data_inativo IS NULL
-          AND (
-            :termoBusca IS NULL
-            OR LOWER(p.nome) LIKE LOWER(CONCAT('%', :termoBusca, '%'))
-            OR p.cpf_cnpj LIKE CONCAT('%', :termoBusca, '%')
-          )
-          AND (
-            (:comorbidadeIds) IS NULL
-            OR pc.id_comorbidade IN (:comorbidadeIds)
-          )
-    """, nativeQuery = true)
-    Page<PessoaComorbidadeProjection> listarPessoasComorbidades(
+    SELECT COUNT(DISTINCT p.id)
+    FROM Pessoa p
+    JOIN p.comorbidades c
+    WHERE p.dataInativo IS NULL
+      AND c.dataInativo IS NULL
+      AND (
+          :termoBusca IS NULL
+          OR LOWER(p.nome) LIKE LOWER(CONCAT('%', :termoBusca, '%'))
+          OR p.cpfCnpj LIKE CONCAT('%', :termoBusca, '%')
+      )
+      AND (
+          (:comorbidadeIds) IS NULL
+          OR c.id IN (:comorbidadeIds)
+      )
+    """)
+    Page<Pessoa> listarPessoasComorbidades(
         @Param("termoBusca") String termoBusca,
         @Param("comorbidadeIds") List<Long> comorbidadeIds,
         Pageable pageable

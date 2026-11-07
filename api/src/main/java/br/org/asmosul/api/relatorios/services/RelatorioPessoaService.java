@@ -3,6 +3,8 @@ package br.org.asmosul.api.relatorios.services;
 import br.org.asmosul.api.comum.dtos.ItemGrafico;
 import br.org.asmosul.api.comum.dtos.ItemRanking;
 import br.org.asmosul.api.comum.dtos.RespostaPaginada;
+import br.org.asmosul.api.doacoes.services.EntradaService;
+import br.org.asmosul.api.pessoas.models.Pessoa;
 import br.org.asmosul.api.relatorios.dtos.RelatorioPessoaDTO;
 import br.org.asmosul.api.relatorios.enums.CriterioAgrupamentoPessoa;
 import br.org.asmosul.api.relatorios.repositories.RelatorioPessoaRepository;
@@ -13,6 +15,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -83,28 +86,31 @@ public class RelatorioPessoaService {
 
     @Transactional(readOnly = true)
     public RespostaPaginada<RelatorioPessoaDTO.PessoaComorbidadeItem> listarPessoasComorbidades(
-            RelatorioPessoaDTO.FiltroPessoaComorbidade filtro, Pageable paginacao) {
-        String termoBusca = (filtro != null) ? filtro.termoBusca() : null;
-        List<Long> comorbidadeIds = (filtro != null) ? filtro.comorbidadeIds() : null;
-        return listarPessoasComorbidades(termoBusca, comorbidadeIds, paginacao);
-    }
-
-    @Transactional(readOnly = true)
-    public RespostaPaginada<RelatorioPessoaDTO.PessoaComorbidadeItem> listarPessoasComorbidades(
-            String termoBusca, List<Long> comorbidadeIds, Pageable paginacao) {
+        String termoBusca, List<Long> comorbidadeIds, Pageable paginacao) {
         String termoNormalizado =
-                (termoBusca != null && !termoBusca.isBlank()) ? termoBusca.trim() : null;
+            (termoBusca != null && !termoBusca.isBlank()) ? termoBusca.trim() : null;
         List<Long> idsNormalizados =
-                (comorbidadeIds != null && !comorbidadeIds.isEmpty()) ? comorbidadeIds : null;
+            (comorbidadeIds != null && !comorbidadeIds.isEmpty()) ? comorbidadeIds : null;
 
-        Pageable paginacaoSemOrdenacaoDuplicada = normalizarPaginacaoNativa(paginacao);
+        Page<Pessoa> pagina = relatorioPessoaRepository.listarPessoasComorbidades(
+            termoNormalizado, idsNormalizados, paginacao);
 
-        Page<PessoaComorbidadeProjection> pagina =
-                relatorioPessoaRepository.listarPessoasComorbidades(
-                        termoNormalizado, idsNormalizados, paginacaoSemOrdenacaoDuplicada);
+        Page<RelatorioPessoaDTO.PessoaComorbidadeItem> paginaMapeada = pagina.map(pessoa -> {
+            List<String> comorbidadesNomes = pessoa.getComorbidades() == null ? List.of() :
+                pessoa.getComorbidades().stream()
+                    .filter(c -> c.getDataInativo() == null)
+                    .map(comorbidade -> comorbidade.getNome())
+                    .toList();
 
-        Page<RelatorioPessoaDTO.PessoaComorbidadeItem> paginaMapeada =
-                pagina.map(this::mapearParaPessoaComorbidadeItem);
+            return new RelatorioPessoaDTO.PessoaComorbidadeItem(
+                pessoa.getId(),
+                pessoa.getNome(),
+                pessoa.getCpfCnpj(),
+                pessoa.getTelefone(),
+                pessoa.getSexo() != null ? pessoa.getSexo().name() : null,
+                comorbidadesNomes
+            );
+        });
 
         return RespostaPaginada.dePage(paginaMapeada);
     }
