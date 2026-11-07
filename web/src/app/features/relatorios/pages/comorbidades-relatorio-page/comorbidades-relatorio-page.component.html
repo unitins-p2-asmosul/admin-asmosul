@@ -1,0 +1,72 @@
+<section class="pagina-pessoas pb-12">
+  <header class="pagina-pessoas__header">
+    <div class="pagina-pessoas__title-wrap">
+      <span class="pagina-pessoas__title-icon" aria-hidden="true">
+        <mat-icon>favorite_border</mat-icon>
+      </span>
+      <h1>Relatório de Comorbidades e Saúde</h1>
+    </div>
+  </header>
+
+  <div class="flex flex-col gap-6">
+    <!-- Top 5 Condições -->
+    <app-ranking-cards
+      titulo="Top 5 Comorbidades Mais Frequentes"
+      [itens]="resumo().top5MaisFrequentes"
+      sufixo="pessoas"
+    />
+
+    <!-- Gráfico de Rosca de Distribuição -->
+    <app-grafico-rosca
+      titulo="Distribuição das Comorbidades Mais Frequentes"
+      [dados]="resumo().distribuicao"
+    />
+
+    <!-- Card da Tabela com Filtros -->
+    <article class="w-full rounded-2xl border border-[#dfe4ea] bg-white p-6 shadow-xs">
+      <div class="mb-5 flex items-center gap-2">
+        <h2 class="m-0 text-lg font-bold text-[#0b3c5d]">
+          Pessoas que Possuem Comorbidade e Condições Diagnosticadas
+        </h2>
+        <span
+          class="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-[#f1f5f9] px-2 text-xs font-bold text-[#475569]"
+        >
+          {{ respostaTabela().totalElementos }}
+        </span>
+      </div>
+
+      <!-- Filtros Inline logo acima dos botões de exportação -->
+      <div class="mb-5">
+        <app-comorbidades-filtro
+          [filtrosIniciais]="filtrosAtuais()"
+          (aoFiltrar)="aplicarFiltros($event)"
+        />
+      </div>
+
+      <!-- Barra de Exportação e Colunas (Excel/CSV à esquerda, Colunas à direita) -->
+      <div class="mb-3">
+        <app-controles-exportacao
+          [colunas]="tabela.colunasExportaveis"
+          chaveStorage="relatorio_comorbidades_colunas"
+          (aoExportar)="tabela.exportar($event)"
+          (aoMudarColunas)="idsColunasVisiveis.set($event)"
+        />
+      </div>
+
+      <!-- Tabela Paginada -->
+      <app-comorbidades-tabela
+        #tabela
+        [dados]="respostaTabela().dados"
+        [totalElementos]="respostaTabela().totalElementos"
+        [tamanhoPagina]="respostaTabela().tamanhoPagina"
+        [paginaAtual]="respostaTabela().paginaAtual"
+        [carregando]="carregandoTabela()"
+        [colunasVisiveis]="idsColunasVisiveis()"
+        [ordenacao]="parametrosAtuais().sort ?? 'nome,asc'"
+        (aoMudarPagina)="mudarPagina($event)"
+        (aoMudarOrdem)="mudarOrdem($event)"
+        (aoExportar)="exportar($event)"
+      />
+    </article>
+  </div>
+</section>
