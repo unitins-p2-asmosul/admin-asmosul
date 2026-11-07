@@ -1,0 +1,40 @@
+<section class="w-full rounded-2xl border border-[#dfe4ea] bg-white p-6 shadow-xs">
+  <!-- Cabeçalho da Seção -->
+  <header class="mb-5 flex items-center gap-2">
+    <mat-icon class="!h-5 !w-5 !text-[20px] text-[#00a86b]">{{ icone() }}</mat-icon>
+    <h2 class="m-0 text-sm font-bold tracking-wider text-[#0b3c5d] uppercase">
+      {{ titulo() }}
+    </h2>
+  </header>
+
+  <!-- Grid com os Cards do Top 5 -->
+  <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
+    @for (item of itens(); track item.posicao) {
+      <article
+        class="flex min-h-[96px] flex-col justify-between rounded-xl border border-[#dfe4ea] bg-white p-4 transition-shadow hover:shadow-sm"
+      >
+        <div class="flex items-center justify-between gap-2">
+          <span
+            class="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-[#0b3c5d] px-1.5 text-xs font-bold text-white"
+          >
+            #{{ item.posicao }}
+          </span>
+          <span class="text-xs font-medium text-[#8298a9]">
+            {{ item.quantidade }} {{ sufixo() }}
+          </span>
+        </div>
+
+        <h3
+          class="m-0 mt-2 line-clamp-2 text-sm font-bold text-[#1f2937]"
+          [title]="item.nome"
+        >
+          {{ item.nome }}
+        </h3>
+      </article>
+    } @empty {
+      <div class="col-span-full py-6 text-center text-sm font-medium text-[#8298a9]">
+        Nenhum dado disponível para o ranking.
+      </div>
+    }
+  </div>
+</section>

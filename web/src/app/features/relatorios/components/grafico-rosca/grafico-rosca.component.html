@@ -1,0 +1,47 @@
+<section class="w-full rounded-2xl border border-[#dfe4ea] bg-white p-6 shadow-xs">
+  <!-- Cabeçalho -->
+  <header class="border-b border-[#f1f3f5] pb-4">
+    <h2 class="m-0 text-base font-bold text-[#0b3c5d]">{{ titulo() }}</h2>
+  </header>
+
+  <!-- Corpo: Gráfico à esquerda e Legenda alinhada à direita -->
+  <div class="mx-auto mt-6 flex max-w-3xl flex-col items-center justify-center gap-10 md:flex-row md:items-center">
+    <!-- Canvas com o Total centralizado -->
+    <div class="relative flex h-[220px] w-[220px] flex-shrink-0 items-center justify-center">
+      <canvas #canvas class="h-full w-full"></canvas>
+
+      <div class="pointer-events-none absolute inset-0 flex flex-col items-center justify-center text-center">
+        <span class="text-[11px] font-bold tracking-wider text-[#8298a9] uppercase">TOTAL</span>
+        <span class="text-2xl font-extrabold text-[#0b3c5d]">{{ totalGeral() }}</span>
+      </div>
+    </div>
+
+    <!-- Tabela / Lista de Legenda e Indicadores -->
+    <ul class="flex w-full max-w-[480px] flex-col gap-3.5 pl-0 md:pl-6">
+      @for (item of itensLegenda(); track item.chave) {
+        <li class="flex items-center justify-between text-sm">
+          <!-- Cor + Nome da Categoria -->
+          <div class="flex items-center gap-2.5 min-w-0 pr-4">
+            <span
+              class="h-2.5 w-2.5 flex-shrink-0 rounded-full"
+              [style.backgroundColor]="item.cor"
+            ></span>
+            <span class="truncate font-semibold text-[#344054]" [title]="item.chave">
+              {{ item.chave }}
+            </span>
+          </div>
+
+          <!-- Total + Porcentagem -->
+          <div class="flex flex-shrink-0 items-center gap-4 text-right">
+            <span class="font-bold text-[#1f2937]">{{ item.total }}</span>
+            <span class="w-12 font-medium text-[#8298a9]">{{ item.porcentagem }}</span>
+          </div>
+        </li>
+      } @empty {
+        <li class="py-4 text-center text-sm font-medium text-[#8298a9]">
+          Nenhum dado para exibição.
+        </li>
+      }
+    </ul>
+  </div>
+</section>
