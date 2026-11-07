@@ -77,9 +77,19 @@ export class SidebarComponent {
     {
       id: 'relatorios',
       titulo: 'Relatórios',
-      icone: 'edit_note',
-      itens: [],
-      emDefinicao: true,
+      icone: 'description',
+      itens: [
+        { rotulo: 'Pessoas - Pessoas', icone: 'person_outline', rota: '/relatorios/pessoas' },
+        { rotulo: 'Pessoas - Comorbidades', icone: 'favorite_border', rota: '/relatorios/pessoas/comorbidades' },
+        { rotulo: 'Pessoas - Categorias', icone: 'category', rota: '/relatorios/pessoas/categorias' },
+        { rotulo: 'Doações - Itens', icone: 'inventory_2', rota: '/relatorios/itens' },
+        { rotulo: 'Doações - Locais de Armazenamento', icone: 'location_on', rota: '/relatorios/armazenamentos' },
+        { rotulo: 'Doações - Estoque', icone: 'layers', rota: '/relatorios/estoque' },
+        { rotulo: 'Doações - Categorias de Itens', icone: 'category', rota: '/relatorios/categorias-itens' },
+        { rotulo: 'Doações - Saídas', icone: 'logout', rota: '/relatorios/saidas' },
+        { rotulo: 'Doações - Entradas', icone: 'login', rota: '/relatorios/entradas' },
+        { rotulo: 'Doações - Financeiro', icone: 'attach_money', rota: '/relatorios/financeiro' },
+      ],
     },
     {
       id: 'acesso',
