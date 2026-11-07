@@ -1,0 +1,62 @@
+<section class="pagina-pessoas pb-12">
+  <!-- Cabeçalho Padrão do Sistema -->
+  <header class="pagina-pessoas__header">
+    <div class="pagina-pessoas__title-wrap">
+      <span class="pagina-pessoas__title-icon" aria-hidden="true">
+        <mat-icon>person_outline</mat-icon>
+      </span>
+      <h1>Relatório Geral de Pessoas</h1>
+    </div>
+  </header>
+
+  <div class="flex flex-col gap-6">
+    <!-- Grid dos Cards Resumo Centralizados (Beneficiários, Doadores, Cadastros) -->
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <app-card-resumo
+        titulo="Total de Beneficiários"
+        [valor]="dados().totalBeneficiarios"
+      />
+      <app-card-resumo
+        titulo="Total de Doadores"
+        [valor]="dados().totalDoadores"
+      />
+      <app-card-resumo
+        titulo="Cadastros Gerais"
+        [valor]="dados().totalCadastrosGerais"
+      />
+    </div>
+
+    <!-- Barra de Filtro por Agrupamento Demográfico -->
+    <div class="flex flex-wrap items-center gap-3 rounded-2xl border border-[#dfe4ea] bg-white p-4 shadow-xs">
+      <span class="text-sm font-bold text-[#0b3c5d]">Basear gráfico em:</span>
+      <div class="flex flex-wrap items-center gap-2">
+        @for (opcao of opcoesCriterio; track opcao.codigo) {
+          <button
+            type="button"
+            (click)="alternarCriterio(opcao.codigo)"
+            class="h-9 cursor-pointer rounded-xl px-4 text-xs font-semibold transition-colors"
+            [class]="
+              criterioAtivo() === opcao.codigo
+                ? 'bg-[#0b3c5d] text-white shadow-xs'
+                : 'bg-[#f1f5f9] text-[#475569] hover:bg-[#e2e8f0]'
+            "
+          >
+            {{ opcao.rotulo }}
+          </button>
+        }
+      </div>
+    </div>
+
+    <!-- Gráfico de Rosca com Dados Atualizados -->
+    @if (carregando()) {
+      <div class="flex items-center justify-center py-16 text-[#8298a9]">
+        <span class="text-base font-semibold">Atualizando gráfico demográfico...</span>
+      </div>
+    } @else {
+      <app-grafico-rosca
+        [titulo]="tituloGrafico()"
+        [dados]="distribuicaoFormatada()"
+      />
+    }
+  </div>
+</section>
