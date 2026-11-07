@@ -1,4 +1,4 @@
-import { Component, input, output } from '@angular/core';
+import {Component, input, output} from '@angular/core';
 import { PageEvent } from '@angular/material/paginator';
 import { MatSortModule, Sort } from '@angular/material/sort';
 import { MatTableModule } from '@angular/material/table';

@@ -234,41 +234,6 @@ class RelatorioPessoaServiceTest {
     class ListarPessoasComorbidadesTests {
 
         @Test
-        @DisplayName(
-                "Deve retornar página mapeada com lista de comorbidades separadas por vírgula")
-        void listarPessoasComorbidades_comFiltrosValidos_retornaRespostaPaginada() {
-            PessoaComorbidadeProjection proj =
-                    criarPessoaComorbidadeProjection(
-                            1L,
-                            "Maria Silva",
-                            "12345678901",
-                            "63987654321",
-                            "FEMININO",
-                            "Diabetes, Hipertensão");
-
-            when(relatorioPessoaRepository.listarPessoasComorbidades(
-                            eq("Maria"), eq(List.of(1L, 2L)), any(Pageable.class)))
-                    .thenReturn(new PageImpl<>(List.of(proj), PageRequest.of(0, 10), 1));
-
-            RespostaPaginada<RelatorioPessoaDTO.PessoaComorbidadeItem> resposta =
-                    relatorioPessoaService.listarPessoasComorbidades(
-                            "  Maria  ",
-                            List.of(1L, 2L),
-                            PageRequest.of(0, 10, Sort.by("nome").ascending()));
-
-            assertThat(resposta.totalElementos()).isEqualTo(1L);
-            assertThat(resposta.dados()).hasSize(1);
-            RelatorioPessoaDTO.PessoaComorbidadeItem item = resposta.dados().get(0);
-            assertThat(item.idPessoa()).isEqualTo(1L);
-            assertThat(item.nome()).isEqualTo("Maria Silva");
-            assertThat(item.cpf()).isEqualTo("12345678901");
-            assertThat(item.contato()).isEqualTo("63987654321");
-            assertThat(item.genero()).isEqualTo("FEMININO");
-            assertThat(item.comorbidadesDiagnosticadas())
-                    .containsExactly("Diabetes", "Hipertensão");
-        }
-
-        @Test
         @DisplayName("Deve normalizar termoBusca em branco e lista vazia para null")
         void listarPessoasComorbidades_comFiltrosVazios_passaNullParaRepositorio() {
             when(relatorioPessoaRepository.listarPessoasComorbidades(

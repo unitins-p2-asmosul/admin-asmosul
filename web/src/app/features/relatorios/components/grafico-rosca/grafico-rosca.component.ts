@@ -6,10 +6,11 @@ import {
   computed,
   effect,
   input,
-  viewChild,
+  viewChild, inject,
 } from '@angular/core';
 import { Chart, DoughnutController, ArcElement, Tooltip } from 'chart.js';
 import { ItemGrafico } from '../../models/relatorio-comum.model';
+import {ExportacaoService} from '@features/shared/services/exportacao.service';
 
 Chart.register(DoughnutController, ArcElement, Tooltip);
 
@@ -36,6 +37,8 @@ export interface ItemLegenda {
   templateUrl: './grafico-rosca.component.html',
 })
 export class GraficoRoscaComponent implements AfterViewInit, OnDestroy {
+  readonly exportacaoService = inject(ExportacaoService);
+
   readonly canvasRef = viewChild.required<ElementRef<HTMLCanvasElement>>('canvas');
 
   readonly titulo = input.required<string>();
@@ -131,5 +134,17 @@ export class GraficoRoscaComponent implements AfterViewInit, OnDestroy {
     this.chart.data.datasets[0].data = legenda.map((i) => i.total);
     this.chart.data.datasets[0].backgroundColor = legenda.map((i) => i.cor);
     this.chart.update();
+  }
+
+  exportarImagem(): void {
+    const canvas = this.canvasRef()?.nativeElement;
+    if (!canvas || !this.chart) return;
+
+    this.exportacaoService.exportarGraficoRosca({
+      canvas,
+      titulo: this.titulo(),
+      totalGeral: this.totalGeral(),
+      legendas: this.itensLegenda(),
+    });
   }
 }

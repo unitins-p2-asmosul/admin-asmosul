@@ -7,6 +7,14 @@ import {
   SolicitacaoExportacao,
 } from '../models/exportacao.model';
 import { NotificacaoService } from './notificacao.service';
+import {ItemLegenda} from '@features/relatorios/components/grafico-rosca/grafico-rosca.component';
+
+export interface SolicitacaoExportacaoGrafico {
+  canvas: HTMLCanvasElement;
+  titulo: string;
+  totalGeral: number;
+  legendas: ItemLegenda[];
+}
 
 const MIME_XLSX = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
 const MIME_CSV = 'text/csv;charset=utf-8';
@@ -16,6 +24,111 @@ const CORES_LINHAS = ['FFF1F3F5', 'FFE4E8EC'];
 @Injectable({ providedIn: 'root' })
 export class ExportacaoService {
   private readonly notificacao = inject(NotificacaoService);
+
+  exportarGraficoRosca(solicitacao: SolicitacaoExportacaoGrafico): void {
+    const { canvas, titulo, totalGeral, legendas } = solicitacao;
+
+    if (!canvas || legendas.length === 0) {
+      this.notificacao.erro('Não há dados disponíveis para exportar imagem.');
+      return;
+    }
+
+    try {
+      const escala = 2;
+      const largura = 900;
+      const alturaCabecalho = 70;
+      const alturaCorpo = Math.max(320, 60 + legendas.length * 36);
+      const alturaTotal = alturaCabecalho + alturaCorpo;
+
+      const canvasExportacao = document.createElement('canvas');
+      canvasExportacao.width = largura * escala;
+      canvasExportacao.height = alturaTotal * escala;
+
+      const ctx = canvasExportacao.getContext('2d');
+      if (!ctx) return;
+
+      ctx.scale(escala, escala);
+
+      // Fundo branco
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, largura, alturaTotal);
+
+      // Faixa do cabeçalho azul escuro (#0b3c5d)
+      ctx.fillStyle = '#0b3c5d';
+      ctx.fillRect(0, 0, largura, alturaCabecalho);
+
+      // Título
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 20px "Segoe UI", Roboto, Helvetica, Arial, sans-serif';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(titulo, 32, alturaCabecalho / 2);
+
+      // Desenho da Rosca
+      const graficoTamanho = 220;
+      const graficoX = 70;
+      const graficoY = alturaCabecalho + (alturaCorpo - graficoTamanho) / 2;
+      ctx.drawImage(canvas, graficoX, graficoY, graficoTamanho, graficoTamanho);
+
+      // Rótulo central "TOTAL" e valor
+      const centroX = graficoX + graficoTamanho / 2;
+      const centroY = graficoY + graficoTamanho / 2;
+
+      ctx.textAlign = 'center';
+      ctx.fillStyle = '#8298a9';
+      ctx.font = 'bold 11px "Segoe UI", Roboto, Helvetica, Arial, sans-serif';
+      ctx.fillText('TOTAL', centroX, centroY - 8);
+
+      ctx.fillStyle = '#0b3c5d';
+      ctx.font = '800 24px "Segoe UI", Roboto, Helvetica, Arial, sans-serif';
+      ctx.fillText(totalGeral.toString(), centroX, centroY + 16);
+
+      // Lista de Legendas
+      const legendaX = 360;
+      let legendaY = alturaCabecalho + 60;
+      const espacamentoLinha = 34;
+
+      ctx.textAlign = 'left';
+
+      legendas.forEach((item) => {
+        ctx.beginPath();
+        ctx.arc(legendaX + 6, legendaY, 6, 0, Math.PI * 2);
+        ctx.fillStyle = item.cor;
+        ctx.fill();
+
+        ctx.fillStyle = '#344054';
+        ctx.font = '600 14px "Segoe UI", Roboto, Helvetica, Arial, sans-serif';
+        ctx.fillText(item.chave, legendaX + 22, legendaY + 4);
+
+        ctx.textAlign = 'right';
+        ctx.fillStyle = '#1f2937';
+        ctx.font = 'bold 14px "Segoe UI", Roboto, Helvetica, Arial, sans-serif';
+        ctx.fillText(item.total.toString(), largura - 110, legendaY + 4);
+
+        ctx.fillStyle = '#8298a9';
+        ctx.font = '500 14px "Segoe UI", Roboto, Helvetica, Arial, sans-serif';
+        ctx.fillText(item.porcentagem, largura - 40, legendaY + 4);
+
+        ctx.textAlign = 'left';
+        legendaY += espacamentoLinha;
+      });
+
+      const nomeNormalizado = titulo
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/(^-|-$)/g, '');
+
+      canvasExportacao.toBlob((blob) => {
+        if (blob) {
+          this.baixar(blob, nomeNormalizado || 'grafico-relatorio', 'png' as FormatoExportacao);
+        }
+      }, 'image/png');
+    } catch (erro) {
+      console.error('Não foi possível gerar a imagem do gráfico.', erro);
+      this.notificacao.erro('Não foi possível gerar a imagem do gráfico.');
+    }
+  }
 
   exportarDados<T>(
     dados$: Observable<T[]>,
@@ -145,7 +258,7 @@ export class ExportacaoService {
     };
   }
 
-  private baixar(arquivo: Blob, nomeArquivo: string, extensao: FormatoExportacao): void {
+  private baixar(arquivo: Blob, nomeArquivo: string, extensao: FormatoExportacao | 'png'): void {
     const url = URL.createObjectURL(arquivo);
     const link = document.createElement('a');
     link.href = url;
