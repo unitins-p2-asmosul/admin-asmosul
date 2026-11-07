@@ -1,3 +1,4 @@
+
 package br.org.asmosul.api.doacoes.dtos;
 
 import br.org.asmosul.api.doacoes.models.EnderecoArmazenamento;
@@ -12,6 +13,10 @@ import java.util.List;
 public final class EnderecoArmazenamentoDTO {
 
     private EnderecoArmazenamentoDTO() {}
+
+    private static String normalizarNome(String nome) {
+        return nome == null ? null : nome.trim().replaceAll("\\s+", " ");
+    }
 
     public record Requisicao(
             @NotBlank(message = "O nome é obrigatório")
@@ -36,6 +41,10 @@ public final class EnderecoArmazenamentoDTO {
             @Size(max = 100, message = "O complemento deve conter no máximo 100 caracteres")
                     String complemento,
             String informacoesAdicionais) {
+
+        public Requisicao {
+            nome = normalizarNome(nome);
+        }
 
         public EnderecoArmazenamento paraEntidade() {
             return new EnderecoArmazenamento(
@@ -73,7 +82,12 @@ public final class EnderecoArmazenamentoDTO {
                     String numero,
             @Size(max = 100, message = "O complemento deve conter no máximo 100 caracteres")
                     String complemento,
-            String informacoesAdicionais) {}
+            String informacoesAdicionais) {
+
+        public Atualizacao {
+            nome = normalizarNome(nome);
+        }
+    }
 
     public record Resumo(
             Long id,
@@ -92,7 +106,9 @@ public final class EnderecoArmazenamentoDTO {
             return deEntidade(endereco, 0);
         }
 
-        public static Resumo deEntidade(EnderecoArmazenamento endereco, Integer volumeFisico) {
+        public static Resumo deEntidade(
+                EnderecoArmazenamento endereco, Integer volumeFisico) {
+
             return new Resumo(
                     endereco.getId(),
                     endereco.getNome(),
@@ -131,7 +147,9 @@ public final class EnderecoArmazenamentoDTO {
             LocalDateTime dataInativo) {
 
         public static Detalhe deEntidade(
-                EnderecoArmazenamento endereco, List<EnderecoEstoqueItemDTO> itens) {
+                EnderecoArmazenamento endereco,
+                List<EnderecoEstoqueItemDTO> itens) {
+
             return new Detalhe(
                     endereco.getId(),
                     endereco.getNome(),

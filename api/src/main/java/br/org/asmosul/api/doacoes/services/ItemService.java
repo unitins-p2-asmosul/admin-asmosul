@@ -28,7 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class ItemService {
 
     private static final Set<String> CAMPOS_ORDENACAO_VALIDOS =
-            Set.of("id", "nome", "precoUnitario", "dataInativo");
+        Set.of("id", "nome", "precoUnitario", "dataInativo", "estoque");
 
     private final ItemRepository itemRepository;
     private final CategoriaItemRepository categoriaItemRepository;

@@ -175,8 +175,25 @@ public class ContaService {
     }
 
     @Transactional
-    public void desativar(Long id) {
+    public void desativar(Long id, String nomeUsuarioAutenticado) {
+
         Conta conta = buscarContaAtiva(id);
+
+        Conta contaAutenticada =
+                contaRepository
+                        .findByNomeUsuarioAndDataInativoIsNull(nomeUsuarioAutenticado)
+                        .orElseThrow(
+                                () ->
+                                        new EntidadeNaoEncontradaException(
+                                                "Conta ativa não encontrada para o usuário autenticado."));
+
+        if (conta.getId().equals(contaAutenticada.getId())) {
+            String mensagem = "Não é possível desativar a própria conta em uso";
+
+            throw new ValidationException(
+                    mensagem,
+                    List.of(new ValidationException.CampoErro("id", mensagem)));
+        }
 
         conta.desativar();
     }

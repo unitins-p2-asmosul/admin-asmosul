@@ -1,6 +1,7 @@
 package br.org.asmosul.api.doacoes.models;
 
 import br.org.asmosul.api.comum.models.EntidadeInativavel;
+import org.hibernate.annotations.Formula;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -17,6 +18,11 @@ public class Item extends EntidadeInativavel {
 
     @Column(nullable = false, length = 100)
     private String nome;
+    @Formula(
+            "(select coalesce(sum(e.quantidade), 0) "
+                    + "from estoque e "
+                    + "where e.id_item = {alias}.id)")
+    private Integer estoque;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_categoria", nullable = false)

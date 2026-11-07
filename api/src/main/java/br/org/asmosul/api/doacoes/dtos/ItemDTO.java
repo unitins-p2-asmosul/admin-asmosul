@@ -1,3 +1,4 @@
+
 package br.org.asmosul.api.doacoes.dtos;
 
 import br.org.asmosul.api.doacoes.models.CategoriaItem;
@@ -13,6 +14,10 @@ import java.util.List;
 public final class ItemDTO {
 
     private ItemDTO() {}
+
+    private static String normalizarNome(String nome) {
+        return nome == null ? null : nome.trim().replaceAll("\\s+", " ");
+    }
 
     public record Requisicao(
             @NotBlank(message = "O nome é obrigatório")
@@ -30,6 +35,10 @@ public final class ItemDTO {
             UnidadeMedida unidadeMedida,
 
             String descricao) {
+
+        public Requisicao {
+            nome = normalizarNome(nome);
+        }
 
         public Item paraEntidade(CategoriaItem categoria) {
             return new Item(
@@ -56,7 +65,12 @@ public final class ItemDTO {
             @NotNull(message = "A unidade de medida é obrigatória")
             UnidadeMedida unidadeMedida,
 
-            String descricao) {}
+            String descricao) {
+
+        public Atualizacao {
+            nome = normalizarNome(nome);
+        }
+    }
 
     public record Resumo(
             Long id,
@@ -110,6 +124,7 @@ public final class ItemDTO {
 
         public static Detalhe deEntidade(
                 Item item, Integer estoqueCalculado, List<ItemEstoqueLocalDTO> locais) {
+
             return new Detalhe(
                     item.getId(),
                     item.getNome(),

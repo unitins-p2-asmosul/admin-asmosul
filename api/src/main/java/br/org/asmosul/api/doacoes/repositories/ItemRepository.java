@@ -13,6 +13,8 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface ItemRepository extends JpaRepository<Item, Long>, JpaSpecificationExecutor<Item> {
 
+    boolean existsByCategoria_IdAndDataInativoIsNull(Long categoriaId);
+    
     boolean existsByNomeIgnoreCase(String nome);
 
     boolean existsByNomeIgnoreCaseAndIdNot(String nome, Long id);
