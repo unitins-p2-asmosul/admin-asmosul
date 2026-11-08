@@ -6,6 +6,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 import br.org.asmosul.api.comum.dtos.RespostaPaginada;
+import br.org.asmosul.api.acesso.repositories.ContaRepository;
 import br.org.asmosul.api.comum.exceptions.ConflitoDadosException;
 import br.org.asmosul.api.comum.exceptions.EntidadeNaoEncontradaException;
 import br.org.asmosul.api.comum.exceptions.ValidationException;
@@ -40,6 +41,7 @@ class PessoaServiceTest {
     @Mock private PessoaRepository pessoaRepository;
     @Mock private ComorbidadeRepository comorbidadeRepository;
     @Mock private CategoriaRepository categoriaRepository;
+    @Mock private ContaRepository contaRepository;
 
     @InjectMocks private PessoaService pessoaService;
 
