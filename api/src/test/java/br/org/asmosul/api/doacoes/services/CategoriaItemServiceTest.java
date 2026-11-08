@@ -248,7 +248,7 @@ class CategoriaItemServiceTest {
             ReflectionTestUtils.setField(cat, "id", 7L);
             when(categoriaItemRepository.findByIdAndDataInativoIsNull(7L))
                     .thenReturn(Optional.of(cat));
-            when(itemRepository.existsByCategoria_Id(7L)).thenReturn(false);
+            when(itemRepository.existsByCategoria_IdAndDataInativoIsNull(7L)).thenReturn(false);
 
             categoriaItemService.desativar(7L);
 
@@ -263,11 +263,11 @@ class CategoriaItemServiceTest {
             ReflectionTestUtils.setField(cat, "id", 9L);
             when(categoriaItemRepository.findByIdAndDataInativoIsNull(9L))
                     .thenReturn(Optional.of(cat));
-            when(itemRepository.existsByCategoria_Id(9L)).thenReturn(true);
+            when(itemRepository.existsByCategoria_IdAndDataInativoIsNull(9L)).thenReturn(true);
 
             assertThatThrownBy(() -> categoriaItemService.desativar(9L))
                     .isInstanceOf(ConflitoDadosException.class)
-                    .hasMessageContaining("vinculada a um ou mais itens");
+                    .hasMessageContaining("possui itens ativos vinculados");
             assertThat(cat.isAtivo()).isTrue();
         }
 

@@ -154,9 +154,9 @@ public class CategoriaItemService {
                                                 "Categoria de item ativa não encontrada com o ID informado: "
                                                         + id));
 
-        if (itemRepository.existsByCategoria_Id(id)) {
-            throw new ConflitoDadosException(
-                    "Não é possível inativar a categoria porque ela está vinculada a um ou mais itens.");
+        if (itemRepository.existsByCategoria_IdAndDataInativoIsNull(id)) {
+                throw new ConflitoDadosException(
+                        "Não é possível inativar a categoria porque ela possui itens ativos vinculados.");
         }
 
         categoria.desativar();

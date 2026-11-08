@@ -645,14 +645,30 @@ class ContaControllerTest extends BaseAPITest {
     class DesativarEReativar {
 
         @Test
-        @DisplayName("Deve desativar conta ativa")
         void desativar_comContaAtiva_retornaStatus204() throws Exception {
-            Conta conta = criarConta(pessoaFisica, "maria.silva", Set.of(Perfil.GERENCIADOR_PESSOAS));
+        Conta conta = criarConta(
+                pessoaFisica,
+                "maria.silva",
+                Set.of(Perfil.GERENCIADOR_PESSOAS));
 
-            mockMvc.perform(patch("/acessos/contas/{id}/desativar", conta.getId()))
-                    .andExpect(status().isNoContent());
+        Pessoa pessoaOperadora = criarPessoa(
+                "Operador",
+                "22233344455",
+                TipoPessoa.FISICA,
+                "operador@teste.com");
 
-            assertThat(contaRepository.findById(conta.getId()).orElseThrow().isAtivo()).isFalse();
+        criarConta(
+                pessoaOperadora,
+                "operador.teste",
+                Set.of(Perfil.GERENCIADOR_ACESSO));
+
+        mockMvc.perform(
+                        patch("/acessos/contas/{id}/desativar", conta.getId())
+                                .with(user("operador.teste").roles("GERENCIADOR_ACESSO")))
+                .andExpect(status().isNoContent());
+
+        assertThat(contaRepository.findById(conta.getId()).orElseThrow().isAtivo())
+                .isFalse();
         }
 
         @Test

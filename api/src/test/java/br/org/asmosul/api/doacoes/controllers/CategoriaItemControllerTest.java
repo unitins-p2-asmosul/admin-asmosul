@@ -312,7 +312,7 @@ class CategoriaItemControllerTest extends BaseAPITest {
                     .andExpect(
                             jsonPath("$.detail")
                                     .value(
-                                            "Não é possível inativar a categoria porque ela está vinculada a um ou mais itens."));
+                                            "Não é possível inativar a categoria porque ela possui itens ativos vinculados."));
 
             mockMvc.perform(get("/doacoes/categorias/{id}", categoria.getId()))
                     .andExpect(status().isOk())

@@ -227,12 +227,16 @@ public class EnderecoArmazenamentoService {
     }
 
     protected void validarItensVinculados(Long id) {
+
         if (enderecoArmazenamentoRepository.possuiItensVinculados(id)) {
-            throw ValidationException.of(
-                    "endereco",
-                    "Não é possível desativar um endereço que possui itens armazenados vinculados (RN012)");
+
+                String mensagem = "Endereço possui itens ativos";
+
+                throw new ValidationException(
+                        mensagem,
+                        List.of(new ValidationException.CampoErro("endereco", mensagem)));
         }
-    }
+        }
 
     private Map<Long, Integer> buscarVolumesFisicosPorEnderecos(
             List<EnderecoArmazenamento> enderecos) {

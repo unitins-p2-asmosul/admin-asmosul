@@ -23,6 +23,11 @@ public interface EnderecoArmazenamentoRepository
 
     List<EnderecoArmazenamento> findAllByDataInativoIsNull();
 
-    @Query("select (count(e) > 0) from Estoque e where e.armazenamento.id = :id")
+    @Query(
+            "select (count(e) > 0) "
+                    + "from Estoque e "
+                    + "where e.armazenamento.id = :id "
+                    + "and e.quantidade > 0 "
+                    + "and e.item.dataInativo is null")
     boolean possuiItensVinculados(@Param("id") Long id);
 }

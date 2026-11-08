@@ -213,10 +213,14 @@ public class ContaController {
                         description = "Conta não encontrada ou já inativa")
             })
     @PatchMapping("/{id}/desativar")
-    public ResponseEntity<Void> desativar(@PathVariable Long id) {
-        contaService.desativar(id);
-        return ResponseEntity.noContent().build();
-    }
+        public ResponseEntity<Void> desativar(
+                @PathVariable Long id,
+                Authentication autenticacao) {
+
+            contaService.desativar(id, autenticacao.getName());
+
+            return ResponseEntity.noContent().build();
+        }
 
     @Operation(
             summary = "Reativar conta",
