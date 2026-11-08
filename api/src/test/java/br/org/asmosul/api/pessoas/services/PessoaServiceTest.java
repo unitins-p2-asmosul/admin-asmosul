@@ -542,12 +542,30 @@ class PessoaServiceTest {
                     .thenReturn(pagina);
 
             RespostaPaginada<PessoaDTO.Resumo> resultado =
-                    pessoaService.listar(
-                            new PessoaFiltroDTO(
-                                    null, null, null, null, null, null, null, null, null, null,
-                                    null, null, null, null, null, null, false),
-                            pageable,
-                            false);
+                pessoaService.listar(
+                        new PessoaFiltroDTO(
+                                null, // nome
+                                null, // cpfCnpj
+                                null, // tipoPessoa
+                                null, // dataNascimento
+                                null, // dataNascimentoInicio
+                                null, // dataNascimentoFim
+                                null, // sexo
+                                null, // telefone
+                                null, // email
+                                null, // escolaridade
+                                null, // profissao
+                                null, // bairro
+                                null, // rendaFamiliar
+                                null, // comorbidadeId
+                                null, // categoriaId
+                                null, // quantidadeCoabitantes
+                                null, // ehBeneficiario
+                                null, // ehDoador
+                                false // apenasInativos
+                        ),
+                        pageable,
+                        false);
 
             assertThat(resultado.dados()).hasSize(1);
             assertThat(resultado.totalElementos()).isEqualTo(1);

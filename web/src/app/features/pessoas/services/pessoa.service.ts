@@ -104,7 +104,9 @@ export class PessoaService {
     if (parametros.nome) params = params.set('nome', parametros.nome.trim());
     if (parametros.cpfCnpj) params = params.set('cpfCnpj', parametros.cpfCnpj.trim());
     if (parametros.tipoPessoa) params = params.set('tipoPessoa', parametros.tipoPessoa);
-    if (parametros.dataNascimento) params = params.set('dataNascimento', parametros.dataNascimento);
+    if (parametros.dataNascimento) params = params.set('dataNascimento', parametros.dataNascimento);    
+    if (parametros.dataNascimentoInicio) params = params.set('dataNascimentoInicio',converterDataParaApi(parametros.dataNascimentoInicio));
+    if (parametros.dataNascimentoFim) {params = params.set('dataNascimentoFim',converterDataParaApi(parametros.dataNascimentoFim));
     if (parametros.sexo) params = params.set('sexo', parametros.sexo);
     if (parametros.telefone) params = params.set('telefone', parametros.telefone.trim());
     if (parametros.email) params = params.set('email', parametros.email.trim());
@@ -393,4 +395,16 @@ export class PessoaService {
       },
     })).pipe(delay(LATENCIA_SIMULADA_MS));
   }
+}
+
+function converterDataParaApi(valor: string): string {
+  // O input type="date" fornece yyyy-MM-dd.
+  const formatoIso = /^(\d{4})-(\d{2})-(\d{2})$/.exec(valor);
+
+  if (formatoIso) {
+    return `${formatoIso[3]}-${formatoIso[2]}-${formatoIso[1]}`;
+  }
+
+  // Também aceita dd/MM/yyyy.
+  return valor.replace(/\//g, '-');
 }

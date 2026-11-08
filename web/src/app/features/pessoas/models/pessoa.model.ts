@@ -138,7 +138,7 @@ export interface PessoaRequisicao {
   nome: string;
   cpfCnpj: string;
   tipoPessoa: TipoPessoaCodigo;
-  dataNascimento: string;
+  dataNascimento?: string;
   sexo?: SexoCodigo;
   telefone: string;
   email?: string;
@@ -191,6 +191,8 @@ export interface PessoaFiltros {
   cpfCnpj?: string;
   tipoPessoa?: string;
   dataNascimento?: string;
+  dataNascimentoInicio?: string;
+  dataNascimentoFim?: string;
   sexo?: SexoCodigo;
   telefone?: string;
   email?: string;
@@ -216,6 +218,8 @@ export interface PessoaConsultaParametros {
   cpfCnpj?: string;
   tipoPessoa?: string;
   dataNascimento?: string;
+  dataNascimentoInicio?: string;
+  dataNascimentoFim?: string;
   sexo?: SexoCodigo;
   telefone?: string;
   email?: string;

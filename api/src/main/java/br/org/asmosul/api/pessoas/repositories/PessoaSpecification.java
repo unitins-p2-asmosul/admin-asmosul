@@ -51,6 +51,28 @@ public final class PessoaSpecification {
                         criteriaBuilder.equal(root.get("dataNascimento"), filtro.dataNascimento()));
             }
 
+            if (filtro.dataNascimentoInicio() != null) {
+                predicates.add(
+                        criteriaBuilder.greaterThanOrEqualTo(
+                                root.get("dataNascimento"),
+                                filtro.dataNascimentoInicio()));
+            }
+
+            if (filtro.dataNascimentoFim() != null) {
+                predicates.add(
+                        criteriaBuilder.lessThanOrEqualTo(
+                                root.get("dataNascimento"),
+                                filtro.dataNascimentoFim()));
+            }
+
+            if (filtro.dataNascimentoInicio() != null
+                    && filtro.dataNascimentoFim() != null
+                    && filtro.dataNascimentoInicio().isAfter(filtro.dataNascimentoFim())) {
+
+                throw new IllegalArgumentException(
+                        "A data de nascimento inicial não pode ser posterior à data final.");
+            }
+
             if (filtro.sexo() != null) {
                 predicates.add(criteriaBuilder.equal(root.get("sexo"), filtro.sexo()));
             }
@@ -112,6 +134,8 @@ public final class PessoaSpecification {
                         root.join("comorbidades", JoinType.INNER);
                 predicates.add(
                         criteriaBuilder.equal(joinComorbidade.get("id"), filtro.comorbidadeId()));
+                predicates.add(
+                        criteriaBuilder.isNull(joinComorbidade.get("dataInativo")));
                 if (query != null) {
                     query.distinct(true);
                 }
@@ -121,6 +145,8 @@ public final class PessoaSpecification {
                 Join<Pessoa, Categoria> joinCategoria = root.join("categorias", JoinType.INNER);
                 predicates.add(
                         criteriaBuilder.equal(joinCategoria.get("id"), filtro.categoriaId()));
+                predicates.add(
+                        criteriaBuilder.isNull(joinCategoria.get("dataInativo")));
                 if (query != null) {
                     query.distinct(true);
                 }
