@@ -62,7 +62,6 @@ import { PessoaService } from '../../services/pessoa.service';
             </mat-error>
           }
         </mat-form-field>
-        </mat-form-field>
         <mat-form-field appearance="outline" class="w-full">
           <mat-label>Nome</mat-label>
           <input matInput formControlName="nome" />
