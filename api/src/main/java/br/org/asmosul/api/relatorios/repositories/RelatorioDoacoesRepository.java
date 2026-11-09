@@ -485,8 +485,8 @@ public interface RelatorioDoacoesRepository extends JpaRepository<Item, Long> {
         FROM saida_estoque se
         INNER JOIN saida s ON s.id = se.id_saida
         WHERE YEAR(s.data_hora) = :ano
-        GROUP BY MONTH(s.data_hora)
-        ORDER BY MONTH(s.data_hora) ASC
+        GROUP BY LPAD(MONTH(s.data_hora), 2, '0')
+        ORDER BY chave ASC
     """, nativeQuery = true)
     List<AgrupamentoContagemProjection> buscarSaidasPorMes(@Param("ano") int ano);
 
@@ -496,8 +496,8 @@ public interface RelatorioDoacoesRepository extends JpaRepository<Item, Long> {
             IFNULL(SUM(se.quantidade), 0) AS total
         FROM saida_estoque se
         INNER JOIN saida s ON s.id = se.id_saida
-        GROUP BY YEAR(s.data_hora)
-        ORDER BY YEAR(s.data_hora) ASC
+        GROUP BY CAST(YEAR(s.data_hora) AS CHAR)
+        ORDER BY chave ASC
     """, nativeQuery = true)
     List<AgrupamentoContagemProjection> buscarSaidasPorAno();
 
@@ -662,8 +662,8 @@ public interface RelatorioDoacoesRepository extends JpaRepository<Item, Long> {
         FROM entrada_estoque ee
         INNER JOIN entrada e ON e.id = ee.id_entrada
         WHERE YEAR(e.data_hora) = :ano
-        GROUP BY MONTH(e.data_hora)
-        ORDER BY MONTH(e.data_hora) ASC
+        GROUP BY LPAD(MONTH(e.data_hora), 2, '0')
+        ORDER BY chave ASC
     """, nativeQuery = true)
     List<AgrupamentoContagemProjection> buscarEntradasPorMes(@Param("ano") int ano);
 
@@ -673,8 +673,8 @@ public interface RelatorioDoacoesRepository extends JpaRepository<Item, Long> {
             IFNULL(SUM(ee.quantidade), 0) AS total
         FROM entrada_estoque ee
         INNER JOIN entrada e ON e.id = ee.id_entrada
-        GROUP BY YEAR(e.data_hora)
-        ORDER BY YEAR(e.data_hora) ASC
+        GROUP BY CAST(YEAR(e.data_hora) AS CHAR)
+        ORDER BY chave ASC
     """, nativeQuery = true)
     List<AgrupamentoContagemProjection> buscarEntradasPorAno();
 
