@@ -1,5 +1,12 @@
 <aside
-	class="hidden h-full w-[260px] shrink-0 border-r border-asmosul-borda bg-asmosul-branco md:block"
+  class="fixed inset-y-16 left-0 z-50 h-[calc(100vh-4rem)]
+         w-[260px] shrink-0 overflow-y-auto border-r
+         border-asmosul-borda bg-asmosul-branco
+         transition-transform duration-200
+         md:sticky md:top-0 md:z-auto md:block md:h-auto
+         md:translate-x-0"
+  [class.hidden]="!menuAberto()"
+  [class.block]="menuAberto()"
 >
 	<nav class="flex flex-col gap-1 p-4 pt-6" aria-label="Navegação principal">
 		@for (secao of secoes(); track secao.id) {

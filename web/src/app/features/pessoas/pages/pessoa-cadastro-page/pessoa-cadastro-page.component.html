@@ -2,54 +2,36 @@
     class="pagina-formulario"
     [class.pagina-formulario__visualizacao]="visualizacao()"
   >
-    <div class="mb-8">
-      <div class="mb-4 flex items-center gap-3">
+    <header class="mb-10">
+      <div class="flex flex-wrap items-center gap-3">
         <button
           mat-icon-button
           type="button"
-          color="primary"
           aria-label="Voltar"
           (click)="voltar()"
-          class="shrink-0"
         >
           <mat-icon>arrow_back</mat-icon>
         </button>
-
-        <div class="flex flex-wrap items-center gap-4">
-          <h1 class="text-[2rem] font-bold">
-            @if (visualizacao()) {
-              Detalhes da Pessoa
-            } @else if (modoEdicao()) {
-              Editar Pessoa
-            } @else if (ehPessoaJuridica()) {
-              Cadastro de Pessoa Jurídica
-            } @else {
-              Cadastro de Pessoa
-            }
+        <div>
+          <h1 class="m-0 text-[2.5rem] leading-tight font-bold text-[#0b3c5d]">
+            {{ titulo }}
           </h1>
-          @if (visualizacao() && registro()?.ativo !== undefined) {
-            <span
-              class="pagina-formulario__status"
-              [class.pagina-formulario__status--ativo]="registro()?.ativo"
-              [class.pagina-formulario__status--inativo]="!registro()?.ativo"
-            >
-              {{ registro()?.ativo ? 'Ativo' : 'Inativo' }}
-            </span>
-          }
-        </div>
-      </div>
 
-      @if (!visualizacao()) {
-        <p class="mt-2 text-base font-medium text-slate-500">
-          @if (modoEdicao()) {
-            Altere os dados abaixo e salve para atualizar o cadastro.
-          } @else {
-            Preencha os dados abaixo para cadastrar
-            @if (ehPessoaJuridica()) { uma nova pessoa jurídica } @else { uma nova pessoa }.
-          }
-        </p>
-      }
-    </div>
+          <p class="mt-2 text-lg font-semibold text-[#8298a9]">
+            {{ descricao }}
+          </p>
+        </div>
+        @if (registro(); as item) {
+          <span
+            class="pagina-formulario__status"
+            [class.pagina-formulario__status--ativo]="item.ativo"
+            [class.pagina-formulario__status--inativo]="!item.ativo"
+          >
+            {{ item.ativo ? 'Ativo' : 'Inativo' }}
+          </span>
+        }
+      </div>
+    </header>
 
     <form
       [formGroup]="form"

@@ -79,6 +79,35 @@ export class PessoaCadastroPageComponent {
   protected readonly buscandoCep = signal<boolean>(false);
   protected readonly registro = signal<PessoaDetalhe | null>(null);
   protected readonly modoEdicao = computed(() => !!this.id() && !this.visualizacao());
+  
+  protected get titulo(): string {
+    if (this.visualizacao()) {
+      return 'Detalhes da Pessoa';
+    }
+
+    if (this.modoEdicao()) {
+      return 'Editar Pessoa';
+    }
+
+    return this.ehPessoaJuridica()
+      ? 'Cadastro de Pessoa Jurídica'
+      : 'Cadastro de Pessoa';
+  }
+
+  protected get descricao(): string {
+    if (this.visualizacao()) {
+      return 'Visualize as informações cadastradas da pessoa.';
+    }
+
+    if (this.modoEdicao()) {
+      return 'Altere os dados abaixo e salve para atualizar o cadastro.';
+    }
+
+    return this.ehPessoaJuridica()
+      ? 'Preencha os dados para cadastrar uma nova pessoa jurídica.'
+      : 'Preencha os dados para cadastrar uma nova pessoa.';
+  }
+
 
   private ultimoCepBuscado = '';
 

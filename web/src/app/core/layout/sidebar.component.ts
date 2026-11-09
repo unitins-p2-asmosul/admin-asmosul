@@ -1,4 +1,4 @@
-import { Component, computed, effect, inject, signal } from '@angular/core';
+import {Component, computed, effect, inject, input, output, signal} from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterLink } from '@angular/router';
 import { filter, map } from 'rxjs/operators';
@@ -29,6 +29,8 @@ export interface MenuSecao {
   templateUrl: './sidebar.component.html',
 })
 export class SidebarComponent {
+  readonly menuAberto = input(false);
+  readonly aoFechar = output<void>();
   private readonly router = inject(Router);
   private readonly authService = inject(AuthService);
 
@@ -66,13 +68,6 @@ export class SidebarComponent {
         { rotulo: 'Endereços de Armazenamento', icone: 'location_on', rota: '/doacoes/enderecos' },
         { rotulo: 'Movimentações de Estoque', icone: 'swap_horiz', rota: '/doacoes/movimentacoes' },
       ],
-    },
-    {
-      id: 'capacitacoes',
-      titulo: 'Capacitações',
-      icone: 'menu_book',
-      itens: [],
-      emDefinicao: true,
     },
     {
       id: 'relatorios',
@@ -150,11 +145,22 @@ export class SidebarComponent {
   constructor() {
     effect(() => {
       const secao = this.secaoAtiva();
+
       if (!secao) {
         return;
       }
 
-      this.expandidas.update((atuais) => (atuais.has(secao) ? atuais : new Set(atuais).add(secao)));
+      this.expandidas.update(atuais =>
+        atuais.has(secao)
+          ? atuais
+          : new Set(atuais).add(secao)
+      );
+    });
+
+    // Fecha a sidebar quando ocorre uma navegação.
+    effect(() => {
+      this.urlAtual();
+      this.aoFechar.emit();
     });
   }
 

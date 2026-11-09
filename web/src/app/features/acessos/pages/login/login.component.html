@@ -4,21 +4,23 @@
   <div class="w-full max-w-md">
     <!-- Card Principal de Login -->
     <div class="rounded-3xl bg-white p-8 sm:p-10 shadow-xl border border-asmosul-borda">
-      <!-- Identificação do Sistema Asmosul -->
-      <div class="mb-8 text-center">
-        <div
-          class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-asmosul-navy text-white shadow-md"
-        >
-          <span class="material-icons text-3xl" aria-hidden="true">admin_panel_settings</span>
-        </div>
-        <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-asmosul-navy">
+      <!-- Identidade visual oficial da Asmosul -->
+      <div class="mb-8 flex flex-col items-center text-center">
+
+        <img
+          src="/logo-asmosul.png"
+          alt="Logo oficial da Associação de Moradores da Quadra 1303 Sul"
+          class="mb-4 h-36 w-36 object-contain sm:h-44 sm:w-44"
+        />
+
+        <h1 class="text-2xl font-extrabold tracking-tight text-asmosul-navy sm:text-3xl">
           ASMOSUL
         </h1>
+
         <p class="mt-1.5 text-sm font-medium text-asmosul-texto-secundario">
           Painel de Gestão e Administração
         </p>
       </div>
-
       <!-- Alerta de Erro -->
       @if (mensagemErro()) {
         <div
