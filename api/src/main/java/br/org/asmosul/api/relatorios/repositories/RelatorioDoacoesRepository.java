@@ -363,7 +363,18 @@ public interface RelatorioDoacoesRepository extends JpaRepository<Item, Long> {
           AND (:termoItem IS NULL OR LOWER(i.nome) LIKE LOWER(CONCAT('%', :termoItem, '%')))
           AND (:termoCategoria IS NULL OR LOWER(c.nome) LIKE LOWER(CONCAT('%', :termoCategoria, '%')))
         GROUP BY i.id, i.nome, c.nome, i.unidade_medida
-        ORDER BY valorTotalFinanceiro DESC
+        ORDER BY
+          CASE WHEN :sortField = 'itemNome' AND :sortDirection = 'ASC' THEN i.nome END ASC,
+          CASE WHEN :sortField = 'itemNome' AND :sortDirection = 'DESC' THEN i.nome END DESC,
+          CASE WHEN :sortField = 'categoriaNome' AND :sortDirection = 'ASC' THEN c.nome END ASC,
+          CASE WHEN :sortField = 'categoriaNome' AND :sortDirection = 'DESC' THEN c.nome END DESC,
+          CASE WHEN :sortField = 'quantidade' AND :sortDirection = 'ASC' THEN SUM(se.quantidade) END ASC,
+          CASE WHEN :sortField = 'quantidade' AND :sortDirection = 'DESC' THEN SUM(se.quantidade) END DESC,
+          CASE WHEN :sortField = 'precoUnitarioMedio' AND :sortDirection = 'ASC' THEN AVG(i.preco_unitario) END ASC,
+          CASE WHEN :sortField = 'precoUnitarioMedio' AND :sortDirection = 'DESC' THEN AVG(i.preco_unitario) END DESC,
+          CASE WHEN :sortField = 'valorTotalFinanceiro' AND :sortDirection = 'ASC' THEN SUM(se.quantidade * i.preco_unitario) END ASC,
+          CASE WHEN :sortField = 'valorTotalFinanceiro' AND :sortDirection = 'DESC' THEN SUM(se.quantidade * i.preco_unitario) END DESC,
+          i.nome ASC, i.id ASC
     """,
         countQuery = """
         SELECT COUNT(DISTINCT se.id_item)
@@ -381,6 +392,8 @@ public interface RelatorioDoacoesRepository extends JpaRepository<Item, Long> {
         @Param("dataFim") LocalDateTime dataFim,
         @Param("termoItem") String termoItem,
         @Param("termoCategoria") String termoCategoria,
+        @Param("sortField") String sortField,
+        @Param("sortDirection") String sortDirection,
         Pageable pageable
     );
 
@@ -402,7 +415,18 @@ public interface RelatorioDoacoesRepository extends JpaRepository<Item, Long> {
           AND (:termoItem IS NULL OR LOWER(i.nome) LIKE LOWER(CONCAT('%', :termoItem, '%')))
           AND (:termoCategoria IS NULL OR LOWER(c.nome) LIKE LOWER(CONCAT('%', :termoCategoria, '%')))
         GROUP BY i.id, i.nome, c.nome, i.unidade_medida
-        ORDER BY valorTotalFinanceiro DESC
+        ORDER BY
+          CASE WHEN :sortField = 'itemNome' AND :sortDirection = 'ASC' THEN i.nome END ASC,
+          CASE WHEN :sortField = 'itemNome' AND :sortDirection = 'DESC' THEN i.nome END DESC,
+          CASE WHEN :sortField = 'categoriaNome' AND :sortDirection = 'ASC' THEN c.nome END ASC,
+          CASE WHEN :sortField = 'categoriaNome' AND :sortDirection = 'DESC' THEN c.nome END DESC,
+          CASE WHEN :sortField = 'quantidade' AND :sortDirection = 'ASC' THEN SUM(ee.quantidade) END ASC,
+          CASE WHEN :sortField = 'quantidade' AND :sortDirection = 'DESC' THEN SUM(ee.quantidade) END DESC,
+          CASE WHEN :sortField = 'precoUnitarioMedio' AND :sortDirection = 'ASC' THEN AVG(i.preco_unitario) END ASC,
+          CASE WHEN :sortField = 'precoUnitarioMedio' AND :sortDirection = 'DESC' THEN AVG(i.preco_unitario) END DESC,
+          CASE WHEN :sortField = 'valorTotalFinanceiro' AND :sortDirection = 'ASC' THEN SUM(ee.quantidade * i.preco_unitario) END ASC,
+          CASE WHEN :sortField = 'valorTotalFinanceiro' AND :sortDirection = 'DESC' THEN SUM(ee.quantidade * i.preco_unitario) END DESC,
+          i.nome ASC, i.id ASC
     """,
         countQuery = """
         SELECT COUNT(DISTINCT ee.id_item)
@@ -420,6 +444,8 @@ public interface RelatorioDoacoesRepository extends JpaRepository<Item, Long> {
         @Param("dataFim") LocalDateTime dataFim,
         @Param("termoItem") String termoItem,
         @Param("termoCategoria") String termoCategoria,
+        @Param("sortField") String sortField,
+        @Param("sortDirection") String sortDirection,
         Pageable pageable
     );
 
@@ -549,7 +575,24 @@ public interface RelatorioDoacoesRepository extends JpaRepository<Item, Long> {
             OR LOWER(p.nome) LIKE LOWER(CONCAT('%', :termoBusca, '%'))
             OR LOWER(s.descricao) LIKE LOWER(CONCAT('%', :termoBusca, '%'))
           )
-        ORDER BY s.data_hora DESC
+        ORDER BY
+          CASE WHEN :sortField = 'dataHora' AND :sortDirection = 'ASC' THEN s.data_hora END ASC,
+          CASE WHEN :sortField = 'dataHora' AND :sortDirection = 'DESC' THEN s.data_hora END DESC,
+          CASE WHEN :sortField = 'itemNome' AND :sortDirection = 'ASC' THEN i.nome END ASC,
+          CASE WHEN :sortField = 'itemNome' AND :sortDirection = 'DESC' THEN i.nome END DESC,
+          CASE WHEN :sortField = 'categoriaNome' AND :sortDirection = 'ASC' THEN c.nome END ASC,
+          CASE WHEN :sortField = 'categoriaNome' AND :sortDirection = 'DESC' THEN c.nome END DESC,
+          CASE WHEN :sortField = 'quantidade' AND :sortDirection = 'ASC' THEN se.quantidade END ASC,
+          CASE WHEN :sortField = 'quantidade' AND :sortDirection = 'DESC' THEN se.quantidade END DESC,
+          CASE WHEN :sortField = 'precoUnitario' AND :sortDirection = 'ASC' THEN i.preco_unitario END ASC,
+          CASE WHEN :sortField = 'precoUnitario' AND :sortDirection = 'DESC' THEN i.preco_unitario END DESC,
+          CASE WHEN :sortField = 'valorEstimado' AND :sortDirection = 'ASC' THEN (se.quantidade * i.preco_unitario) END ASC,
+          CASE WHEN :sortField = 'valorEstimado' AND :sortDirection = 'DESC' THEN (se.quantidade * i.preco_unitario) END DESC,
+          CASE WHEN :sortField = 'localArmazenamento' AND :sortDirection = 'ASC' THEN ea.nome END ASC,
+          CASE WHEN :sortField = 'localArmazenamento' AND :sortDirection = 'DESC' THEN ea.nome END DESC,
+          CASE WHEN :sortField = 'recebedorNome' AND :sortDirection = 'ASC' THEN p.nome END ASC,
+          CASE WHEN :sortField = 'recebedorNome' AND :sortDirection = 'DESC' THEN p.nome END DESC,
+          s.data_hora DESC, se.id DESC
     """,
         countQuery = """
         SELECT COUNT(se.id)
@@ -578,6 +621,8 @@ public interface RelatorioDoacoesRepository extends JpaRepository<Item, Long> {
         @Param("localArmazenamentoId") Long localArmazenamentoId,
         @Param("categoriaItemId") Long categoriaItemId,
         @Param("termoBusca") String termoBusca,
+        @Param("sortField") String sortField,
+        @Param("sortDirection") String sortDirection,
         Pageable pageable
     );
 
@@ -683,7 +728,24 @@ public interface RelatorioDoacoesRepository extends JpaRepository<Item, Long> {
             OR LOWER(p.nome) LIKE LOWER(CONCAT('%', :termoBusca, '%'))
             OR LOWER(e.descricao) LIKE LOWER(CONCAT('%', :termoBusca, '%'))
           )
-        ORDER BY e.data_hora DESC
+        ORDER BY
+          CASE WHEN :sortField = 'dataHora' AND :sortDirection = 'ASC' THEN e.data_hora END ASC,
+          CASE WHEN :sortField = 'dataHora' AND :sortDirection = 'DESC' THEN e.data_hora END DESC,
+          CASE WHEN :sortField = 'itemNome' AND :sortDirection = 'ASC' THEN i.nome END ASC,
+          CASE WHEN :sortField = 'itemNome' AND :sortDirection = 'DESC' THEN i.nome END DESC,
+          CASE WHEN :sortField = 'categoriaNome' AND :sortDirection = 'ASC' THEN c.nome END ASC,
+          CASE WHEN :sortField = 'categoriaNome' AND :sortDirection = 'DESC' THEN c.nome END DESC,
+          CASE WHEN :sortField = 'quantidade' AND :sortDirection = 'ASC' THEN ee.quantidade END ASC,
+          CASE WHEN :sortField = 'quantidade' AND :sortDirection = 'DESC' THEN ee.quantidade END DESC,
+          CASE WHEN :sortField = 'precoUnitario' AND :sortDirection = 'ASC' THEN i.preco_unitario END ASC,
+          CASE WHEN :sortField = 'precoUnitario' AND :sortDirection = 'DESC' THEN i.preco_unitario END DESC,
+          CASE WHEN :sortField = 'valorEstimado' AND :sortDirection = 'ASC' THEN (ee.quantidade * i.preco_unitario) END ASC,
+          CASE WHEN :sortField = 'valorEstimado' AND :sortDirection = 'DESC' THEN (ee.quantidade * i.preco_unitario) END DESC,
+          CASE WHEN :sortField = 'localArmazenamento' AND :sortDirection = 'ASC' THEN ea.nome END ASC,
+          CASE WHEN :sortField = 'localArmazenamento' AND :sortDirection = 'DESC' THEN ea.nome END DESC,
+          CASE WHEN :sortField = 'doadorNome' AND :sortDirection = 'ASC' THEN p.nome END ASC,
+          CASE WHEN :sortField = 'doadorNome' AND :sortDirection = 'DESC' THEN p.nome END DESC,
+          e.data_hora DESC, ee.id DESC
     """,
         countQuery = """
         SELECT COUNT(ee.id)
@@ -712,6 +774,8 @@ public interface RelatorioDoacoesRepository extends JpaRepository<Item, Long> {
         @Param("localArmazenamentoId") Long localArmazenamentoId,
         @Param("categoriaItemId") Long categoriaItemId,
         @Param("termoBusca") String termoBusca,
+        @Param("sortField") String sortField,
+        @Param("sortDirection") String sortDirection,
         Pageable pageable
     );
 
