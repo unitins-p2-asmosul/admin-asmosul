@@ -386,6 +386,11 @@ export class PessoaCadastroPageComponent {
         this.categorias.update((itens) => mesclarRelacionados(itens, pessoa.categorias));
         const ehPessoaJuridica = pessoa.tipoPessoa.codigo === TipoPessoaCodigo.JURIDICA;
         this.form.controls.ehPessoaJuridica.setValue(ehPessoaJuridica);
+        if (!somenteLeitura) {
+          this.form.controls.ehPessoaJuridica.disable({
+            emitEvent: false,
+          });
+        }
         this.form.patchValue({
           nome: pessoa.nome,
           cpfCnpj: pessoa.cpfCnpj,
@@ -423,7 +428,6 @@ export class PessoaCadastroPageComponent {
 
     const requisicao: PessoaRequisicao = {
       nome: valores.nome.trim(),
-      dataNascimento: valores.dataNascimento.replace(/\//g, '-'),
       cpfCnpj: somenteDigitos(valores.cpfCnpj),
       tipoPessoa: ehJuridica ? TipoPessoaCodigo.JURIDICA : TipoPessoaCodigo.FISICA,
       telefone: somenteDigitos(valores.telefone),
@@ -491,10 +495,25 @@ export function somenteDigitos(valor: string | null | undefined): string {
   return String(valor ?? '').replace(/\D/g, '');
 }
 
+
 function formatarDataParaCampo(valor?: string): string {
   if (!valor) return '';
-  const partes = /^(\d{4})-(\d{2})-(\d{2})/.exec(valor);
-  return partes ? `${partes[3]}/${partes[2]}/${partes[1]}` : valor;
+
+  // Formato devolvido pela API: dd-MM-yyyy
+  const formatoApi = /^(\d{2})-(\d{2})-(\d{4})$/.exec(valor);
+
+  if (formatoApi) {
+    return `${formatoApi[1]}/${formatoApi[2]}/${formatoApi[3]}`;
+  }
+
+  // Compatibilidade com formato ISO: yyyy-MM-dd
+  const formatoIso = /^(\d{4})-(\d{2})-(\d{2})$/.exec(valor);
+
+  if (formatoIso) {
+    return `${formatoIso[3]}/${formatoIso[2]}/${formatoIso[1]}`;
+  }
+
+  return valor;
 }
 
 function mesclarRelacionados(

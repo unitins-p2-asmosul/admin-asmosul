@@ -1,3 +1,4 @@
+
 package br.org.asmosul.api.pessoas.dtos;
 
 import br.org.asmosul.api.pessoas.models.Escolaridade;
@@ -8,10 +9,20 @@ import java.time.LocalDate;
 import org.springframework.format.annotation.DateTimeFormat;
 
 public record PessoaFiltroDTO(
+
         String nome,
         String cpfCnpj,
         TipoPessoa tipoPessoa,
-        @DateTimeFormat(pattern = "dd-MM-yyyy") LocalDate dataNascimento,
+
+        @DateTimeFormat(pattern = "dd-MM-yyyy")
+        LocalDate dataNascimento,
+
+        @DateTimeFormat(pattern = "dd-MM-yyyy")
+        LocalDate dataNascimentoInicio,
+
+        @DateTimeFormat(pattern = "dd-MM-yyyy")
+        LocalDate dataNascimentoFim,
+
         Sexo sexo,
         String telefone,
         String email,
@@ -24,4 +35,6 @@ public record PessoaFiltroDTO(
         Integer quantidadeCoabitantes,
         Boolean ehBeneficiario,
         Boolean ehDoador,
-        Boolean apenasInativos) {}
+        Boolean apenasInativos
+
+) {}

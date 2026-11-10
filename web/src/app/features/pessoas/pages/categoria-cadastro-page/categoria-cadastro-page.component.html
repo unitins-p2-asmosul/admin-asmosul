@@ -83,16 +83,22 @@
         <button mat-flat-button type="button" (click)="cancelar()" [disabled]="carregando()">
           Voltar
         </button>
+        
         <button
           mat-flat-button
           type="button"
-          class="acao-perigo"
-          (click)="excluir()"
+          [class.acao-perigo]="categoria()?.ativo"
+          [class.acao-primaria]="!categoria()?.ativo"
+          (click)="alternarEstado()"
           [disabled]="carregando()"
         >
-          <mat-icon>delete_outline</mat-icon>
-          Desativar
+          <mat-icon>
+            {{ categoria()?.ativo ? 'block' : 'check_circle' }}
+          </mat-icon>
+
+          {{ categoria()?.ativo ? 'Desativar' : 'Reativar' }}
         </button>
+
         <button
           mat-flat-button
           type="button"
