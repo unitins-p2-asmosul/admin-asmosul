@@ -26,13 +26,14 @@ import br.org.asmosul.api.doacoes.repositories.SaidaRepository;
 import br.org.asmosul.api.pessoas.models.Pessoa;
 import br.org.asmosul.api.pessoas.models.Uf;
 import br.org.asmosul.api.pessoas.repositories.PessoaRepository;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-@DisplayName("Relatórios de Doações - testes de integração dos sete endpoints")
+@DisplayName("Relatórios de Doações - testes de integração dos endpoints")
 class RelatorioDoacoesControllerTest extends BaseAPITest {
 
     @Autowired private CategoriaItemRepository categoriaRepository;
@@ -48,6 +49,7 @@ class RelatorioDoacoesControllerTest extends BaseAPITest {
     private CategoriaItem categoria;
     private Item arroz;
     private EnderecoArmazenamento galpao;
+    private Pessoa pessoa;
 
     @BeforeEach
     void prepararDados() {
@@ -61,7 +63,7 @@ class RelatorioDoacoesControllerTest extends BaseAPITest {
         estoqueRepository.save(new Estoque(arroz, filial, 5));
         estoqueRepository.save(new Estoque(feijao, galpao, 4));
 
-        Pessoa pessoa = pessoaRepository.save(
+        pessoa = pessoaRepository.save(
                 Pessoa.criarMinima("Doador Teste", "12345678901", br.org.asmosul.api.pessoas.models.TipoPessoa.FISICA, "63999999999"));
         Entrada entrada = entradaRepository.save(new Entrada(pessoa, LocalDateTime.now(), "Doação inicial"));
         entradaEstoqueRepository.save(new EntradaEstoque(arroz, galpao, entrada, 3));
@@ -187,5 +189,145 @@ class RelatorioDoacoesControllerTest extends BaseAPITest {
                 .andExpect(jsonPath("$.dados[0].nomeCategoria").value("Alimentos"))
                 .andExpect(jsonPath("$.dados[0].itensDistintos").value(2))
                 .andExpect(jsonPath("$.dados[0].saldoFisico").value(19));
+    }
+
+    @Test
+    @DisplayName("GET /financeiro/balanco: calcula totais em reais e status de superávit")
+    void balancoFinanceiro_retornaTotaisEStatus() throws Exception {
+        String hoje = LocalDate.now().toString();
+        mockMvc.perform(get("/relatorios/doacoes/financeiro/balanco")
+                        .param("dataInicio", hoje)
+                        .param("dataFim", hoje)
+                        .with(user("gestor").roles("GERENCIADOR_RELATORIOS")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.somatorioSaidas").value(60.0))
+                .andExpect(jsonPath("$.somatorioEntradas").value(95.0))
+                .andExpect(jsonPath("$.balancoPeriodo").value(35.0))
+                .andExpect(jsonPath("$.statusBalanco").value("Superávit"));
+    }
+
+    @Test
+    @DisplayName("GET /financeiro/balanco: período sem movimentações retorna valores zerados")
+    void balancoFinanceiro_periodoSemMovimentacao_retornaZero() throws Exception {
+        mockMvc.perform(get("/relatorios/doacoes/financeiro/balanco")
+                        .param("dataInicio", "2000-01-01")
+                        .param("dataFim", "2000-12-31")
+                        .with(user("gestor").roles("GERENCIADOR_RELATORIOS")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.somatorioSaidas").value(0.0))
+                .andExpect(jsonPath("$.somatorioEntradas").value(0.0))
+                .andExpect(jsonPath("$.balancoPeriodo").value(0.0));
+    }
+
+    @Test
+    @DisplayName("GET /financeiro/saidas: agrupa valor gasto por item, ordenado pelo maior valor")
+    void financeiroSaidas_retornaValorPorItem() throws Exception {
+        mockMvc.perform(get("/relatorios/doacoes/financeiro/saidas")
+                        .with(user("gestor").roles("GERENCIADOR_RELATORIOS")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.dados.length()").value(2))
+                .andExpect(jsonPath("$.dados[0].itemNome").value("Arroz"))
+                .andExpect(jsonPath("$.dados[0].categoriaNome").value("Alimentos"))
+                .andExpect(jsonPath("$.dados[0].quantidade").value(2))
+                .andExpect(jsonPath("$.dados[0].unidadeMedida").value("PCT"))
+                .andExpect(jsonPath("$.dados[0].precoUnitarioMedio").value(25.0))
+                .andExpect(jsonPath("$.dados[0].valorTotalFinanceiro").value(50.0))
+                .andExpect(jsonPath("$.totalElementos").value(2));
+    }
+
+    @Test
+    @DisplayName("GET /financeiro/entradas: filtra por categoria e respeita a ordenação asc")
+    void financeiroEntradas_filtraCategoriaEOrdena() throws Exception {
+        mockMvc.perform(get("/relatorios/doacoes/financeiro/entradas")
+                        .param("termoCategoria", "Alim")
+                        .param("sort", "valorTotalFinanceiro,asc")
+                        .with(user("gestor").roles("GERENCIADOR_RELATORIOS")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.dados.length()").value(2))
+                .andExpect(jsonPath("$.dados[0].itemNome").value("Feijao"))
+                .andExpect(jsonPath("$.dados[0].quantidade").value(2))
+                .andExpect(jsonPath("$.dados[0].valorTotalFinanceiro").value(20.0))
+                .andExpect(jsonPath("$.dados[1].itemNome").value("Arroz"))
+                .andExpect(jsonPath("$.dados[1].valorTotalFinanceiro").value(75.0));
+    }
+
+    @Test
+    @DisplayName("GET /entradas/resumo: retorna cartões, gráficos e Top 10 doadores")
+    void resumoEntradas_retornaCartoesGraficosERanking() throws Exception {
+        LocalDate hoje = LocalDate.now();
+        int indiceMes = hoje.getMonthValue() - 1;
+        mockMvc.perform(get("/relatorios/doacoes/entradas/resumo")
+                        .param("ano", String.valueOf(hoje.getYear()))
+                        .with(user("gestor").roles("GERENCIADOR_RELATORIOS")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.totalItensRecebidos").value(5))
+                .andExpect(jsonPath("$.valorEstimadoRecebido").value(95.0))
+                .andExpect(jsonPath("$.entradasPorMes.length()").value(12))
+                .andExpect(jsonPath("$.entradasPorMes[" + indiceMes + "].quantidade").value(5))
+                .andExpect(jsonPath("$.entradasPorAno[0].rotulo").value(String.valueOf(hoje.getYear())))
+                .andExpect(jsonPath("$.entradasPorAno[0].quantidade").value(5))
+                .andExpect(jsonPath("$.topDoadores[0].posicao").value(1))
+                .andExpect(jsonPath("$.topDoadores[0].nomeDoador").value("Doador Teste"))
+                .andExpect(jsonPath("$.topDoadores[0].totalDoacoesRealizadas").value(1))
+                .andExpect(jsonPath("$.topDoadores[0].totalItensDoados").value(5));
+    }
+
+    @Test
+    @DisplayName("GET /entradas/tabela: lista entradas discriminadas com filtro de busca")
+    void tabelaEntradas_filtraPeloTermoDeBusca() throws Exception {
+        mockMvc.perform(get("/relatorios/doacoes/entradas/tabela")
+                        .param("termoBusca", "Feij")
+                        .param("doadorId", pessoa.getId().toString())
+                        .with(user("gestor").roles("GERENCIADOR_RELATORIOS")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.dados.length()").value(1))
+                .andExpect(jsonPath("$.dados[0].itemNome").value("Feijao"))
+                .andExpect(jsonPath("$.dados[0].quantidade").value(2))
+                .andExpect(jsonPath("$.dados[0].precoUnitario").value(10.0))
+                .andExpect(jsonPath("$.dados[0].valorEstimado").value(20.0))
+                .andExpect(jsonPath("$.dados[0].localArmazenamento").value("Galpao Central"))
+                .andExpect(jsonPath("$.dados[0].doadorNome").value("Doador Teste"))
+                .andExpect(jsonPath("$.dados[0].observacao").value("Doação inicial"))
+                .andExpect(jsonPath("$.totalElementos").value(1));
+    }
+
+    @Test
+    @DisplayName("GET /saidas/resumo: retorna cartões, gráficos e rankings de recebedores")
+    void resumoSaidas_retornaCartoesGraficosERankings() throws Exception {
+        LocalDate hoje = LocalDate.now();
+        int indiceMes = hoje.getMonthValue() - 1;
+        mockMvc.perform(get("/relatorios/doacoes/saidas/resumo")
+                        .param("dataInicio", hoje.toString())
+                        .param("dataFim", hoje.toString())
+                        .with(user("gestor").roles("GERENCIADOR_RELATORIOS")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.totalItensEntregues").value(3))
+                .andExpect(jsonPath("$.valorEstimadoEntregue").value(60.0))
+                .andExpect(jsonPath("$.saidasPorMes.length()").value(12))
+                .andExpect(jsonPath("$.saidasPorMes[" + indiceMes + "].quantidade").value(3))
+                .andExpect(jsonPath("$.saidasPorAno[0].quantidade").value(3))
+                .andExpect(jsonPath("$.topMaisRecebem[0].posicao").value(1))
+                .andExpect(jsonPath("$.topMaisRecebem[0].nomeRecebedor").value("Doador Teste"))
+                .andExpect(jsonPath("$.topMaisRecebem[0].totalEntregasRecebidas").value(1))
+                .andExpect(jsonPath("$.topMaisRecebem[0].totalItensRecebidos").value(3))
+                .andExpect(jsonPath("$.topMenosRecebem").isArray());
+    }
+
+    @Test
+    @DisplayName("GET /saidas/tabela: lista saídas discriminadas e respeita a ordenação")
+    void tabelaSaidas_retornaSaidasOrdenadas() throws Exception {
+        mockMvc.perform(get("/relatorios/doacoes/saidas/tabela")
+                        .param("recebedorId", pessoa.getId().toString())
+                        .param("sort", "quantidade,desc")
+                        .with(user("gestor").roles("GERENCIADOR_RELATORIOS")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.dados.length()").value(2))
+                .andExpect(jsonPath("$.dados[0].itemNome").value("Arroz"))
+                .andExpect(jsonPath("$.dados[0].quantidade").value(2))
+                .andExpect(jsonPath("$.dados[0].valorEstimado").value(50.0))
+                .andExpect(jsonPath("$.dados[0].recebedorNome").value("Doador Teste"))
+                .andExpect(jsonPath("$.dados[0].observacao").value("Distribuição"))
+                .andExpect(jsonPath("$.dados[1].itemNome").value("Feijao"))
+                .andExpect(jsonPath("$.totalElementos").value(2));
     }
 }
