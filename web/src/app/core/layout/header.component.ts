@@ -1,17 +1,19 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, computed, inject, output } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
 import { AuthService } from "@core/auth/services/auth.service";
 
+
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [MatMenuModule, MatIconModule],
+  imports: [MatMenuModule, MatIconModule, RouterLink],
   templateUrl: './header.component.html',
 })
 export class HeaderComponent {
+  readonly aoAlternarMenu = output<void>();
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
 

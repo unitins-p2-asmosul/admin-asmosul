@@ -1,24 +1,60 @@
 <header class="app-header">
-  <h1>ASMOSUL</h1>
+
+  <div class="flex items-center gap-3">
+
+    <!-- Botão mobile -->
+    <button
+      type="button"
+      class="flex h-10 w-10 items-center justify-center rounded-lg
+             text-asmosul-navy transition hover:bg-asmosul-fundo md:hidden"
+      aria-label="Abrir ou fechar menu"
+      (click)="aoAlternarMenu.emit()"
+    >
+      <mat-icon>menu</mat-icon>
+    </button>
+
+    <!-- Logo oficial -->
+    <a
+      routerLink="/"
+      class="flex items-center"
+      aria-label="Página inicial da Asmosul"
+    >
+      <img
+        src="/logo_asmosul.png"
+        alt="Associação de Moradores da Quadra 1303 Sul"
+        class="h-12 w-12 object-contain"
+      />
+    </a>
+
+    <h1>ASMOSUL</h1>
+
+  </div>
 
   @if (usuario(); as u) {
     <div class="ml-auto">
+
       <button
         type="button"
-        class="flex cursor-pointer items-center gap-3 rounded-[10px] px-3 py-1.5 hover:bg-asmosul-fundo"
+        class="flex cursor-pointer items-center gap-3 rounded-[10px]
+               px-3 py-1.5 hover:bg-asmosul-fundo"
         [matMenuTriggerFor]="menuUsuario"
         aria-label="Menu do usuário"
       >
         <span
-          class="flex h-9 w-9 items-center justify-center rounded-full bg-asmosul-navy text-sm font-bold text-white"
+          class="flex h-9 w-9 items-center justify-center rounded-full
+                 bg-asmosul-navy text-sm font-bold text-white"
         >
           {{ iniciais() }}
         </span>
 
         <span class="hidden flex-col items-start text-left sm:flex">
-          <span class="text-sm font-semibold text-asmosul-texto">{{ u.nomeUsuario }}</span>
+          <span class="text-sm font-semibold text-asmosul-texto">
+            {{ u.nomeUsuario }}
+          </span>
+
           <span class="text-xs text-asmosul-cinza">
-            {{ perfis().length }} {{ perfis().length === 1 ? 'perfil' : 'perfis' }}
+            {{ perfis().length }}
+            {{ perfis().length === 1 ? 'perfil' : 'perfis' }}
           </span>
         </span>
 
@@ -26,16 +62,24 @@
       </button>
 
       <mat-menu #menuUsuario="matMenu" xPosition="before">
+
         <div class="min-w-60 border-b border-asmosul-borda px-4 py-3">
-          <p class="m-0 text-sm font-semibold text-asmosul-navy">{{ u.nomeUsuario }}</p>
+          <p class="m-0 text-sm font-semibold text-asmosul-navy">
+            {{ u.nomeUsuario }}
+          </p>
 
           <ul class="m-0 mt-2 flex list-none flex-wrap gap-1 p-0">
             @for (perfil of perfis(); track perfil) {
-              <li class="rounded-full bg-asmosul-fundo px-2 py-0.5 text-xs text-asmosul-texto-secundario">
+              <li
+                class="rounded-full bg-asmosul-fundo px-2 py-0.5
+                       text-xs text-asmosul-texto-secundario"
+              >
                 {{ perfil }}
               </li>
             } @empty {
-              <li class="text-xs text-asmosul-cinza">Sem perfis atribuídos</li>
+              <li class="text-xs text-asmosul-cinza">
+                Sem perfis atribuídos
+              </li>
             }
           </ul>
         </div>
@@ -44,7 +88,9 @@
           <mat-icon>logout</mat-icon>
           <span>Sair</span>
         </button>
+
       </mat-menu>
     </div>
   }
+
 </header>

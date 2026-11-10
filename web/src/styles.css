@@ -126,6 +126,23 @@ html, body {
   --mat-button-filled-label-text-color: #ffffff;
 }
 
+/* Botão secundário/neutro */
+.pagina-formulario button.acao-secundaria {
+  --mat-button-filled-container-color: var(--color-asmosul-acao-secundaria);
+  --mat-button-filled-label-text-color: var(--color-asmosul-navy);
+  box-shadow: none;
+}
+
+/* Ícones dentro dos botões dos formulários */
+.pagina-formulario button[mat-flat-button] mat-icon {
+  width: 20px;
+  height: 20px;
+  font-size: 20px;
+  line-height: 20px;
+  margin-right: 6px;
+  vertical-align: middle;
+}
+
 .pagina-formulario button.acao-perigo {
   --mat-button-filled-container-color: var(--color-asmosul-perigo);
   --mat-button-filled-label-text-color: #ffffff;
@@ -305,14 +322,21 @@ html, body {
 }
 
 .pagina-pessoas__title-icon {
+  flex: 0 0 42px;
+  overflow: hidden;
+}
+
+.pagina-pessoas__title-icon .mat-icon {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 42px;
-  height: 42px;
-  border-radius: 10px;
-  background: #1b3d5b;
-  color: #fff;
+
+  width: 24px;
+  height: 24px;
+
+  font-size: 24px;
+  line-height: 24px;
+  flex-shrink: 0;
 }
 
 .pagina-pessoas__title-icon .material-icons {
@@ -1179,5 +1203,45 @@ app-botoes-exportacao {
   .pagina-home__guia {
     flex-direction: row;
     align-items: center;
+  }
+}
+
+/* Ajustes responsivos do cabeçalho */
+@media (max-width: 767px) {
+  .app-header {
+    padding: 0 16px;
+    gap: 12px;
+  }
+
+  .app-header h1 {
+    font-size: 18px;
+  }
+}
+
+/* Garantir que os ícones dos títulos permaneçam contidos */
+.pagina-pessoas__title-icon {
+  flex: 0 0 42px;
+  overflow: hidden;
+}
+
+.pagina-pessoas__title-icon .mat-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  font-size: 24px;
+  line-height: 24px;
+  flex-shrink: 0;
+}
+
+/* Melhor distribuição dos botões em telas pequenas */
+@media (max-width: 639px) {
+  .pagina-formulario button[mat-flat-button] {
+    width: 100%;
+  }
+
+  .pagina-formulario header {
+    gap: 12px;
   }
 }

@@ -1,18 +1,18 @@
-import { Component, input, output } from '@angular/core';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
-import { PageEvent } from '@angular/material/paginator';
-import { MatSortModule, Sort } from '@angular/material/sort';
-import { MatTableModule } from '@angular/material/table';
-import { MatTooltipModule } from '@angular/material/tooltip';
-import { ItemRelacionadoResumo, PessoaResumo, TipoPessoa} from '../../models/pessoa.model';
-import { CpfCnpjPipe } from '@features/shared/pipes/cpf-cnpj.pipe';
-import { TelefonePipe } from '@features/shared/pipes/telefone.pipe';
+import {Component, input, output} from '@angular/core';
+import {MatButtonModule} from '@angular/material/button';
+import {MatIconModule} from '@angular/material/icon';
+import {PageEvent} from '@angular/material/paginator';
+import {MatSortModule, Sort} from '@angular/material/sort';
+import {MatTableModule} from '@angular/material/table';
+import {MatTooltipModule} from '@angular/material/tooltip';
+import {ItemRelacionadoResumo, PessoaResumo, TipoPessoaCodigo} from '../../models/pessoa.model';
+import {CpfCnpjPipe} from '@features/shared/pipes/cpf-cnpj.pipe';
+import {TelefonePipe} from '@features/shared/pipes/telefone.pipe';
 import {
   ColunaExportacao,
   SolicitacaoExportacao,
 } from '@features/shared/models/exportacao.model';
-import { filtrarColunasExibidas } from '@features/shared/utils/colunas-tabela';
+import {filtrarColunasExibidas} from '@features/shared/utils/colunas-tabela';
 
 export interface AlternarEstadoPessoaEvento {
   id: number;
@@ -50,10 +50,10 @@ export class PessoaTabelaComponent {
   readonly aoExportar = output<SolicitacaoExportacao<PessoaResumo>>();
 
   readonly colunasExportaveis: ColunaExportacao<PessoaResumo>[] = [
-    { id: 'indice', titulo: '#', valor: (item) => item.id },
-    { id: 'nome', titulo: 'Nome', valor: (item) => item.nome },
-    { id: 'cpf', titulo: 'CPF/CNPJ', valor: (item) => item.cpfCnpj },
-    { id: 'telefone', titulo: 'Telefone', valor: (item) => item.telefone },
+    {id: 'indice', titulo: '#', valor: (item) => item.id},
+    {id: 'nome', titulo: 'Nome', valor: (item) => item.nome},
+    {id: 'cpf', titulo: 'CPF/CNPJ', valor: (item) => item.cpfCnpj},
+    {id: 'telefone', titulo: 'Telefone', valor: (item) => item.telefone},
     {
       id: 'tipoPessoa',
       titulo: 'Tipo de pessoa',
@@ -64,15 +64,15 @@ export class PessoaTabelaComponent {
       titulo: 'Data de nascimento',
       valor: (item) => this.formatarDataNascimento(item.dataNascimento),
     },
-    { id: 'email', titulo: 'E-mail', valor: (item) => item.email || '-' },
-    { id: 'sexo', titulo: 'Sexo', valor: (item) => item.sexo?.descricao || '-' },
+    {id: 'email', titulo: 'E-mail', valor: (item) => item.email || '-'},
+    {id: 'sexo', titulo: 'Sexo', valor: (item) => item.sexo?.descricao || '-'},
     {
       id: 'escolaridade',
       titulo: 'Escolaridade',
       valor: (item) => item.escolaridade?.descricao || '-',
     },
-    { id: 'profissao', titulo: 'Profissão', valor: (item) => item.profissao || '-' },
-    { id: 'bairro', titulo: 'Bairro', valor: (item) => item.bairro || '-' },
+    {id: 'profissao', titulo: 'Profissão', valor: (item) => item.profissao || '-'},
+    {id: 'bairro', titulo: 'Bairro', valor: (item) => item.bairro || '-'},
     {
       id: 'rendaFamiliar',
       titulo: 'Renda familiar',
@@ -104,7 +104,7 @@ export class PessoaTabelaComponent {
       titulo: 'Doador?',
       valor: (item) => (item.ehDoador === undefined ? 'Não se aplica' : item.ehDoador ? 'Sim' : 'Não'),
     },
-    { id: 'status', titulo: 'Status', valor: (item) => (item.ativo ? 'Ativo' : 'Inativo') },
+    {id: 'status', titulo: 'Status', valor: (item) => (item.ativo ? 'Ativo' : 'Inativo')},
   ];
 
   private readonly colunasExibidasPadrao = [
@@ -149,7 +149,7 @@ export class PessoaTabelaComponent {
     const colunas = this.colunasExportaveis.filter((coluna) =>
       solicitacao.idsColunas.includes(coluna.id),
     );
-    this.aoExportar.emit({ formato: solicitacao.formato, colunas });
+    this.aoExportar.emit({formato: solicitacao.formato, colunas});
   }
 
   protected get totalPaginas(): number {
@@ -157,7 +157,7 @@ export class PessoaTabelaComponent {
   }
 
   protected get paginas(): number[] {
-    return Array.from({ length: this.totalPaginas }, (_, indice) => indice);
+    return Array.from({length: this.totalPaginas}, (_, indice) => indice);
   }
 
   protected mudarPagina(pagina: number): void {
@@ -195,7 +195,7 @@ export class PessoaTabelaComponent {
   protected ehPessoaJuridica(item: PessoaResumo): boolean {
     const documento = (item.cpfCnpj ?? '').replace(/\D/g, '');
 
-    return item.tipoPessoa === TipoPessoa.JURIDICA
+    return item.tipoPessoa?.codigo === TipoPessoaCodigo.JURIDICA
       || documento.length === 14;
   }
 

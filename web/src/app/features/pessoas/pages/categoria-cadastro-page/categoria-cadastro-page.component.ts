@@ -52,6 +52,16 @@ export class CategoriaCadastroPageComponent {
     return this.visualizacao() ? 'Detalhes da Categoria' : this.modoEdicao ? 'Atualização de Categoria' : 'Cadastro de Categoria';
   }
 
+  protected get descricao(): string {
+    if (this.visualizacao()) {
+      return 'Consulte os dados desta categoria.';
+    }
+
+    return this.modoEdicao
+      ? 'Atualize os dados cadastrais da categoria.'
+      : 'Preencha os campos para cadastrar uma nova categoria.';
+  }
+
   protected salvar(): void {
     if (this.form.invalid) {
       this.form.markAllAsTouched();

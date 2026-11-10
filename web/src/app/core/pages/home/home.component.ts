@@ -55,6 +55,7 @@ const MODULOS: ModuloHome[] = [
     rotuloAcao: 'Acessar Relatórios',
     variante: 'relatorios',
     perfil: Perfil.GERENCIADOR_RELATORIOS,
+    rota: 'relatorios/pessoas'
   },
   {
     id: 'acesso',

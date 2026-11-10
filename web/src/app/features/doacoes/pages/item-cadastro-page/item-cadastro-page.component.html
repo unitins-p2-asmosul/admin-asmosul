@@ -210,9 +210,11 @@
         <button
           mat-flat-button
           type="button"
-          class="!min-w-40 !bg-[#0b3c5d] !text-white"
+          class="acao-secundaria !min-w-40"
           (click)="voltar()"
+          [disabled]="carregando()"
         >
+          <mat-icon>close</mat-icon>
           Cancelar
         </button>
         <button

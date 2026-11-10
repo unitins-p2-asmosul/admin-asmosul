@@ -17,7 +17,7 @@ import { PessoaService } from '../../services/pessoa.service';
 import { CategoriaService } from '../../services/categoria.service';
 import { ComorbidadeService } from '../../services/comorbidade.service';
 import { NotificacaoService } from '@features/shared/services/notificacao.service';
-import { TipoPessoa } from '../../models/pessoa.model';
+import { TipoPessoaCodigo } from '../../models/pessoa.model';
 import { FormControl } from '@angular/forms';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 
@@ -110,7 +110,7 @@ describe('PessoaFormPageComponent', () => {
         id: 7,
         nome: 'Maria da Silva',
         cpfCnpj: '52998224725',
-        tipoPessoa: TipoPessoa.FISICA,
+        tipoPessoa: TipoPessoaCodigo.FISICA,
         dataNascimento: '1995-08-19',
         telefone: '63999998888',
         ativo: true,
@@ -193,7 +193,7 @@ describe('PessoaFormPageComponent', () => {
       expect.objectContaining({
         nome: 'Maria da Silva',
         cpfCnpj: '52998224725',
-        tipoPessoa: TipoPessoa.FISICA,
+        tipoPessoa: TipoPessoaCodigo.FISICA,
         dataNascimento: '19-08-1995',
         telefone: '63999998888',
         ehBeneficiario: true,
@@ -218,7 +218,7 @@ describe('PessoaFormPageComponent', () => {
       expect.objectContaining({
         nome: 'Empresa Teste Ltda',
         cpfCnpj: '12345678000195',
-        tipoPessoa: TipoPessoa.JURIDICA,
+        tipoPessoa: TipoPessoaCodigo.JURIDICA,
         telefone: '63988887777',
         ehBeneficiario: false,
         ehDoador: true,
