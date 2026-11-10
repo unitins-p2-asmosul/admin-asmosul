@@ -6,6 +6,8 @@ import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/materia
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
+import { CategoriaService } from '../../services/categoria.service';
+import { ComorbidadeService } from '../../services/comorbidade.service';
 import {
   ESCOLARIDADE_OPCOES,
   RENDA_FAMILIAR_OPCOES,
@@ -36,6 +38,30 @@ import { PessoaService } from '../../services/pessoa.service';
     <mat-dialog-content class="pessoa-filtro__content">
       <form [formGroup]="form" class="pessoa-filtro__form grid gap-4 sm:grid-cols-2">
         <h3 class="pessoa-filtro__section-title sm:col-span-2">Identificação</h3>
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>Data de Nascimento Mínima</mat-label>
+
+          <input
+            matInput
+            type="date"
+            formControlName="dataNascimentoInicio"
+          />
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>Data de Nascimento Final</mat-label>
+
+          <input
+            matInput
+            type="date"
+            formControlName="dataNascimentoFim"
+          />
+
+          @if (form.controls.dataNascimentoFim.hasError('intervaloInvalido')) {
+            <mat-error>
+              A data final não pode ser anterior à data inicial.
+            </mat-error>
+          }
+        </mat-form-field>
         <mat-form-field appearance="outline" class="w-full">
           <mat-label>Nome</mat-label>
           <input matInput formControlName="nome" />
@@ -172,12 +198,14 @@ import { PessoaService } from '../../services/pessoa.service';
 })
 export class PessoaFiltroDialogComponent {
   private readonly fb = inject(NonNullableFormBuilder);
-  private readonly pessoaService = inject(PessoaService);
+  private readonly categoriaService = inject(CategoriaService);
+  private readonly comorbidadeService = inject(ComorbidadeService);
   private readonly dialogRef = inject(
     MatDialogRef<PessoaFiltroDialogComponent, PessoaFiltros>,
   );
   private readonly filtrosAtuais = inject<PessoaFiltros>(MAT_DIALOG_DATA, { optional: true });
 
+  
   protected readonly sexoOpcoes = SEXO_OPCOES;
   protected readonly escolaridadeOpcoes = ESCOLARIDADE_OPCOES;
   protected readonly rendaFamiliarOpcoes = RENDA_FAMILIAR_OPCOES;
@@ -189,6 +217,8 @@ export class PessoaFiltroDialogComponent {
     cpfCnpj: [this.filtrosAtuais?.cpfCnpj ?? ''],
     tipoPessoa: [this.filtrosAtuais?.tipoPessoa ?? ''],
     dataNascimento: [this.filtrosAtuais?.dataNascimento ?? ''],
+    dataNascimentoInicio: [this.filtrosAtuais?.dataNascimentoInicio ?? '',],
+    dataNascimentoFim: [this.filtrosAtuais?.dataNascimentoFim ?? '',],
     sexo: [this.filtrosAtuais?.sexo ?? ''],
     telefone: [this.filtrosAtuais?.telefone ?? ''],
     email: [this.filtrosAtuais?.email ?? ''],
@@ -205,17 +235,43 @@ export class PessoaFiltroDialogComponent {
   });
 
   constructor() {
-    this.pessoaService.listarComorbidades().subscribe((itens) => this.comorbidades.set(itens));
-    this.pessoaService.listarCategorias().subscribe((itens) => this.categorias.set(itens));
+    this.comorbidadeService.listarTodas(false).subscribe({
+      next: (itens) => {
+        this.comorbidades.set(
+          itens.map(({ id, nome }) => ({ id, nome }))
+        );
+      },
+    });
+
+    this.categoriaService.listarTodas(false).subscribe({
+      next: (itens) => {
+        this.categorias.set(
+          itens.map(({ id, nome }) => ({ id, nome }))
+        );
+      },
+    });
   }
 
   protected aplicar(): void {
     const valores = this.form.getRawValue();
+    if (
+      valores.dataNascimentoInicio &&
+      valores.dataNascimentoFim &&
+      valores.dataNascimentoInicio > valores.dataNascimentoFim
+    ) {
+      this.form.controls.dataNascimentoFim.setErrors({
+        intervaloInvalido: true,
+      });
+
+      return;
+    }
     this.dialogRef.close({
       nome: valores.nome.trim() || undefined,
       cpfCnpj: valores.cpfCnpj.trim() || undefined,
       tipoPessoa: valores.tipoPessoa || undefined,
       dataNascimento: valores.dataNascimento.trim() || undefined,
+      dataNascimentoInicio: valores.dataNascimentoInicio || undefined,
+      dataNascimentoFim: valores.dataNascimentoFim || undefined,
       sexo: valores.sexo || undefined,
       telefone: valores.telefone.trim() || undefined,
       email: valores.email.trim() || undefined,

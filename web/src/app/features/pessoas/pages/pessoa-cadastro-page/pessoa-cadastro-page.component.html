@@ -65,9 +65,17 @@
           }
         </h2>
 
-        <mat-checkbox id="ehPessoaJuridica" formControlName="ehPessoaJuridica" color="primary">
-          <span class="text-sm font-semibold text-gray-700">Pessoa Jurídica</span>
-        </mat-checkbox>
+        @if (!modoEdicao() && !visualizacao()) {
+          <mat-checkbox
+            id="ehPessoaJuridica"
+            formControlName="ehPessoaJuridica"
+            color="primary"
+          >
+            <span class="text-sm font-semibold text-gray-700">
+              Pessoa Jurídica
+            </span>
+          </mat-checkbox>
+        }
       </div>
 
       <div class="grid grid-cols-1 gap-x-8 md:grid-cols-2">

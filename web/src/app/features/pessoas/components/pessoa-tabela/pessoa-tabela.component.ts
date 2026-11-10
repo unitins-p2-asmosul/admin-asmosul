@@ -62,7 +62,7 @@ export class PessoaTabelaComponent {
     {
       id: 'dataNascimento',
       titulo: 'Data de nascimento',
-      valor: (item) => item.dataNascimento?.replace('-', '/') ?? 'Não se aplica',
+      valor: (item) => this.formatarDataNascimento(item.dataNascimento),
     },
     { id: 'email', titulo: 'E-mail', valor: (item) => item.email || '-' },
     { id: 'sexo', titulo: 'Sexo', valor: (item) => item.sexo?.descricao || '-' },
@@ -205,5 +205,27 @@ export class PessoaTabelaComponent {
     }
 
     return itens.map((item) => item.nome).join(', ');
+  }
+  
+  protected formatarDataNascimento(valor?: string): string {
+    if (!valor) {
+      return 'Não se aplica';
+    }
+
+    // dd-MM-yyyy
+    const formatoApi = /^(\d{2})-(\d{2})-(\d{4})$/.exec(valor);
+
+    if (formatoApi) {
+      return `${formatoApi[1]}/${formatoApi[2]}/${formatoApi[3]}`;
+    }
+
+    // yyyy-MM-dd
+    const formatoIso = /^(\d{4})-(\d{2})-(\d{2})$/.exec(valor);
+
+    if (formatoIso) {
+      return `${formatoIso[3]}/${formatoIso[2]}/${formatoIso[1]}`;
+    }
+
+    return valor;
   }
 }

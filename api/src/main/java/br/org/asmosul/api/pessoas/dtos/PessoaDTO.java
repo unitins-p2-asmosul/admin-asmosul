@@ -1,3 +1,4 @@
+
 package br.org.asmosul.api.pessoas.dtos;
 
 import br.org.asmosul.api.pessoas.models.*;
@@ -152,16 +153,8 @@ public final class PessoaDTO {
                     pessoa.getProfissao(),
                     pessoa.getBairro(),
                     pessoa.getRendaFamiliar(),
-                    pessoa.getComorbidades() != null
-                            ? pessoa.getComorbidades().stream()
-                                    .map(ComorbidadeDTO.Resumo::deEntidade)
-                                    .toList()
-                            : List.of(),
-                    pessoa.getCategorias() != null
-                            ? pessoa.getCategorias().stream()
-                                    .map(CategoriaDTO.Resumo::deEntidade)
-                                    .toList()
-                            : List.of(),
+                    comorbidadesAtivas(pessoa),
+                    categoriasAtivas(pessoa),
                     pessoa.getQuantidadeCoabitantes() != null
                             ? pessoa.getQuantidadeCoabitantes()
                             : 0,
@@ -221,18 +214,32 @@ public final class PessoaDTO {
                             : 0,
                     pessoa.isEhBeneficiario(),
                     pessoa.isEhDoador(),
-                    pessoa.getComorbidades() != null
-                            ? pessoa.getComorbidades().stream()
-                                    .map(ComorbidadeDTO.Resumo::deEntidade)
-                                    .toList()
-                            : List.of(),
-                    pessoa.getCategorias() != null
-                            ? pessoa.getCategorias().stream()
-                                    .map(CategoriaDTO.Resumo::deEntidade)
-                                    .toList()
-                            : List.of(),
+                    comorbidadesAtivas(pessoa),
+                    categoriasAtivas(pessoa),
                     pessoa.getDescricao(),
                     pessoa.isAtivo());
         }
+    }
+
+    private static List<ComorbidadeDTO.Resumo> comorbidadesAtivas(Pessoa pessoa) {
+        if (pessoa.getComorbidades() == null) {
+            return List.of();
+        }
+
+        return pessoa.getComorbidades().stream()
+                .filter(Comorbidade::isAtivo)
+                .map(ComorbidadeDTO.Resumo::deEntidade)
+                .toList();
+    }
+
+    private static List<CategoriaDTO.Resumo> categoriasAtivas(Pessoa pessoa) {
+        if (pessoa.getCategorias() == null) {
+            return List.of();
+        }
+
+        return pessoa.getCategorias().stream()
+                .filter(Categoria::isAtivo)
+                .map(CategoriaDTO.Resumo::deEntidade)
+                .toList();
     }
 }

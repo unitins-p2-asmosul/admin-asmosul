@@ -71,7 +71,7 @@
       <ng-container matColumnDef="dataNascimento">
         <th mat-header-cell *matHeaderCellDef>Data<br />Nasc.</th>
         <td mat-cell *matCellDef="let item" class="pessoa-table__texto">
-          {{ item.dataNascimento ? item.dataNascimento.replace('-', '/') : 'Não se aplica' }}
+          {{ formatarDataNascimento(item.dataNascimento) }}
         </td>
       </ng-container>
 
