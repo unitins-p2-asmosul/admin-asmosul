@@ -99,14 +99,6 @@ export class CategoriaCadastroPageComponent {
     if (!confirmou || !this.id()) return;
 
     this.carregando.set(true);
-    this.categoriaService.excluir(Number(this.id())).subscribe({
-      next: () => {
-        this.notificacaoService.sucesso('Categoria excluída com sucesso!');
-        this.location.back();
-      },
-      error: (erro: HttpErrorResponse) => this.tratarErro(erro),
-      complete: () => this.carregando.set(false),
-    });
   }
 
   private carregar(id: number): void {

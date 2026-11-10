@@ -33,7 +33,6 @@ import {
   RendaFamiliarCodigo,
   SEXO_OPCOES,
   SexoCodigo,
-  TipoPessoa,
   TipoPessoaCodigo,
   UF_OPCOES,
   UfCodigo,
@@ -79,7 +78,7 @@ export class PessoaCadastroPageComponent {
   protected readonly buscandoCep = signal<boolean>(false);
   protected readonly registro = signal<PessoaDetalhe | null>(null);
   protected readonly modoEdicao = computed(() => !!this.id() && !this.visualizacao());
-  
+
   protected get titulo(): string {
     if (this.visualizacao()) {
       return 'Detalhes da Pessoa';
@@ -368,11 +367,6 @@ export class PessoaCadastroPageComponent {
         this.comorbidades.set(
           mesclarRelacionados(itens.map((i) => ({ id: i.id, nome: i.nome })), this.registro()?.comorbidades),
         ),
-      error: () => {
-        this.pessoaService.listarComorbidades().subscribe({
-          next: (itens) => this.comorbidades.set(itens),
-        });
-      },
     });
 
     this.categoriaService.listarTodas(false).subscribe({
@@ -380,11 +374,6 @@ export class PessoaCadastroPageComponent {
         this.categorias.set(
           mesclarRelacionados(itens.map((i) => ({ id: i.id, nome: i.nome })), this.registro()?.categorias),
         ),
-      error: () => {
-        this.pessoaService.listarCategorias().subscribe({
-          next: (itens) => this.categorias.set(itens),
-        });
-      },
     });
   }
 
@@ -395,7 +384,7 @@ export class PessoaCadastroPageComponent {
         this.registro.set(pessoa);
         this.comorbidades.update((itens) => mesclarRelacionados(itens, pessoa.comorbidades));
         this.categorias.update((itens) => mesclarRelacionados(itens, pessoa.categorias));
-        const ehPessoaJuridica = pessoa.tipoPessoa === TipoPessoa.JURIDICA;
+        const ehPessoaJuridica = pessoa.tipoPessoa.codigo === TipoPessoaCodigo.JURIDICA;
         this.form.controls.ehPessoaJuridica.setValue(ehPessoaJuridica);
         this.form.patchValue({
           nome: pessoa.nome,

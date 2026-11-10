@@ -204,11 +204,6 @@ export class PessoaFiltroDialogComponent {
     apenasInativos: [this.filtrosAtuais?.apenasInativos ?? false],
   });
 
-  constructor() {
-    this.pessoaService.listarComorbidades().subscribe((itens) => this.comorbidades.set(itens));
-    this.pessoaService.listarCategorias().subscribe((itens) => this.categorias.set(itens));
-  }
-
   protected aplicar(): void {
     const valores = this.form.getRawValue();
     this.dialogRef.close({
