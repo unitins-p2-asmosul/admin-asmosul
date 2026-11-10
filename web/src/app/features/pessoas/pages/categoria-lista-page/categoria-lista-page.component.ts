@@ -2,13 +2,21 @@ import { Component, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { MatDialog } from '@angular/material/dialog';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
 import { catchError, finalize, map, of, switchMap, tap } from 'rxjs';
 import { DialogoConfirmacaoService } from '@features/shared/services/dialogo-confirmacao.service';
 import { NotificacaoService } from '@features/shared/services/notificacao.service';
 import { ExportacaoService } from '@features/shared/services/exportacao.service';
 import { SolicitacaoExportacao } from '@features/shared/models/exportacao.model';
-import { CategoriaFiltroData, CategoriaFiltroDialogComponent } from '../../components/categoria-filtro-dialog/categoria-filtro-dialog.component';
-import { AlternarEstadoCategoriaEvento, CategoriaTabelaComponent } from '../../components/categoria-tabela/categoria-tabela.component';
+import {
+  CategoriaFiltroData,
+  CategoriaFiltroDialogComponent,
+} from '../../components/categoria-filtro-dialog/categoria-filtro-dialog.component';
+import {
+  AlternarEstadoCategoriaEvento,
+  CategoriaTabelaComponent,
+} from '../../components/categoria-tabela/categoria-tabela.component';
 import { CategoriaConsultaParametros, CategoriaResumo } from '../../models/categoria.model';
 import { CategoriaService } from '../../services/categoria.service';
 import { PaginaGerenciamentoComponent } from '@features/shared/components/pagina-gerenciamento/pagina-gerenciamento.component';
@@ -17,7 +25,13 @@ import { ControlesExportacaoComponent } from '@features/shared/components/contro
 @Component({
   selector: 'app-categoria-lista-page',
   standalone: true,
-  imports: [PaginaGerenciamentoComponent, CategoriaTabelaComponent, ControlesExportacaoComponent],
+  imports: [
+    PaginaGerenciamentoComponent,
+    CategoriaTabelaComponent,
+    ControlesExportacaoComponent,
+    MatButtonModule,
+    MatIconModule,
+  ],
   templateUrl: './categoria-lista-page.component.html',
 })
 export class CategoriaListaPageComponent {
@@ -32,20 +46,23 @@ export class CategoriaListaPageComponent {
 
   protected readonly carregando = signal(false);
   private readonly parametros$ = this.route.queryParams.pipe(
-    map(
-      (params): CategoriaConsultaParametros => ({
-        page: params['page'] ? Number(params['page']) : 0,
-        size: 20,
-        sort: params['sort'] || 'nome,asc',
-        incluirInativos: params['incluirInativos'] === 'true',
-        apenasDesativados: params['apenasDesativados'] === 'true',
-        nome: params['nome'] || undefined,
-      }),
-    ),
+    map((params): CategoriaConsultaParametros => ({
+      page: params['page'] ? Number(params['page']) : 0,
+      size: 20,
+      sort: params['sort'] || 'nome,asc',
+      incluirInativos: params['incluirInativos'] === 'true',
+      nome: params['nome'] || undefined,
+    })),
   );
 
   protected readonly parametrosAtuais = toSignal(this.parametros$, {
-    initialValue: { page: 0, size: 20, sort: 'nome,asc', incluirInativos: false, apenasDesativados: false },
+    initialValue: {
+      page: 0,
+      size: 20,
+      sort: 'nome,asc',
+      incluirInativos: false,
+      nome: undefined,
+    },
   });
   protected readonly resposta = toSignal(
     this.parametros$.pipe(
@@ -53,13 +70,27 @@ export class CategoriaListaPageComponent {
       switchMap((parametros) =>
         this.categoriaService.listar(parametros).pipe(
           catchError(() =>
-            of({ dados: [], paginaAtual: 0, tamanhoPagina: parametros.size, totalElementos: 0, totalPaginas: 0 }),
+            of({
+              dados: [],
+              paginaAtual: 0,
+              tamanhoPagina: parametros.size,
+              totalElementos: 0,
+              totalPaginas: 0,
+            }),
           ),
           finalize(() => this.carregando.set(false)),
         ),
       ),
     ),
-    { initialValue: { dados: [], paginaAtual: 0, tamanhoPagina: 20, totalElementos: 0, totalPaginas: 0 } },
+    {
+      initialValue: {
+        dados: [],
+        paginaAtual: 0,
+        tamanhoPagina: 20,
+        totalElementos: 0,
+        totalPaginas: 0,
+      },
+    },
   );
 
   protected adicionar(): void {
@@ -86,23 +117,33 @@ export class CategoriaListaPageComponent {
   protected abrirFiltros(): void {
     const parametros = this.parametrosAtuais();
     this.dialog
-      .open<CategoriaFiltroDialogComponent, CategoriaFiltroData, CategoriaFiltroData>(CategoriaFiltroDialogComponent, {
-        width: '740px',
-        maxWidth: 'calc(100vw - 32px)',
-        panelClass: 'categoria-filtro-dialog',
-        data: parametros,
-      })
+      .open<CategoriaFiltroDialogComponent, CategoriaFiltroData, CategoriaFiltroData>(
+        CategoriaFiltroDialogComponent,
+        {
+          width: '740px',
+          maxWidth: 'calc(100vw - 32px)',
+          panelClass: 'categoria-filtro-dialog',
+          data: { nome: parametros.nome },
+        },
+      )
       .afterClosed()
       .subscribe((filtros) => {
         if (filtros) {
           this.atualizarUrl({
             page: 0,
             nome: filtros.nome?.trim() || null,
-            incluirInativos: filtros.apenasDesativados ? 'true' : null,
-            apenasDesativados: filtros.apenasDesativados ? 'true' : null,
+            apenasDesativados: null,
           });
         }
       });
+  }
+
+  protected alternarInativos(): void {
+    this.atualizarUrl({
+      page: 0,
+      incluirInativos: this.parametrosAtuais().incluirInativos ? null : 'true',
+      apenasDesativados: null,
+    });
   }
 
   protected irParaPagina(pagina: number): void {
@@ -130,7 +171,9 @@ export class CategoriaListaPageComponent {
     );
     if (!confirmou) return;
 
-    const requisicao = ativo ? this.categoriaService.reativar(id) : this.categoriaService.desativar(id);
+    const requisicao = ativo
+      ? this.categoriaService.reativar(id)
+      : this.categoriaService.desativar(id);
     requisicao.subscribe({
       next: () => {
         this.notificacao.sucesso(`Categoria ${ativo ? 'reativada' : 'desativada'} com sucesso!`);

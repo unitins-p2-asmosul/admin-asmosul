@@ -43,7 +43,6 @@ export class ComorbidadeService {
         params = params.set('incluirInativos', parametros.incluirInativos);
       }
       if (parametros.nome) params = params.set('nome', parametros.nome.trim());
-      if (parametros.apenasInativos) params = params.set('apenasInativos', true);
     }
 
     return this.http.get<RespostaPaginada<ComorbidadeResumo>>(this.endpoint, { params });
@@ -121,9 +120,7 @@ export class ComorbidadeService {
 
     let lista = this.lerMock();
 
-    if (parametros?.apenasInativos) {
-      lista = lista.filter((item) => !item.ativo);
-    } else if (!parametros?.incluirInativos) {
+    if (!parametros?.incluirInativos) {
       lista = lista.filter((item) => item.ativo);
     }
 

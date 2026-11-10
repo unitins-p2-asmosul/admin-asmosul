@@ -1,6 +1,9 @@
 import { Component, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
+import { MatIconModule } from '@angular/material/icon';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { PageEvent } from '@angular/material/paginator';
 import { Sort } from '@angular/material/sort';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -45,7 +48,14 @@ const RESPOSTA_VAZIA: RespostaPaginada<ComorbidadeResumo> = {
 @Component({
   selector: 'app-comorbidade-lista-page',
   standalone: true,
-  imports: [PaginaGerenciamentoComponent, ComorbidadeTabelaComponent, ControlesExportacaoComponent],
+  imports: [
+    PaginaGerenciamentoComponent,
+    ComorbidadeTabelaComponent,
+    ControlesExportacaoComponent,
+    MatButtonModule,
+    MatIconModule,
+    MatTooltipModule,
+  ],
   templateUrl: './comorbidade-lista-page.component.html',
 })
 export class ComorbidadeListaPageComponent {
@@ -67,7 +77,6 @@ export class ComorbidadeListaPageComponent {
       size: TAMANHO_PAGINA_PADRAO,
       sort: params['sort'] || ORDENACAO_PADRAO,
       incluirInativos: params['incluirInativos'] === 'true',
-      apenasInativos: params['apenasInativos'] === 'true',
       nome: params['nome'] || undefined,
     })),
   );
@@ -89,8 +98,7 @@ export class ComorbidadeListaPageComponent {
   protected readonly resposta = toSignal(this.resposta$, { initialValue: RESPOSTA_VAZIA });
 
   protected get filtrosAtivos(): number {
-    const { nome, apenasInativos } = this.parametrosAtuais();
-    return Number(!!nome) + Number(!!apenasInativos);
+    return Number(!!this.parametrosAtuais().nome);
   }
 
   protected irParaAdicionar(): void {
@@ -121,7 +129,7 @@ export class ComorbidadeListaPageComponent {
   }
 
   protected abrirFiltros(): void {
-    const { nome, apenasInativos } = this.parametrosAtuais();
+    const { nome } = this.parametrosAtuais();
 
     const dialogRef = this.dialog.open<
       ComorbidadeFiltroDialogComponent,
@@ -131,7 +139,7 @@ export class ComorbidadeListaPageComponent {
       width: '740px',
       maxWidth: 'calc(100vw - 32px)',
       panelClass: 'comorbidade-filtro-dialog',
-      data: { nome, apenasInativos },
+      data: { nome },
     });
 
     dialogRef.afterClosed().subscribe((filtros) => {
@@ -143,8 +151,16 @@ export class ComorbidadeListaPageComponent {
       this.atualizarUrl({
         page: 0,
         nome: filtros.nome ?? null,
-        apenasInativos: filtros.apenasInativos ? 'true' : null,
+        apenasInativos: null,
       });
+    });
+  }
+
+  protected alternarInativos(): void {
+    this.atualizarUrl({
+      page: 0,
+      incluirInativos: this.parametrosAtuais().incluirInativos ? null : 'true',
+      apenasInativos: null,
     });
   }
 

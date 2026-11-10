@@ -153,6 +153,6 @@ export class ExportacaoService {
     document.body.append(link);
     link.click();
     link.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 0);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
 }

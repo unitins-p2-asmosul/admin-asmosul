@@ -55,9 +55,7 @@ export class PessoaService {
         const correspondeBeneficiario = parametros.ehBeneficiario === undefined
           || pessoa.ehBeneficiario === parametros.ehBeneficiario;
         const correspondeDoador = parametros.ehDoador === undefined || pessoa.ehDoador === parametros.ehDoador;
-        const correspondeStatus = parametros.apenasInativos
-          ? !pessoa.ativo
-          : parametros.incluirInativos || pessoa.ativo;
+        const correspondeStatus = parametros.incluirInativos || pessoa.ativo;
 
         return correspondeNome && correspondeCpf && correspondeTipo && correspondeData
           && correspondeTelefone && correspondeEmail && correspondeProfissao && correspondeBairro
@@ -100,7 +98,6 @@ export class PessoaService {
     let params = new HttpParams().set('page', parametros.page).set('size', parametros.size);
     if (parametros.sort) params = params.set('sort', parametros.sort);
     if (parametros.incluirInativos !== undefined) params = params.set('incluirInativos', parametros.incluirInativos);
-    if (parametros.apenasInativos !== undefined) params = params.set('apenasInativos', parametros.apenasInativos);
     if (parametros.nome) params = params.set('nome', parametros.nome.trim());
     if (parametros.cpfCnpj) params = params.set('cpfCnpj', parametros.cpfCnpj.trim());
     if (parametros.tipoPessoa) params = params.set('tipoPessoa', parametros.tipoPessoa);

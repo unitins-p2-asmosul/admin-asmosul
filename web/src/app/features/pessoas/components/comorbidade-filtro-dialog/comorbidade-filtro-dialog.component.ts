@@ -1,7 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { NonNullableFormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
-import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
@@ -16,7 +15,6 @@ import { ComorbidadeFiltros } from '../../models/comorbidade.model';
     MatDialogModule,
     MatFormFieldModule,
     MatInputModule,
-    MatCheckboxModule,
     MatButtonModule,
     MatIconModule,
   ],
@@ -31,19 +29,17 @@ export class ComorbidadeFiltroDialogComponent {
 
   protected readonly form = this.fb.group({
     nome: [this.filtrosAtuais?.nome ?? ''],
-    apenasInativos: [this.filtrosAtuais?.apenasInativos ?? false],
   });
 
   protected aplicar(): void {
     const valores = this.form.getRawValue();
     this.dialogRef.close({
       nome: valores.nome.trim() || undefined,
-      apenasInativos: valores.apenasInativos || undefined,
     });
   }
 
   protected limpar(): void {
     this.form.reset();
-    this.dialogRef.close({ nome: undefined, apenasInativos: undefined });
+    this.dialogRef.close({ nome: undefined });
   }
 }

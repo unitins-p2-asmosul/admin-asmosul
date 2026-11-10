@@ -26,9 +26,7 @@ export class CategoriaService {
       const nome = parametros.nome?.trim().toLocaleLowerCase();
       const filtradas = this.categorias.filter((categoria) => {
         const correspondeNome = !nome || categoria.nome.toLocaleLowerCase().includes(nome);
-        const correspondeStatus = parametros.apenasDesativados
-          ? !categoria.ativo
-          : parametros.incluirInativos || categoria.ativo;
+        const correspondeStatus = parametros.incluirInativos || categoria.ativo;
         return correspondeNome && correspondeStatus;
       });
       const inicio = parametros.page * parametros.size;
@@ -44,8 +42,7 @@ export class CategoriaService {
     let params = new HttpParams()
       .set('page', parametros.page)
       .set('size', parametros.size)
-      .set('incluirInativos', parametros.incluirInativos ?? false)
-      .set('apenasDesativados', parametros.apenasDesativados ?? false);
+      .set('incluirInativos', parametros.incluirInativos ?? false);
     if (parametros.sort) params = params.set('sort', parametros.sort);
     if (parametros.nome) params = params.set('nome', parametros.nome.trim());
     return this.http.get<RespostaPaginada<CategoriaResumo>>(this.endpoint, { params });

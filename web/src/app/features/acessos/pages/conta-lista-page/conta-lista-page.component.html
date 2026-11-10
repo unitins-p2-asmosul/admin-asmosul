@@ -1,6 +1,6 @@
 <app-pagina-gerenciamento
   titulo="Gerenciamento de Contas"
-  icone=""
+  icone="manage_accounts"
   iconeAdicionar="person_add_alt_1"
   rotuloAdicionar="Adicionar Conta"
   [filtrosAtivos]="filtrosAtivos"
@@ -9,21 +9,18 @@
 >
   <div toolbar-actions class="flex min-w-0 flex-1 items-center gap-1">
     <button
-      mat-flat-button
+      mat-stroked-button
       type="button"
-      class="pagina-pessoas__filter conta-lista__status-toggle"
+      class="pagina-pessoas__status-toggle conta-lista__status-toggle"
+      [class.pagina-pessoas__status-toggle--ativo]="parametrosAtuais().apenasInativos"
+      [attr.aria-pressed]="parametrosAtuais().apenasInativos"
       [matTooltip]="parametrosAtuais().apenasInativos ? 'Exibir contas ativas' : 'Exibir contas inativas'"
       [attr.aria-label]="parametrosAtuais().apenasInativos ? 'Exibir contas ativas' : 'Exibir contas inativas'"
       (click)="alternarInativos()"
     >
-      <mat-icon>{{ parametrosAtuais().apenasInativos ? 'group' : 'person_off' }}</mat-icon>
-      {{ parametrosAtuais().apenasInativos ? 'Exibir contas ativas' : 'Exibir contas inativas' }}
+      <mat-icon>visibility_off</mat-icon>
+      Exibir contas inativas
     </button>
-    @if (filtrosAtivos > 0) {
-      <button mat-icon-button type="button" matTooltip="Limpar filtros" aria-label="Limpar filtros" (click)="limparFiltros()">
-        <mat-icon>filter_alt_off</mat-icon>
-      </button>
-    }
     <app-controles-exportacao
       class="min-w-0 flex-1"
       [colunas]="tabela.colunasExportaveis"

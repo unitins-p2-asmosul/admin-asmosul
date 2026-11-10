@@ -4,6 +4,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatDialogModule, MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { MatIconModule } from '@angular/material/icon';
 import { MatSelectModule } from '@angular/material/select';
 import { ContaFiltros, PERFIS_CODIGOS, PerfilCodigo, PerfilDisponivel } from '../../models/conta.model';
 import { ContaService } from '../../services/conta.service';
@@ -16,6 +17,7 @@ import { ContaService } from '../../services/conta.service';
     MatDialogModule,
     MatFormFieldModule,
     MatInputModule,
+    MatIconModule,
     MatSelectModule,
     MatButtonModule,
   ],

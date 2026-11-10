@@ -8,14 +8,12 @@ import {
   MatDialogTitle,
 } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
-import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatIconModule } from '@angular/material/icon';
 
 export interface CategoriaFiltroData {
   nome?: string;
-  apenasDesativados?: boolean;
 }
 
 @Component({
@@ -27,7 +25,6 @@ export interface CategoriaFiltroData {
     MatDialogContent,
     MatDialogActions,
     MatButtonModule,
-    MatCheckboxModule,
     MatFormFieldModule,
     MatInputModule,
     MatIconModule,
@@ -41,7 +38,6 @@ export class CategoriaFiltroDialogComponent {
 
   protected readonly form = this.fb.nonNullable.group({
     nome: [this.data?.nome ?? ''],
-    apenasDesativados: [this.data?.apenasDesativados ?? false],
   });
 
   protected aplicar(): void {
@@ -49,6 +45,6 @@ export class CategoriaFiltroDialogComponent {
   }
 
   protected limpar(): void {
-    this.dialogRef.close({ nome: '', apenasDesativados: false });
+    this.dialogRef.close({ nome: '' });
   }
 }

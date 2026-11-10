@@ -6,8 +6,30 @@
   (aoAdicionar)="irParaAdicionar()"
   (aoFiltrar)="abrirFiltros()"
 >
-  <div toolbar-actions class="flex min-w-0 flex-1 items-center">
+  <div toolbar-actions class="flex min-w-0 flex-1 items-center gap-2">
+    <button
+      mat-stroked-button
+      type="button"
+      class="pagina-pessoas__status-toggle"
+      [class.pagina-pessoas__status-toggle--ativo]="parametrosAtuais().incluirInativos"
+      [attr.aria-pressed]="parametrosAtuais().incluirInativos"
+      [matTooltip]="
+        parametrosAtuais().incluirInativos
+          ? 'Ocultar pessoas inativas'
+          : 'Exibir pessoas inativas'
+      "
+      [attr.aria-label]="
+        parametrosAtuais().incluirInativos
+          ? 'Ocultar pessoas inativas'
+          : 'Exibir pessoas inativas'
+      "
+      (click)="alternarInativos()"
+    >
+      <mat-icon>visibility_off</mat-icon>
+      Exibir inativas
+    </button>
     <app-controles-exportacao
+      class="min-w-0 flex-1"
       [colunas]="tabela.colunasExportaveis"
       chaveStorage="pessoas"
       (aoExportar)="tabela.exportar($event)"
