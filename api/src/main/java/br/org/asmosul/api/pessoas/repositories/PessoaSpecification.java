@@ -19,7 +19,7 @@ public final class PessoaSpecification {
         return (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
 
-            if (filtro != null && filtro.apenasInativos()) {
+            if (filtro != null && Boolean.TRUE.equals(filtro.apenasInativos())) {
                 predicates.add(criteriaBuilder.isNotNull(root.get("dataInativo")));
             } else if (!apenasInativos) {
                 predicates.add(criteriaBuilder.isNull(root.get("dataInativo")));
