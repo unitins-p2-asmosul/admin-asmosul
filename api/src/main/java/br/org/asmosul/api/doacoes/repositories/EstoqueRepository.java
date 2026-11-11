@@ -24,7 +24,8 @@ public interface EstoqueRepository extends JpaRepository<Estoque, Long> {
     @Query(
             "SELECT e FROM Estoque e JOIN FETCH e.item i JOIN FETCH i.categoria WHERE e.armazenamento.id = :armazenamentoId AND e.quantidade > :quantidade")
     List<Estoque> findAllByArmazenamentoIdAndQuantidadeGreaterThan(
-            @Param("armazenamentoId") Long armazenamentoId, @Param("quantidade") Integer quantidade);
+            @Param("armazenamentoId") Long armazenamentoId,
+            @Param("quantidade") Integer quantidade);
 
     default List<Estoque> findAllByEnderecoIdAndQuantidadeGreaterThan(
             Long enderecoId, Integer quantidade) {
@@ -44,4 +45,10 @@ public interface EstoqueRepository extends JpaRepository<Estoque, Long> {
             @Param("armazenamentoIds") Collection<Long> armazenamentoIds);
 
     Optional<Estoque> findByItemIdAndArmazenamentoId(Long itemId, Long armazenamentoId);
+
+    @Query(
+            "SELECT e FROM Estoque e WHERE e.armazenamento.id = :armazenamentoId AND e.item.id IN :itemIds")
+    List<Estoque> findAllByArmazenamentoIdAndItemIdIn(
+            @Param("armazenamentoId") Long armazenamentoId,
+            @Param("itemIds") Collection<Long> itemIds);
 }

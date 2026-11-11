@@ -19,6 +19,13 @@ export const DOACOES_ROUTES: Routes = [
           ),
       },
       {
+        path: 'novo',
+        loadComponent: () =>
+          import('./pages/saida-cadastro-page/saida-cadastro-page.component').then(
+            (modulo) => modulo.SaidaCadastroPageComponent,
+          ),
+      },
+      {
         path: ':id/editar',
         loadComponent: () =>
           import('./pages/saida-cadastro-page/saida-cadastro-page.component').then(
@@ -30,6 +37,47 @@ export const DOACOES_ROUTES: Routes = [
         loadComponent: () =>
           import('./pages/saida-cadastro-page/saida-cadastro-page.component').then(
             (modulo) => modulo.SaidaCadastroPageComponent,
+          ),
+        data: { visualizacao: true },
+      },
+    ],
+  },
+  {
+    path: 'kits',
+    children: [
+      {
+        path: '',
+        loadComponent: () =>
+          import('./pages/kit-gerenciamento-page/kit-gerenciamento-page.component').then(
+            (modulo) => modulo.KitGerenciamentoPageComponent,
+          ),
+      },
+      {
+        path: 'adicionar',
+        loadComponent: () =>
+          import('./pages/kit-cadastro-page/kit-cadastro-page.component').then(
+            (modulo) => modulo.KitCadastroPageComponent,
+          ),
+      },
+      {
+        path: 'novo',
+        loadComponent: () =>
+          import('./pages/kit-cadastro-page/kit-cadastro-page.component').then(
+            (modulo) => modulo.KitCadastroPageComponent,
+          ),
+      },
+      {
+        path: ':id/editar',
+        loadComponent: () =>
+          import('./pages/kit-cadastro-page/kit-cadastro-page.component').then(
+            (modulo) => modulo.KitCadastroPageComponent,
+          ),
+      },
+      {
+        path: ':id',
+        loadComponent: () =>
+          import('./pages/kit-cadastro-page/kit-cadastro-page.component').then(
+            (modulo) => modulo.KitCadastroPageComponent,
           ),
         data: { visualizacao: true },
       },

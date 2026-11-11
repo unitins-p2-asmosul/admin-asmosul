@@ -4,6 +4,7 @@ import { Component, computed, effect, inject, input, OnInit, signal } from '@ang
 import { toSignal } from '@angular/core/rxjs-interop';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
@@ -21,6 +22,10 @@ import { ErroApi, ErroCampo } from '@features/shared/models/erro-api.model';
 import { DialogoConfirmacaoService } from '@features/shared/services/dialogo-confirmacao.service';
 import { NotificacaoService } from '@features/shared/services/notificacao.service';
 import { finalize } from 'rxjs/operators';
+import {
+  KitSelecaoDialogComponent,
+  KitSelecaoDialogData,
+} from '../../components/kit-selecao-dialog/kit-selecao-dialog.component';
 import { formatarDataHoraEntrada } from '../../models/entrada.model';
 import { ItemEstoqueLocal, ItemResumo, obterSiglaUnidade } from '../../models/item.model';
 import { ItemSaidaDetalhe, SaidaDetalhe, SaidaRequisicao } from '../../models/saida.model';
@@ -45,6 +50,7 @@ export interface LinhaItemSaida {
   imports: [
     ReactiveFormsModule,
     MatButtonModule,
+    MatDialogModule,
     MatFormFieldModule,
     MatIconModule,
     MatInputModule,
@@ -97,6 +103,7 @@ export class SaidaCadastroPageComponent implements OnInit {
   private readonly pessoaService = inject(PessoaService);
   private readonly confirmacao = inject(DialogoConfirmacaoService);
   private readonly notificacao = inject(NotificacaoService);
+  private readonly dialog = inject(MatDialog);
   private readonly cpfPipe = new CpfCnpjPipe();
 
   readonly id = input<string>();
@@ -322,8 +329,7 @@ export class SaidaCadastroPageComponent implements OnInit {
       return;
     }
 
-    this.itensIncluidos.update((atuais) => [
-      ...atuais,
+    this.mesclarItensNaLista([
       {
         idItem: item.id,
         nomeItem: item.nome,
@@ -336,6 +342,42 @@ export class SaidaCadastroPageComponent implements OnInit {
 
     this.itemForm.reset({ idItem: null, quantidade: null });
     this.localSelecionado.set(null);
+  }
+
+  protected abrirDialogoKit(): void {
+    this.dialog
+      .open<KitSelecaoDialogComponent, KitSelecaoDialogData, LinhaItemSaida[] | undefined>(
+        KitSelecaoDialogComponent,
+        {
+          width: '760px',
+          maxWidth: 'calc(100vw - 32px)',
+          data: { itensJaIncluidos: this.itensIncluidos() },
+        },
+      )
+      .afterClosed()
+      .subscribe((itensDoKit) => {
+        if (!itensDoKit?.length) return;
+        this.mesclarItensNaLista(itensDoKit);
+        this.notificacao.sucesso('Itens do kit adicionados à lista de saída.');
+      });
+  }
+
+  protected mesclarItensNaLista(novosItens: LinhaItemSaida[]): void {
+    this.itensIncluidos.update((atuais) => {
+      const resultado = atuais.map((linha) => ({ ...linha }));
+      for (const novo of novosItens) {
+        const existente = resultado.find(
+          (linha) =>
+            linha.idItem === novo.idItem && linha.idArmazenamento === novo.idArmazenamento,
+        );
+        if (existente) {
+          existente.quantidade += novo.quantidade;
+        } else {
+          resultado.push({ ...novo });
+        }
+      }
+      return resultado;
+    });
   }
 
   protected removerItemIncluido(indice: number): void {
