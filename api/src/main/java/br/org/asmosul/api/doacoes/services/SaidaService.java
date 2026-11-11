@@ -21,6 +21,7 @@ import br.org.asmosul.api.pessoas.repositories.PessoaRepository;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -64,17 +65,19 @@ public class SaidaService {
     @Transactional
     public SaidaDTO.Detalhe cadastrar(SaidaDTO.Requisicao requisicao) {
         Pessoa recebedor = buscarRecebedorAtivo(requisicao.idRecebedor());
+        List<ItemSaidaConsolidado> itensConsolidados = consolidarItens(requisicao.itens());
 
         Saida saida = saidaRepository.save(requisicao.paraEntidade(recebedor));
         List<SaidaEstoque> itensSalvos = new ArrayList<>();
 
-        for (int i = 0; i < requisicao.itens().size(); i++) {
-            SaidaDTO.ItemSaidaRequisicao itemRequisicao = requisicao.itens().get(i);
+        for (ItemSaidaConsolidado itemConsolidado : itensConsolidados) {
+            SaidaDTO.ItemSaidaRequisicao itemRequisicao = itemConsolidado.item();
             Item item = buscarItemAtivo(itemRequisicao.idItem());
             EnderecoArmazenamento armazenamento =
                     buscarEnderecoAtivo(itemRequisicao.idArmazenamento());
 
-            baixarEstoque(item, armazenamento, itemRequisicao.quantidade(), i);
+            baixarEstoque(
+                    item, armazenamento, itemRequisicao.quantidade(), itemConsolidado.indice());
 
             SaidaEstoque saidaEstoque =
                     saidaEstoqueRepository.save(
@@ -105,8 +108,7 @@ public class SaidaService {
                         saida -> {
                             List<SaidaEstoque> itens =
                                     itensPorSaida.getOrDefault(saida.getId(), List.of());
-                            List<String> descricoes =
-                                    itens.stream().map(item -> item.getItem().getNome()).toList();
+                            List<String> descricoes = formatarItens(itens);
                             int quantidadeTotal =
                                     itens.stream().mapToInt(SaidaEstoque::getQuantidade).sum();
                             return SaidaDTO.Resumo.deEntidade(saida, descricoes, quantidadeTotal);
@@ -221,6 +223,83 @@ public class SaidaService {
             pessoaRepository.save(pessoa);
         }
     }
+
+    private List<ItemSaidaConsolidado> consolidarItens(
+            List<SaidaDTO.ItemSaidaRequisicao> itens) {
+        Map<ChaveItemArmazenamento, ItemSaidaConsolidado> consolidados =
+                new LinkedHashMap<>();
+        for (int i = 0; i < itens.size(); i++) {
+            SaidaDTO.ItemSaidaRequisicao item = itens.get(i);
+            ChaveItemArmazenamento chave =
+                    new ChaveItemArmazenamento(item.idItem(), item.idArmazenamento());
+            ItemSaidaConsolidado existente = consolidados.get(chave);
+            if (existente == null) {
+                consolidados.put(chave, new ItemSaidaConsolidado(item, i));
+                continue;
+            }
+
+            try {
+                consolidados.put(
+                        chave,
+                        new ItemSaidaConsolidado(
+                                new SaidaDTO.ItemSaidaRequisicao(
+                                        item.idItem(),
+                                        item.idArmazenamento(),
+                                        Math.addExact(
+                                                existente.item().quantidade(), item.quantidade())),
+                                i));
+            } catch (ArithmeticException erro) {
+                throw ValidationException.of(
+                        "itens[" + i + "].quantidade",
+                        "A quantidade total de um item excede o limite permitido.");
+            }
+        }
+        return List.copyOf(consolidados.values());
+    }
+
+    private List<String> formatarItens(List<SaidaEstoque> itens) {
+        Map<ChaveItemArmazenamento, ItemSaidaResumo> consolidados = new LinkedHashMap<>();
+        for (SaidaEstoque item : itens) {
+            ChaveItemArmazenamento chave =
+                    new ChaveItemArmazenamento(
+                            item.getItem().getId(), item.getArmazenamento().getId());
+            ItemSaidaResumo existente = consolidados.get(chave);
+            int quantidade = item.getQuantidade() != null ? item.getQuantidade() : 0;
+            consolidados.put(
+                    chave,
+                    new ItemSaidaResumo(
+                            existente != null ? existente.item() : item,
+                            (existente != null ? existente.quantidade() : 0) + quantidade));
+        }
+
+        return consolidados.values().stream()
+                .map(
+                        resumo -> {
+                            SaidaEstoque item = resumo.item();
+                            String sigla =
+                                    item.getItem().getUnidadeMedida() != null
+                                            ? item.getItem()
+                                                    .getUnidadeMedida()
+                                                    .getCodigo()
+                                                    .toLowerCase(java.util.Locale.ROOT)
+                                            : "";
+                            String quantidade =
+                                    resumo.quantidade() + (sigla.isEmpty() ? "" : " " + sigla);
+                            return quantidade
+                                    + " de "
+                                    + item.getItem().getNome()
+                                    + " ("
+                                    + item.getArmazenamento().getNome()
+                                    + ")";
+                        })
+                .toList();
+    }
+
+    private record ChaveItemArmazenamento(Long idItem, Long idArmazenamento) {}
+
+    private record ItemSaidaResumo(SaidaEstoque item, int quantidade) {}
+
+    private record ItemSaidaConsolidado(SaidaDTO.ItemSaidaRequisicao item, int indice) {}
 
     /**
      * Abate a quantidade do saldo do item no endereço, impedindo saldo negativo (RN11). Itens

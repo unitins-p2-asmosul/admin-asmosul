@@ -111,7 +111,9 @@ class SaidaControllerTest extends BaseAPITest {
                             "Cesta entregue",
                             List.of(
                                     new SaidaDTO.ItemSaidaRequisicao(
-                                            item.getId(), endereco.getId(), 4)));
+                                            item.getId(), endereco.getId(), 2),
+                                    new SaidaDTO.ItemSaidaRequisicao(
+                                            item.getId(), endereco.getId(), 2)));
 
             mockMvc.perform(
                             post("/doacoes/saidas")
@@ -127,7 +129,8 @@ class SaidaControllerTest extends BaseAPITest {
                     .andExpect(jsonPath("$.descricao").value("Cesta entregue"))
                     .andExpect(jsonPath("$.itens.length()").value(1))
                     .andExpect(jsonPath("$.itens[0].idItem").value(item.getId()))
-                    .andExpect(jsonPath("$.itens[0].quantidade").value(4));
+                    .andExpect(jsonPath("$.itens[0].quantidade").value(4))
+                    .andExpect(jsonPath("$.itens[0].unidadeMedida.codigo").value("PCT"));
 
             assertThat(quantidadeEmEstoque()).isEqualTo(6);
             assertThat(
@@ -221,14 +224,17 @@ class SaidaControllerTest extends BaseAPITest {
         @DisplayName("Deve listar saídas de forma paginada e permitir filtro por item")
         void listar_comSaidaCadastrada_retorna200EListaPaginada() throws Exception {
             Saida saida = criarSaidaComItens(5);
+            saidaEstoqueRepository.save(new SaidaEstoque(item, saida, endereco, 2));
 
             mockMvc.perform(get("/doacoes/saidas").param("itensIds", item.getId().toString()))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.dados.length()").value(1))
                     .andExpect(jsonPath("$.dados[0].id").value(saida.getId()))
                     .andExpect(jsonPath("$.dados[0].nomeRecebedor").value("Recebedor Teste"))
-                    .andExpect(jsonPath("$.dados[0].itensOuKitsDescricao[0]").value("Feijão 1kg"))
-                    .andExpect(jsonPath("$.dados[0].quantidadeTotal").value(5))
+                    .andExpect(
+                            jsonPath("$.dados[0].itensOuKitsDescricao[0]")
+                                    .value(Matchers.containsString("7 pct de Feijão 1kg")))
+                    .andExpect(jsonPath("$.dados[0].quantidadeTotal").value(7))
                     .andExpect(jsonPath("$.paginaAtual").value(0))
                     .andExpect(jsonPath("$.totalElementos").value(1));
         }
@@ -249,7 +255,8 @@ class SaidaControllerTest extends BaseAPITest {
                     .andExpect(jsonPath("$.nomeRecebedor").value("Recebedor Teste"))
                     .andExpect(jsonPath("$.itens.length()").value(1))
                     .andExpect(jsonPath("$.itens[0].idArmazenamento").value(endereco.getId()))
-                    .andExpect(jsonPath("$.itens[0].quantidade").value(6));
+                    .andExpect(jsonPath("$.itens[0].quantidade").value(6))
+                    .andExpect(jsonPath("$.itens[0].unidadeMedida.codigo").value("PCT"));
         }
     }
 

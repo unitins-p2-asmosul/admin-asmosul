@@ -1,5 +1,5 @@
 import { ParametrosConsulta } from '@features/shared/models/parametros-consulta.model';
-import { UnidadeMedidaCodigo, UnidadeMedidaItem } from './unidade-medida.model';
+import { UnidadeMedidaCodigo, UnidadeMedidaValor } from './unidade-medida.model';
 import { CategoriaItemResumo, CategoriaItemDetalhe } from './categoria-item.model';
 
 export interface ItemRequisicao {
@@ -24,7 +24,7 @@ export interface ItemResumo {
   categoria?: CategoriaItemResumo;
   estoque: number;
   precoUnitario: number;
-  unidadeMedida: UnidadeMedidaItem | UnidadeMedidaCodigo;
+  unidadeMedida: UnidadeMedidaValor;
   descricao?: string;
   ativo: boolean;
 }
@@ -43,7 +43,7 @@ export interface ItemDetalhe {
   estoque: number;
   locais?: ItemEstoqueLocal[];
   precoUnitario: number;
-  unidadeMedida: UnidadeMedidaItem | UnidadeMedidaCodigo;
+  unidadeMedida: UnidadeMedidaValor;
   descricao?: string;
   ativo?: boolean;
   dataInativo?: string;
@@ -85,17 +85,18 @@ export const UNIDADE_MEDIDA_SIGLAS: Record<string, string> = {
   LT: 'lt',
 };
 
-export function obterSiglaUnidade(
-  unidade: UnidadeMedidaItem | UnidadeMedidaCodigo | string | undefined,
-): string {
+export function obterSiglaUnidade(unidade: UnidadeMedidaValor | undefined): string {
   if (!unidade) return '';
-  const chave = typeof unidade === 'string' ? unidade : unidade.codigo;
+  const chave =
+    typeof unidade === 'string'
+      ? unidade
+      : unidade.codigo || ('sigla' in unidade ? unidade.sigla : '') || unidade.descricao || '';
   return UNIDADE_MEDIDA_SIGLAS[chave?.toUpperCase()] || chave?.toLowerCase() || '';
 }
 
 export function formatarEstoqueComUnidade(
   estoque: number,
-  unidade: UnidadeMedidaItem | UnidadeMedidaCodigo | string | undefined,
+  unidade: UnidadeMedidaValor | undefined,
 ): string {
   const sigla = obterSiglaUnidade(unidade);
   return sigla ? `${estoque} ${sigla}` : `${estoque}`;

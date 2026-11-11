@@ -15,6 +15,12 @@ import { PessoaService } from '@features/pessoas/services/pessoa.service';
 import { DialogoConfirmacaoService } from '@features/shared/services/dialogo-confirmacao.service';
 import { NotificacaoService } from '@features/shared/services/notificacao.service';
 import { finalize } from 'rxjs/operators';
+import { EMPTY, Subject, catchError, switchMap } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import {
+  SelectPesquisavelComponent,
+  SelectPesquisavelOpcao,
+} from '@features/shared/components/select-pesquisavel/select-pesquisavel.component';
 import { EnderecoArmazenamentoResumo } from '../../models/endereco-armazenamento.model';
 import {
   EntradaDetalhe,
@@ -27,7 +33,6 @@ import { EnderecoArmazenamentoService } from '../../services/endereco-armazename
 import { EntradaService } from '../../services/entrada.service';
 import { ItemService } from '../../services/item.service';
 
-const TAMANHO_LISTA_DOADORES = 1000;
 const TAMANHO_MAXIMO_DESCRICAO = 255;
 
 export interface LinhaItemEntrada {
@@ -50,6 +55,7 @@ export interface LinhaItemEntrada {
     MatInputModule,
     MatSelectModule,
     MatTooltipModule,
+    SelectPesquisavelComponent,
   ],
   templateUrl: './entrada-cadastro-page.component.html',
 })
@@ -72,6 +78,18 @@ export class EntradaCadastroPageComponent implements OnInit {
   protected readonly itens = signal<ItemResumo[]>([]);
   protected readonly enderecos = signal<EnderecoArmazenamentoResumo[]>([]);
   protected readonly doadores = signal<PessoaResumo[]>([]);
+  protected readonly opcoesItens = computed<SelectPesquisavelOpcao<number>[]>(() =>
+    this.itens().map((item) => ({ valor: item.id, rotulo: item.nome })),
+  );
+  protected readonly opcoesDoadores = computed<SelectPesquisavelOpcao<number>[]>(() =>
+    this.doadores().map((pessoa) => ({
+      valor: pessoa.id,
+      rotulo: `${pessoa.nome} · CPF ${pessoa.cpfCnpj}`,
+      textoBusca: pessoa.cpfCnpj,
+    })),
+  );
+  protected readonly carregandoItens = signal(false);
+  protected readonly carregandoDoadores = signal(false);
   protected readonly itensIncluidos = signal<LinhaItemEntrada[]>([]);
   protected readonly carregando = signal(false);
   protected readonly registro = signal<EntradaDetalhe | null>(null);
@@ -102,8 +120,61 @@ export class EntradaCadastroPageComponent implements OnInit {
     const item = this.itens().find((candidato) => candidato.id === idItem);
     return item ? obterSiglaUnidade(item.unidadeMedida) : '';
   });
+  private readonly pesquisasItens = new Subject<string>();
+  private readonly pesquisasDoadores = new Subject<string>();
 
   constructor() {
+    this.pesquisasItens
+      .pipe(
+        switchMap((consulta) => {
+          this.carregandoItens.set(true);
+          return this.itemService
+            .listar({
+              page: 0,
+              size: 20,
+              sort: 'nome,asc',
+              ...(consulta ? { nome: consulta } : {}),
+            })
+            .pipe(
+              finalize(() => this.carregandoItens.set(false)),
+              catchError(() => {
+                this.notificacao.erro('Não foi possível carregar os itens para a entrada.');
+                return EMPTY;
+              }),
+            );
+        }),
+        takeUntilDestroyed(),
+      )
+      .subscribe((resposta) => this.itens.set(resposta.dados));
+
+    this.pesquisasDoadores
+      .pipe(
+        switchMap((consulta) => {
+          this.carregandoDoadores.set(true);
+          const somenteCpf = /\d/.test(consulta) && /^[\d\s()./-]+$/.test(consulta);
+          return this.pessoaService
+            .listar({
+              page: 0,
+              size: 20,
+              sort: 'nome,asc',
+              ...(consulta
+                ? somenteCpf
+                  ? { cpfCnpj: consulta.replace(/\D/g, '') }
+                  : { nome: consulta }
+                : {}),
+            })
+            .pipe(
+              finalize(() => this.carregandoDoadores.set(false)),
+              catchError(() => {
+                this.notificacao.erro('Não foi possível carregar as pessoas para a entrada.');
+                return EMPTY;
+              }),
+            );
+        }),
+        takeUntilDestroyed(),
+      )
+      .subscribe((resposta) => this.doadores.set(resposta.dados));
+
     effect(() => {
       const idEntrada = this.id();
       if (idEntrada) {
@@ -113,19 +184,28 @@ export class EntradaCadastroPageComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.itemService.listarTodos().subscribe({
-      next: (itens) => this.itens.set(itens),
-    });
+    if (this.modoCriacao()) {
+      this.pesquisarItens('');
+    } else {
+      this.itemService.listarTodos().subscribe({
+        next: (itens) => this.itens.set(itens),
+        error: () => this.notificacao.erro('Não foi possível carregar os itens da entrada.'),
+      });
+    }
 
     this.enderecoService.listarTodas().subscribe({
       next: (enderecos) => this.enderecos.set(enderecos),
     });
 
-    this.pessoaService
-      .listar({ page: 0, size: TAMANHO_LISTA_DOADORES, sort: 'nome,asc' })
-      .subscribe({
-        next: (resposta) => this.doadores.set(resposta.dados),
-      });
+    this.pesquisarDoadores('');
+  }
+
+  protected pesquisarItens(consulta: string): void {
+    this.pesquisasItens.next(consulta);
+  }
+
+  protected pesquisarDoadores(consulta: string): void {
+    this.pesquisasDoadores.next(consulta);
   }
 
   protected get titulo(): string {
@@ -159,17 +239,29 @@ export class EntradaCadastroPageComponent implements OnInit {
     const endereco = this.enderecos().find((candidato) => candidato.id === valores.idArmazenamento);
     if (!item || !endereco) return;
 
-    this.itensIncluidos.update((atuais) => [
-      ...atuais,
-      {
-        idItem: item.id,
-        nomeItem: item.nome,
-        sigla: obterSiglaUnidade(item.unidadeMedida),
-        quantidade: Number(valores.quantidade),
-        idArmazenamento: endereco.id,
-        nomeArmazenamento: endereco.nome,
-      },
-    ]);
+    const quantidade = Number(valores.quantidade);
+    this.itensIncluidos.update((atuais) => {
+      const existente = atuais.find(
+        (linha) => linha.idItem === item.id && linha.idArmazenamento === endereco.id,
+      );
+      if (existente) {
+        return atuais.map((linha) =>
+          linha === existente ? { ...linha, quantidade: linha.quantidade + quantidade } : linha,
+        );
+      }
+
+      return [
+        ...atuais,
+        {
+          idItem: item.id,
+          nomeItem: item.nome,
+          sigla: obterSiglaUnidade(item.unidadeMedida),
+          quantidade,
+          idArmazenamento: endereco.id,
+          nomeArmazenamento: endereco.nome,
+        },
+      ];
+    });
 
     this.itemForm.reset({ idItem: null, quantidade: null, idArmazenamento: null });
   }
@@ -184,7 +276,7 @@ export class EntradaCadastroPageComponent implements OnInit {
 
   protected formatarQuantidadeDetalhe(item: ItemEntradaDetalhe): string {
     const encontrado = this.itens().find((candidato) => candidato.id === item.idItem);
-    const sigla = encontrado ? obterSiglaUnidade(encontrado.unidadeMedida) : '';
+    const sigla = obterSiglaUnidade(item.unidadeMedida ?? encontrado?.unidadeMedida);
     return sigla ? `${item.quantidade} ${sigla}` : `${item.quantidade}`;
   }
 
@@ -324,6 +416,7 @@ export class EntradaCadastroPageComponent implements OnInit {
             idDoador: entrada.idDoador ?? null,
             descricao: entrada.descricao ?? '',
           });
+          if (entrada.idDoador) this.carregarDoadorSelecionado(entrada.idDoador);
 
           if (this.visualizacao()) {
             this.form.disable();
@@ -334,6 +427,26 @@ export class EntradaCadastroPageComponent implements OnInit {
           this.router.navigate(['/doacoes/entradas']);
         },
       });
+  }
+
+  private carregarDoadorSelecionado(id: number): void {
+    this.pessoaService.buscarPorId(id).subscribe({
+      next: (pessoa) => {
+        this.doadores.update((atuais) => [
+          ...atuais.filter((atual) => atual.id !== pessoa.id),
+          {
+            id: pessoa.id,
+            nome: pessoa.nome,
+            cpfCnpj: pessoa.cpfCnpj,
+            telefone: pessoa.telefone,
+            email: pessoa.email,
+            ativo: pessoa.ativo ?? true,
+            tipoPessoa: pessoa.tipoPessoa,
+          },
+        ]);
+      },
+      error: () => this.notificacao.erro('Não foi possível carregar o doador desta entrada.'),
+    });
   }
 
   private tratarErro(erro: HttpErrorResponse): void {

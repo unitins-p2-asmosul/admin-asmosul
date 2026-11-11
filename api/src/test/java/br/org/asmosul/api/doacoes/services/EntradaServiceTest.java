@@ -3,6 +3,7 @@ package br.org.asmosul.api.doacoes.services;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.when;
 
 import br.org.asmosul.api.doacoes.dtos.EntradaDTO;
@@ -136,6 +137,36 @@ class EntradaServiceTest {
                                         estoque.getItem() == item
                                                 && estoque.getArmazenamento() == endereco
                                                 && estoque.getQuantidade() == 9));
+    }
+
+    @Test
+    @DisplayName("Cadastro deve consolidar itens repetidos no mesmo endereço")
+    void cadastrar_comItemRepetidoNoMesmoEndereco_persisteUmaLinhaSomada() {
+        Estoque estoque = new Estoque(item, endereco, 8);
+        when(pessoaRepository.findByIdAndDataInativoIsNull(1L)).thenReturn(Optional.of(doador));
+        when(itemRepository.findByIdAndDataInativoIsNull(3L)).thenReturn(Optional.of(item));
+        when(enderecoArmazenamentoRepository.findByIdAndDataInativoIsNull(4L))
+                .thenReturn(Optional.of(endereco));
+        when(entradaRepository.save(any(Entrada.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+        when(entradaEstoqueRepository.save(any(EntradaEstoque.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+        when(estoqueRepository.findByItemIdAndArmazenamentoId(3L, 4L))
+                .thenReturn(Optional.of(estoque));
+
+        var detalhe =
+                entradaService.cadastrar(
+                                                new EntradaDTO.Requisicao(
+                                                        1L,
+                                                        "Doação",
+                                                        List.of(
+                                                                new EntradaDTO.ItemEntradaRequisicao(3L, 4L, 2),
+                                                                new EntradaDTO.ItemEntradaRequisicao(3L, 4L, 3))));
+
+        assertThat(detalhe.itens()).singleElement().satisfies(
+                itemDetalhe -> assertThat(itemDetalhe.quantidade()).isEqualTo(5));
+        assertThat(estoque.getQuantidade()).isEqualTo(13);
+        verify(entradaEstoqueRepository, times(1)).save(any(EntradaEstoque.class));
     }
 
     @Test

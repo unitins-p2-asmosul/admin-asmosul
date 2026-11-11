@@ -7,22 +7,26 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { ActivatedRoute, Router } from '@angular/router';
 import { PessoaResumo } from '@features/pessoas/models/pessoa.model';
 import { PessoaService } from '@features/pessoas/services/pessoa.service';
 import { ErroApi, ErroCampo } from '@features/shared/models/erro-api.model';
+import {
+  SelectPesquisavelComponent,
+  SelectPesquisavelOpcao,
+} from '@features/shared/components/select-pesquisavel/select-pesquisavel.component';
 import { DialogoConfirmacaoService } from '@features/shared/services/dialogo-confirmacao.service';
 import { NotificacaoService } from '@features/shared/services/notificacao.service';
 import { finalize } from 'rxjs/operators';
+import { EMPTY, Subject, catchError, switchMap } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { formatarDataHoraEntrada } from '../../models/entrada.model';
 import { ItemEstoqueLocal, ItemResumo, obterSiglaUnidade } from '../../models/item.model';
 import { ItemSaidaDetalhe, SaidaDetalhe, SaidaRequisicao } from '../../models/saida.model';
 import { ItemService } from '../../services/item.service';
 import { SaidaService } from '../../services/saida.service';
 
-const TAMANHO_LISTA_PESSOAS = 1000;
 const TAMANHO_MAXIMO_DESCRICAO = 255;
 
 export interface LinhaItemSaida {
@@ -43,8 +47,8 @@ export interface LinhaItemSaida {
     MatFormFieldModule,
     MatIconModule,
     MatInputModule,
-    MatSelectModule,
     MatTooltipModule,
+    SelectPesquisavelComponent,
   ],
   templateUrl: './saida-cadastro-page.component.html',
   styles: `
@@ -98,6 +102,22 @@ export class SaidaCadastroPageComponent implements OnInit {
   protected readonly tamanhoMaximoDescricao = TAMANHO_MAXIMO_DESCRICAO;
   protected readonly itens = signal<ItemResumo[]>([]);
   protected readonly recebedores = signal<PessoaResumo[]>([]);
+  protected readonly opcoesItens = computed<SelectPesquisavelOpcao<number>[]>(() =>
+    this.itens().map((item) => ({
+      valor: item.id,
+      rotulo: this.rotuloSaldoTotal(item),
+      textoBusca: item.nome,
+    })),
+  );
+  protected readonly opcoesRecebedores = computed<SelectPesquisavelOpcao<number>[]>(() =>
+    this.recebedores().map((pessoa) => ({
+      valor: pessoa.id,
+      rotulo: `${pessoa.nome} · CPF ${pessoa.cpfCnpj}`,
+      textoBusca: pessoa.cpfCnpj,
+    })),
+  );
+  protected readonly carregandoItens = signal(false);
+  protected readonly carregandoRecebedores = signal(false);
   protected readonly locaisDoItem = signal<ItemEstoqueLocal[]>([]);
   protected readonly localSelecionado = signal<number | null>(null);
   protected readonly itensIncluidos = signal<LinhaItemSaida[]>([]);
@@ -143,8 +163,61 @@ export class SaidaCadastroPageComponent implements OnInit {
     const local = this.locaisDoItem().find((candidato) => candidato.idEndereco === idLocal);
     return local ? this.saldoRestanteDoLocal(local) : 0;
   });
+  private readonly pesquisasItens = new Subject<string>();
+  private readonly pesquisasRecebedores = new Subject<string>();
 
   constructor() {
+    this.pesquisasItens
+      .pipe(
+        switchMap((consulta) => {
+          this.carregandoItens.set(true);
+          return this.itemService
+            .listar({
+              page: 0,
+              size: 20,
+              sort: 'nome,asc',
+              ...(consulta ? { nome: consulta } : {}),
+            })
+            .pipe(
+              finalize(() => this.carregandoItens.set(false)),
+              catchError(() => {
+                this.notificacao.erro('Não foi possível carregar os itens para a saída.');
+                return EMPTY;
+              }),
+            );
+        }),
+        takeUntilDestroyed(),
+      )
+      .subscribe((resposta) => this.itens.set(resposta.dados));
+
+    this.pesquisasRecebedores
+      .pipe(
+        switchMap((consulta) => {
+          this.carregandoRecebedores.set(true);
+          const somenteCpf = /\d/.test(consulta) && /^[\d\s()./-]+$/.test(consulta);
+          return this.pessoaService
+            .listar({
+              page: 0,
+              size: 20,
+              sort: 'nome,asc',
+              ...(consulta
+                ? somenteCpf
+                  ? { cpfCnpj: consulta.replace(/\D/g, '') }
+                  : { nome: consulta }
+                : {}),
+            })
+            .pipe(
+              finalize(() => this.carregandoRecebedores.set(false)),
+              catchError(() => {
+                this.notificacao.erro('Não foi possível carregar as pessoas para a saída.');
+                return EMPTY;
+              }),
+            );
+        }),
+        takeUntilDestroyed(),
+      )
+      .subscribe((resposta) => this.recebedores.set(resposta.dados));
+
     effect(() => {
       const idSaida = this.id();
       if (idSaida) {
@@ -175,15 +248,23 @@ export class SaidaCadastroPageComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.itemService.listarTodos().subscribe({
-      next: (itens) => this.itens.set(itens),
-    });
-
-    this.pessoaService
-      .listar({ page: 0, size: TAMANHO_LISTA_PESSOAS, sort: 'nome,asc' })
-      .subscribe({
-        next: (resposta) => this.recebedores.set(resposta.dados),
+    if (this.modoCriacao()) {
+      this.pesquisarItens('');
+    } else {
+      this.itemService.listarTodos().subscribe({
+        next: (itens) => this.itens.set(itens),
+        error: () => this.notificacao.erro('Não foi possível carregar os itens da saída.'),
       });
+    }
+    this.pesquisarRecebedores('');
+  }
+
+  protected pesquisarItens(consulta: string): void {
+    this.pesquisasItens.next(consulta);
+  }
+
+  protected pesquisarRecebedores(consulta: string): void {
+    this.pesquisasRecebedores.next(consulta);
   }
 
   protected get titulo(): string {
@@ -272,17 +353,28 @@ export class SaidaCadastroPageComponent implements OnInit {
       return;
     }
 
-    this.itensIncluidos.update((atuais) => [
-      ...atuais,
-      {
-        idItem: item.id,
-        nomeItem: item.nome,
-        sigla: obterSiglaUnidade(item.unidadeMedida),
-        quantidade,
-        idArmazenamento: local.idEndereco,
-        nomeArmazenamento: local.nomeEndereco ?? local.nomeLocalArmazenamento ?? 'Endereço',
-      },
-    ]);
+    this.itensIncluidos.update((atuais) => {
+      const existente = atuais.find(
+        (linha) => linha.idItem === item.id && linha.idArmazenamento === local.idEndereco,
+      );
+      if (existente) {
+        return atuais.map((linha) =>
+          linha === existente ? { ...linha, quantidade: linha.quantidade + quantidade } : linha,
+        );
+      }
+
+      return [
+        ...atuais,
+        {
+          idItem: item.id,
+          nomeItem: item.nome,
+          sigla: obterSiglaUnidade(item.unidadeMedida),
+          quantidade,
+          idArmazenamento: local.idEndereco,
+          nomeArmazenamento: local.nomeEndereco ?? local.nomeLocalArmazenamento ?? 'Endereço',
+        },
+      ];
+    });
 
     this.itemForm.reset({ idItem: null, quantidade: null });
     this.localSelecionado.set(null);
@@ -298,7 +390,7 @@ export class SaidaCadastroPageComponent implements OnInit {
 
   protected formatarQuantidadeDetalhe(item: ItemSaidaDetalhe): string {
     const encontrado = this.itens().find((candidato) => candidato.id === item.idItem);
-    const sigla = encontrado ? obterSiglaUnidade(encontrado.unidadeMedida) : '';
+    const sigla = obterSiglaUnidade(item.unidadeMedida ?? encontrado?.unidadeMedida);
     return sigla ? `${item.quantidade} ${sigla}` : `${item.quantidade}`;
   }
 
@@ -438,6 +530,7 @@ export class SaidaCadastroPageComponent implements OnInit {
             idRecebedor: saida.idRecebedor ?? null,
             descricao: saida.descricao ?? '',
           });
+          if (saida.idRecebedor) this.carregarRecebedorSelecionado(saida.idRecebedor);
 
           if (this.visualizacao()) {
             this.form.disable();
@@ -448,6 +541,26 @@ export class SaidaCadastroPageComponent implements OnInit {
           this.router.navigate(['/doacoes/saidas']);
         },
       });
+  }
+
+  private carregarRecebedorSelecionado(id: number): void {
+    this.pessoaService.buscarPorId(id).subscribe({
+      next: (pessoa) => {
+        this.recebedores.update((atuais) => [
+          ...atuais.filter((atual) => atual.id !== pessoa.id),
+          {
+            id: pessoa.id,
+            nome: pessoa.nome,
+            cpfCnpj: pessoa.cpfCnpj,
+            telefone: pessoa.telefone,
+            email: pessoa.email,
+            ativo: pessoa.ativo ?? true,
+            tipoPessoa: pessoa.tipoPessoa,
+          },
+        ]);
+      },
+      error: () => this.notificacao.erro('Não foi possível carregar o recebedor desta saída.'),
+    });
   }
 
   private tratarErro(erro: HttpErrorResponse): void {

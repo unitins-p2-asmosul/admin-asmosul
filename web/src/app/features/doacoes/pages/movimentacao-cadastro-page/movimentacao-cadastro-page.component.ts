@@ -170,7 +170,7 @@ export class MovimentacaoCadastroPageComponent {
     const unidade = this.itemSelecionado()?.unidadeMedida;
     if (!unidade) return '';
     if (typeof unidade === 'string') return this.abreviarUnidade(unidade);
-    return this.abreviarUnidade(unidade.codigo || unidade.descricao);
+    return this.abreviarUnidade(unidade.codigo || unidade.descricao || '');
   }
 
   protected adicionarItem(): void {

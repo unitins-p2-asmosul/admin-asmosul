@@ -2,6 +2,7 @@ package br.org.asmosul.api.doacoes.dtos;
 
 import br.org.asmosul.api.doacoes.models.Saida;
 import br.org.asmosul.api.doacoes.models.SaidaEstoque;
+import br.org.asmosul.api.doacoes.models.UnidadeMedida;
 import br.org.asmosul.api.pessoas.models.Pessoa;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.Valid;
@@ -37,7 +38,8 @@ public final class SaidaDTO {
             String nomeItem,
             Long idArmazenamento,
             String nomeArmazenamento,
-            Integer quantidade) {
+            Integer quantidade,
+            UnidadeMedida unidadeMedida) {
 
         public static ItemSaidaDetalhe deEntidade(SaidaEstoque saidaEstoque) {
             return new ItemSaidaDetalhe(
@@ -46,7 +48,8 @@ public final class SaidaDTO {
                     saidaEstoque.getItem().getNome(),
                     saidaEstoque.getArmazenamento().getId(),
                     saidaEstoque.getArmazenamento().getNome(),
-                    saidaEstoque.getQuantidade());
+                    saidaEstoque.getQuantidade(),
+                    saidaEstoque.getItem().getUnidadeMedida());
         }
     }
 

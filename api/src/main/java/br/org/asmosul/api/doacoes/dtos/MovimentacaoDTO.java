@@ -13,13 +13,15 @@ import org.springframework.format.annotation.DateTimeFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Map;
-import java.util.TreeMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 
 public final class MovimentacaoDTO {
 
     private MovimentacaoDTO() {}
+
+    private record ItemQuantidade(Long idItem, String nome, String unidade) {}
 
     public record ItemMovimentacaoRequisicao(
         @NotNull(message = "O ID do item é obrigatório")
@@ -101,15 +103,20 @@ public final class MovimentacaoDTO {
                 .distinct()
                 .collect(java.util.stream.Collectors.joining(", "));
 
-            Map<String, Integer> quantidadesPorUnidade = new TreeMap<>();
+            Map<ItemQuantidade, Integer> quantidadesPorItem = new LinkedHashMap<>();
             itens.forEach(item -> {
+                String nome = item.getItem() != null ? item.getItem().getNome() : "Item";
                 String unidade = item.getItem() != null && item.getItem().getUnidadeMedida() != null
                     ? item.getItem().getUnidadeMedida().getCodigo().toLowerCase(Locale.ROOT)
                     : "un";
-                quantidadesPorUnidade.merge(unidade, item.getQuantidade() != null ? item.getQuantidade() : 0, Integer::sum);
+                quantidadesPorItem.merge(
+                    new ItemQuantidade(
+                        item.getItem() != null ? item.getItem().getId() : null, nome, unidade),
+                    item.getQuantidade() != null ? item.getQuantidade() : 0,
+                    Integer::sum);
             });
-            String quantidadeFormatada = quantidadesPorUnidade.entrySet().stream()
-                .map(entry -> entry.getValue() + " " + entry.getKey())
+            String quantidadeFormatada = quantidadesPorItem.entrySet().stream()
+                .map(entry -> entry.getValue() + " " + entry.getKey().unidade() + " de " + entry.getKey().nome())
                 .collect(java.util.stream.Collectors.joining(", "));
 
             return new Resumo(

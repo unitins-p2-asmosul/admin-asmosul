@@ -15,6 +15,13 @@ export enum UnidadeMedidaCodigo {
 }
 
 export type UnidadeMedidaItem = ItemDominio<UnidadeMedidaCodigo>;
+export type UnidadeMedidaApi = {
+  codigo: string;
+  descricao?: string;
+  sigla?: string;
+};
+export type UnidadeMedidaValor =
+  UnidadeMedidaItem | UnidadeMedidaApi | UnidadeMedidaCodigo | string;
 
 export const UNIDADE_MEDIDA_OPCOES: readonly UnidadeMedidaItem[] = [
   { codigo: UnidadeMedidaCodigo.QUILO, descricao: 'Quilo (kg)' },
@@ -29,3 +36,35 @@ export const UNIDADE_MEDIDA_OPCOES: readonly UnidadeMedidaItem[] = [
   { codigo: UnidadeMedidaCodigo.FARDO, descricao: 'Fardo (fd)' },
   { codigo: UnidadeMedidaCodigo.LATA, descricao: 'Lata (lt)' },
 ];
+
+const CODIGOS_POR_SIGLA: Record<string, UnidadeMedidaCodigo> = {
+  KG: UnidadeMedidaCodigo.QUILO,
+  UN: UnidadeMedidaCodigo.UNIDADE,
+  G: UnidadeMedidaCodigo.GRAMA,
+  M: UnidadeMedidaCodigo.METRO,
+  CM: UnidadeMedidaCodigo.CENTIMETRO,
+  MM: UnidadeMedidaCodigo.MILIMETRO,
+  MG: UnidadeMedidaCodigo.MILIGRAMA,
+  CX: UnidadeMedidaCodigo.CAIXA,
+  PCT: UnidadeMedidaCodigo.PACOTE,
+  FD: UnidadeMedidaCodigo.FARDO,
+  LT: UnidadeMedidaCodigo.LATA,
+};
+
+export function obterCodigoUnidadeMedida(
+  unidade: UnidadeMedidaValor | null | undefined,
+): UnidadeMedidaCodigo | null {
+  if (!unidade) return null;
+
+  const valor =
+    typeof unidade === 'string'
+      ? unidade
+      : unidade.codigo || ('sigla' in unidade ? unidade.sigla : '') || unidade.descricao || '';
+  const normalizado = valor.trim().toLocaleUpperCase();
+  const opcao = UNIDADE_MEDIDA_OPCOES.find(
+    ({ codigo, descricao }) =>
+      codigo === normalizado || descricao.toLocaleUpperCase().startsWith(normalizado),
+  );
+
+  return opcao?.codigo ?? CODIGOS_POR_SIGLA[normalizado] ?? null;
+}

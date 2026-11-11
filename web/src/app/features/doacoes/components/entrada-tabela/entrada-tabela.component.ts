@@ -6,10 +6,8 @@ import { MatSortModule, Sort } from '@angular/material/sort';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { EntradaResumo, formatarDataHoraEntrada } from '../../models/entrada.model';
-import {
-  ColunaExportacao,
-  SolicitacaoExportacao,
-} from '@features/shared/models/exportacao.model';
+import { obterSiglaUnidade } from '../../models/item.model';
+import { ColunaExportacao, SolicitacaoExportacao } from '@features/shared/models/exportacao.model';
 import { filtrarColunasExibidas } from '@features/shared/utils/colunas-tabela';
 
 export interface ExcluirEntradaEvento {
@@ -20,13 +18,7 @@ export interface ExcluirEntradaEvento {
 @Component({
   selector: 'app-entrada-tabela',
   standalone: true,
-  imports: [
-    MatTableModule,
-    MatSortModule,
-    MatIconModule,
-    MatButtonModule,
-    MatTooltipModule,
-  ],
+  imports: [MatTableModule, MatSortModule, MatIconModule, MatButtonModule, MatTooltipModule],
   templateUrl: './entrada-tabela.component.html',
 })
 export class EntradaTabelaComponent {
@@ -93,7 +85,9 @@ export class EntradaTabelaComponent {
 
     return itens
       .map((item) => {
-        const sigla = this.siglasUnidade()[item.idItem];
+        const sigla = item.unidadeMedida
+          ? obterSiglaUnidade(item.unidadeMedida)
+          : this.siglasUnidade()[item.idItem];
         const quantidade = sigla ? `${item.quantidade} ${sigla}` : `${item.quantidade}`;
         return `${quantidade} de ${item.nomeItem}`;
       })

@@ -38,32 +38,42 @@
         @if (registro()?.dataInativo) {
           <p><span class="font-semibold">Inativada em:</span> {{ registro()?.dataInativo }}</p>
         }
-        <p><span class="font-semibold">Redefinição de senha:</span> {{ registro()?.redefinirSenha ? 'Pendente' : 'Não pendente' }}</p>
+        <p>
+          <span class="font-semibold">Redefinição de senha:</span>
+          {{ registro()?.redefinirSenha ? 'Pendente' : 'Não pendente' }}
+        </p>
       </div>
     }
 
     <div class="grid grid-cols-1 gap-y-3">
       @if (modoCriacao()) {
         <div>
-          <label for="pessoaId" class="mb-2 block text-sm font-semibold text-[#344054]">Pessoa *</label>
-          <mat-form-field appearance="outline" class="w-full">
-            <mat-select id="pessoaId" formControlName="pessoaId" placeholder="Selecione uma pessoa">
-              @for (pessoa of pessoas(); track pessoa.id) {
-                <mat-option [value]="pessoa.id">{{ pessoa.nome }} @if (pessoa.email) { ({{ pessoa.email }}) }</mat-option>
-              }
-            </mat-select>
-            @if (form.controls.pessoaId.hasError('required') || form.controls.pessoaId.hasError('min')) {
-              <mat-error>Selecione uma pessoa física ativa.</mat-error>
-            }
-            @if (form.controls.pessoaId.hasError('backend')) {
-              <mat-error>{{ form.controls.pessoaId.getError('backend') }}</mat-error>
-            }
-          </mat-form-field>
+          <label for="pessoaId-input" class="mb-2 block text-sm font-semibold text-[#344054]"
+            >Pessoa *</label
+          >
+          <app-select-pesquisavel
+            id="pessoaId"
+            formControlName="pessoaId"
+            placeholder="Pesquise por nome ou CPF"
+            ariaLabel="Pesquisar pessoa por nome ou CPF"
+            [opcoes]="opcoesPessoas()"
+            [carregando]="carregandoPessoas()"
+            [mensagemErro]="
+              form.controls.pessoaId.touched &&
+              (form.controls.pessoaId.hasError('required') ||
+                form.controls.pessoaId.hasError('min'))
+                ? 'Selecione uma pessoa física ativa.'
+                : (form.controls.pessoaId.getError('backend') ?? '')
+            "
+            (pesquisar)="pesquisarPessoas($event)"
+          />
         </div>
       }
 
       <div>
-        <label for="nomeUsuario" class="mb-2 block text-sm font-semibold text-[#344054]">Nome de usuário *</label>
+        <label for="nomeUsuario" class="mb-2 block text-sm font-semibold text-[#344054]"
+          >Nome de usuário *</label
+        >
         <mat-form-field appearance="outline" class="w-full">
           <input
             id="nomeUsuario"
@@ -73,7 +83,10 @@
             autocomplete="username"
             placeholder="Digite seu nome de usuário"
           />
-          @if (form.controls.nomeUsuario.hasError('required') || form.controls.nomeUsuario.hasError('pattern')) {
+          @if (
+            form.controls.nomeUsuario.hasError('required') ||
+            form.controls.nomeUsuario.hasError('pattern')
+          ) {
             <mat-error>Informe o nome de usuário.</mat-error>
           } @else if (form.controls.nomeUsuario.hasError('maxlength')) {
             <mat-error>O nome de usuário deve conter no máximo 100 caracteres.</mat-error>
@@ -86,7 +99,9 @@
       @if (modoCriacao()) {
         <div class="grid grid-cols-1 gap-x-6 sm:grid-cols-2">
           <div>
-            <label for="senhaTemporaria" class="mb-2 block text-sm font-semibold text-[#344054]">Senha temporária *</label>
+            <label for="senhaTemporaria" class="mb-2 block text-sm font-semibold text-[#344054]"
+              >Senha temporária *</label
+            >
             <mat-form-field appearance="outline" class="w-full">
               <input
                 id="senhaTemporaria"
@@ -96,13 +111,18 @@
                 formControlName="senhaTemporaria"
                 placeholder="Digite a senha temporária"
               />
-              @if (form.controls.senhaTemporaria.hasError('required') && form.controls.senhaTemporaria.touched) {
+              @if (
+                form.controls.senhaTemporaria.hasError('required') &&
+                form.controls.senhaTemporaria.touched
+              ) {
                 <mat-error>Informe a senha temporária.</mat-error>
               }
             </mat-form-field>
           </div>
           <div>
-            <label for="confirmarSenha" class="mb-2 block text-sm font-semibold text-[#344054]">Confirmação de senha *</label>
+            <label for="confirmarSenha" class="mb-2 block text-sm font-semibold text-[#344054]"
+              >Confirmação de senha *</label
+            >
             <mat-form-field appearance="outline" class="w-full">
               <input
                 id="confirmarSenha"
@@ -113,9 +133,14 @@
                 formControlName="confirmarSenha"
                 placeholder="Confirme a senha temporária"
               />
-              @if (form.controls.confirmarSenha.hasError('required') && form.controls.confirmarSenha.touched) {
+              @if (
+                form.controls.confirmarSenha.hasError('required') &&
+                form.controls.confirmarSenha.touched
+              ) {
                 <mat-error>Confirme a senha temporária.</mat-error>
-              } @else if (form.hasError('senhasDiferentes') && form.controls.confirmarSenha.touched) {
+              } @else if (
+                form.hasError('senhasDiferentes') && form.controls.confirmarSenha.touched
+              ) {
                 <mat-error>As senhas não coincidem.</mat-error>
               }
             </mat-form-field>
@@ -126,7 +151,12 @@
       <div>
         <label for="perfis" class="mb-2 block text-sm font-semibold text-[#344054]">Perfis *</label>
         <mat-form-field appearance="outline" class="w-full">
-          <mat-select id="perfis" formControlName="perfis" multiple placeholder="Selecione os perfis">
+          <mat-select
+            id="perfis"
+            formControlName="perfis"
+            multiple
+            placeholder="Selecione os perfis"
+          >
             @for (perfil of perfis(); track perfil.codigo) {
               <mat-option [value]="perfil.codigo">{{ perfil.descricao }}</mat-option>
             }
@@ -171,7 +201,13 @@
           class="!min-w-40 !bg-[#0b3c5d] !text-white"
           [disabled]="carregando()"
         >
-          @if (carregando()) { Salvando... } @else if (modoCriacao()) { Criar conta } @else { Salvar alterações }
+          @if (carregando()) {
+            Salvando...
+          } @else if (modoCriacao()) {
+            Criar conta
+          } @else {
+            Salvar alterações
+          }
         </button>
       </div>
     }

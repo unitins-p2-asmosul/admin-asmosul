@@ -2,6 +2,7 @@ package br.org.asmosul.api.doacoes.dtos;
 
 import br.org.asmosul.api.doacoes.models.Entrada;
 import br.org.asmosul.api.doacoes.models.EntradaEstoque;
+import br.org.asmosul.api.doacoes.models.UnidadeMedida;
 import br.org.asmosul.api.pessoas.models.Pessoa;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.Valid;
@@ -24,13 +25,15 @@ public final class EntradaDTO {
                     @Positive(message = "A quantidade deve ser maior que zero")
                     Integer quantidade) {}
 
-    public record ItemEntradaResumo(Long idItem, String nomeItem, Integer quantidade) {
+    public record ItemEntradaResumo(
+            Long idItem, String nomeItem, Integer quantidade, UnidadeMedida unidadeMedida) {
 
         public static ItemEntradaResumo deEntidade(EntradaEstoque entradaEstoque) {
             return new ItemEntradaResumo(
                     entradaEstoque.getItem().getId(),
                     entradaEstoque.getItem().getNome(),
-                    entradaEstoque.getQuantidade());
+                    entradaEstoque.getQuantidade(),
+                    entradaEstoque.getItem().getUnidadeMedida());
         }
     }
 
@@ -40,7 +43,8 @@ public final class EntradaDTO {
             String nomeItem,
             Long idArmazenamento,
             String nomeArmazenamento,
-            Integer quantidade) {
+            Integer quantidade,
+            UnidadeMedida unidadeMedida) {
 
         public static ItemEntradaDetalhe deEntidade(EntradaEstoque entradaEstoque) {
             return new ItemEntradaDetalhe(
@@ -49,7 +53,8 @@ public final class EntradaDTO {
                     entradaEstoque.getItem().getNome(),
                     entradaEstoque.getArmazenamento().getId(),
                     entradaEstoque.getArmazenamento().getNome(),
-                    entradaEstoque.getQuantidade());
+                    entradaEstoque.getQuantidade(),
+                    entradaEstoque.getItem().getUnidadeMedida());
         }
     }
 
@@ -79,10 +84,22 @@ public final class EntradaDTO {
             @JsonFormat(pattern = "dd-MM-yyyy HH:mm:ss") LocalDateTime dataHora) {
 
         public static Resumo deEntidade(Entrada entrada, List<EntradaEstoque> itensEntrada) {
-            List<ItemEntradaResumo> itens =
-                    itensEntrada == null
-                            ? List.of()
-                            : itensEntrada.stream().map(ItemEntradaResumo::deEntidade).toList();
+            java.util.Map<Long, ItemEntradaResumo> itensAgrupados = new java.util.LinkedHashMap<>();
+            if (itensEntrada != null) {
+                for (EntradaEstoque item : itensEntrada) {
+                    ItemEntradaResumo detalhe = ItemEntradaResumo.deEntidade(item);
+                    itensAgrupados.merge(
+                            detalhe.idItem(),
+                            detalhe,
+                            (anterior, atual) ->
+                                    new ItemEntradaResumo(
+                                            anterior.idItem(),
+                                            anterior.nomeItem(),
+                                            anterior.quantidade() + atual.quantidade(),
+                                            anterior.unidadeMedida()));
+                }
+            }
+            List<ItemEntradaResumo> itens = List.copyOf(itensAgrupados.values());
 
             int quantidadeTotal =
                     itensEntrada == null

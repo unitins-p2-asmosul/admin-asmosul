@@ -359,7 +359,7 @@ class MovimentacaoServiceTest {
             assertThat(resposta.dados()).hasSize(2);
             assertThat(resposta.totalElementos()).isEqualTo(2);
             assertThat(resposta.dados().get(0).nomeItem()).isEqualTo("Arroz");
-            assertThat(resposta.dados().get(0).quantidade()).isEqualTo("5 un");
+            assertThat(resposta.dados().get(0).quantidade()).isEqualTo("5 un de Arroz");
         }
 
         @Test
@@ -376,7 +376,7 @@ class MovimentacaoServiceTest {
 
             MovimentacaoDTO.Resumo resumo = MovimentacaoDTO.Resumo.deEntidade(movimentacao, itens);
 
-            assertThat(resumo.quantidade()).isEqualTo("2 kg, 5 un");
+            assertThat(resumo.quantidade()).isEqualTo("2 kg de Arroz, 5 un de Latas");
         }
 
         @Test

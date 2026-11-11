@@ -120,6 +120,29 @@ class SaidaServiceTest {
     }
 
     @Test
+    @DisplayName("Cadastro deve consolidar itens repetidos no mesmo endereço")
+    void cadastrar_comItemRepetidoNoMesmoEndereco_persisteUmaLinhaSomada() {
+        Estoque estoque = new Estoque(item, endereco, 10);
+        mockarEntidadesDoCadastro();
+        when(estoqueRepository.findByItemIdAndArmazenamentoId(3L, 4L))
+                .thenReturn(Optional.of(estoque));
+        when(saidaEstoqueRepository.save(any(SaidaEstoque.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        var detalhe =
+                saidaService.cadastrar(
+                        requisicao(
+                                new SaidaDTO.ItemSaidaRequisicao(3L, 4L, 2),
+                                new SaidaDTO.ItemSaidaRequisicao(3L, 4L, 3)));
+
+        assertThat(detalhe.itens()).singleElement().satisfies(
+                itemDetalhe -> assertThat(itemDetalhe.quantidade()).isEqualTo(5));
+        assertThat(estoque.getQuantidade()).isEqualTo(5);
+        verify(saidaEstoqueRepository, org.mockito.Mockito.times(1))
+                .save(any(SaidaEstoque.class));
+    }
+
+    @Test
     @DisplayName("Cadastro deve falhar com saldo insuficiente sem alterar estoque (RN11)")
     void cadastrar_comSaldoInsuficiente_lancaValidationException() {
         Estoque estoque = new Estoque(item, endereco, 4);
@@ -175,8 +198,6 @@ class SaidaServiceTest {
         mockarEntidadesDoCadastro();
         when(estoqueRepository.findByItemIdAndArmazenamentoId(3L, 4L))
                 .thenReturn(Optional.of(estoque));
-        when(saidaEstoqueRepository.save(any(SaidaEstoque.class)))
-                .thenAnswer(invocation -> invocation.getArgument(0));
 
         assertThatThrownBy(
                         () ->

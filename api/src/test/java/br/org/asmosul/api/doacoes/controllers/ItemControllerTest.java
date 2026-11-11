@@ -352,6 +352,45 @@ class ItemControllerTest extends BaseAPITest {
         }
 
         @Test
+        @DisplayName("Deve aceitar nome do enum e código da unidade como strings")
+        void atualizar_comUnidadeMedidaString_atualizaEGravaUnidade() throws Exception {
+            Item item =
+                    itemRepository.save(
+                            new Item(
+                                    "Extrato de Tomate",
+                                    categoriaPadrao,
+                                    300,
+                                    UnidadeMedida.LATA,
+                                    "Extrato"));
+
+            mockMvc.perform(
+                            put("/doacoes/itens/{id}", item.getId())
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(
+                                            """
+                                            {"nome":"Molho de Tomate","idCategoria":%d,"precoUnitario":350,"unidadeMedida":"QUILO","descricao":"Molho"}
+                                            """
+                                                    .formatted(categoriaPadrao.getId())))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.unidadeMedida.codigo").value("KG"));
+
+            mockMvc.perform(
+                            put("/doacoes/itens/{id}", item.getId())
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(
+                                            """
+                                            {"nome":"Molho de Tomate","idCategoria":%d,"precoUnitario":350,"unidadeMedida":"KG","descricao":"Molho"}
+                                            """
+                                                    .formatted(categoriaPadrao.getId())))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.unidadeMedida.codigo").value("KG"));
+
+            mockMvc.perform(get("/doacoes/itens/{id}", item.getId()))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.unidadeMedida.codigo").value("KG"));
+        }
+
+        @Test
         @DisplayName(
                 "Deve retornar status 409 quando atualizar para nome já existente em outro item")
         void atualizar_comNomeDuplicado_retornaStatus409() throws Exception {

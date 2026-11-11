@@ -40,19 +40,23 @@
 
         <div class="grid grid-cols-1 gap-y-3 sm:grid-cols-2 sm:gap-x-6">
           <div>
-            <label for="idItem" class="mb-2 block text-sm font-semibold text-[#344054]">
+            <label for="idItem-input" class="mb-2 block text-sm font-semibold text-[#344054]">
               Item e Estoque Geral *
             </label>
-            <mat-form-field appearance="outline" class="w-full">
-              <mat-select id="idItem" formControlName="idItem" placeholder="Selecione o item">
-                @for (item of itens(); track item.id) {
-                  <mat-option [value]="item.id">{{ rotuloSaldoTotal(item) }}</mat-option>
-                }
-              </mat-select>
-              @if (itemForm.controls.idItem.hasError('required')) {
-                <mat-error>Selecione o item a ser retirado.</mat-error>
-              }
-            </mat-form-field>
+            <app-select-pesquisavel
+              id="idItem"
+              formControlName="idItem"
+              placeholder="Pesquise pelo nome do item"
+              ariaLabel="Pesquisar item para saída"
+              [opcoes]="opcoesItens()"
+              [carregando]="carregandoItens()"
+              [mensagemErro]="
+                itemForm.controls.idItem.touched && itemForm.controls.idItem.hasError('required')
+                  ? 'Selecione o item a ser retirado.'
+                  : ''
+              "
+              (pesquisar)="pesquisarItens($event)"
+            />
           </div>
 
           <div>
@@ -199,29 +203,27 @@
 
     <div class="grid grid-cols-1 gap-y-3 sm:grid-cols-2 sm:gap-x-6">
       <div>
-        <label for="idRecebedor" class="mb-2 block text-sm font-semibold text-[#344054]">
+        <label for="idRecebedor-input" class="mb-2 block text-sm font-semibold text-[#344054]">
           @if (visualizacao()) {
             Recebedor (Beneficiário)
           } @else {
             Recebedor (Beneficiário) *
           }
         </label>
-        <mat-form-field appearance="outline" class="w-full">
-          <mat-select
-            id="idRecebedor"
-            formControlName="idRecebedor"
-            placeholder="Selecione o recebedor"
-          >
-            @for (recebedor of recebedores(); track recebedor.id) {
-              <mat-option [value]="recebedor.id">{{ recebedor.nome }}</mat-option>
-            }
-          </mat-select>
-          @if (form.controls.idRecebedor.hasError('required')) {
-            <mat-error>Selecione o beneficiário recebedor.</mat-error>
-          } @else if (form.controls.idRecebedor.hasError('backend')) {
-            <mat-error>{{ form.controls.idRecebedor.getError('backend') }}</mat-error>
-          }
-        </mat-form-field>
+        <app-select-pesquisavel
+          id="idRecebedor"
+          formControlName="idRecebedor"
+          placeholder="Pesquise por nome ou CPF"
+          ariaLabel="Pesquisar recebedor por nome ou CPF"
+          [opcoes]="opcoesRecebedores()"
+          [carregando]="carregandoRecebedores()"
+          [mensagemErro]="
+            form.controls.idRecebedor.touched && form.controls.idRecebedor.hasError('required')
+              ? 'Selecione o beneficiário recebedor.'
+              : (form.controls.idRecebedor.getError('backend') ?? '')
+          "
+          (pesquisar)="pesquisarRecebedores($event)"
+        />
       </div>
 
       @if (!modoCriacao()) {

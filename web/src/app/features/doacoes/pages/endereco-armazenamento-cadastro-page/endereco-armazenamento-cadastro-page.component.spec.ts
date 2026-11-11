@@ -23,7 +23,7 @@ const ENDERECO_COM_ITENS: EnderecoArmazenamentoDetalhe = {
       idItem: 1,
       nomeItem: 'Arroz 5kg',
       categoria: 'Alimentos',
-      unidadeMedida: 'Pacote',
+      unidadeMedida: { codigo: 'PCT', descricao: 'Pacote' },
       quantidade: 50,
     },
   ],

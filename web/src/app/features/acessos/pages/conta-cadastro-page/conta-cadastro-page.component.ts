@@ -11,12 +11,17 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ErroApi } from '@features/shared/models/erro-api.model';
+import {
+  SelectPesquisavelComponent,
+  SelectPesquisavelOpcao,
+} from '@features/shared/components/select-pesquisavel/select-pesquisavel.component';
 import { DialogoConfirmacaoService } from '@features/shared/services/dialogo-confirmacao.service';
 import { NotificacaoService } from '@features/shared/services/notificacao.service';
 import { PessoaResumo } from '@features/pessoas/models/pessoa.model';
 import { PessoaService } from '@features/pessoas/services/pessoa.service';
-import { EMPTY } from 'rxjs';
-import { concatMap, expand, map, reduce } from 'rxjs/operators';
+import { EMPTY, Subject, catchError, finalize, switchMap } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { concatMap } from 'rxjs/operators';
 import {
   ContaAtualizacao,
   ContaDetalhe,
@@ -40,6 +45,7 @@ import {
     MatInputModule,
     MatIconModule,
     MatSelectModule,
+    SelectPesquisavelComponent,
   ],
   templateUrl: './conta-cadastro-page.component.html',
 })
@@ -62,7 +68,16 @@ export class ContaCadastroPageComponent {
   protected readonly carregando = signal(false);
   protected readonly registro = signal<ContaDetalhe | null>(null);
   protected readonly pessoas = signal<PessoaResumo[]>([]);
+  protected readonly carregandoPessoas = signal(false);
   protected readonly perfis = signal<PerfilDisponivel[]>([]);
+  protected readonly opcoesPessoas = computed<SelectPesquisavelOpcao<number>[]>(() =>
+    this.pessoas().map((pessoa) => ({
+      valor: pessoa.id,
+      rotulo: `${pessoa.nome} · CPF ${pessoa.cpfCnpj}`,
+      textoBusca: pessoa.cpfCnpj,
+    })),
+  );
+  private readonly pesquisasPessoas = new Subject<string>();
 
   protected readonly form = this.fb.group(
     {
@@ -77,23 +92,48 @@ export class ContaCadastroPageComponent {
 
   protected readonly confirmarSenhaErrorStateMatcher: ErrorStateMatcher = {
     isErrorState: (controle, formulario) =>
-      !!controle
-      && (controle.invalid || this.form.hasError('senhasDiferentes'))
-      && (controle.touched || !!formulario?.submitted),
+      !!controle &&
+      (controle.invalid || this.form.hasError('senhasDiferentes')) &&
+      (controle.touched || !!formulario?.submitted),
   };
 
   constructor() {
-    this.pessoaService
-      .listar({ page: 0, size: 100, sort: 'nome,asc', tipoPessoa: 'FISICA' })
-      .subscribe({
-        next: (resposta) => {
-          const lista = resposta.dados || (resposta as any).content || [];
-          this.pessoas.set(
-            lista.filter((p: any) => p.tipoPessoa === 'FISICA' || p.tipoPessoa?.codigo === 'FISICA')
-          );
-        },
-        error: (err) => console.error('Erro ao carregar pessoas para o select:', err)
-      });
+    this.pesquisasPessoas
+      .pipe(
+        switchMap((consulta) => {
+          this.carregandoPessoas.set(true);
+          const somenteCpf = /\d/.test(consulta) && /^[\d\s()./-]+$/.test(consulta);
+          return this.pessoaService
+            .listar({
+              page: 0,
+              size: 20,
+              sort: 'nome,asc',
+              tipoPessoa: 'FISICA',
+              ...(consulta
+                ? somenteCpf
+                  ? { cpfCnpj: consulta.replace(/\D/g, '') }
+                  : { nome: consulta }
+                : {}),
+            })
+            .pipe(
+              finalize(() => this.carregandoPessoas.set(false)),
+              catchError(() => {
+                this.notificacao.erro('Não foi possível carregar as pessoas para a conta.');
+                return EMPTY;
+              }),
+            );
+        }),
+        takeUntilDestroyed(),
+      )
+      .subscribe((resposta) =>
+        this.pessoas.set(
+          resposta.dados.filter(
+            (pessoa) =>
+              pessoa.ativo && (!pessoa.tipoPessoa || pessoa.tipoPessoa.codigo === 'FISICA'),
+          ),
+        ),
+      );
+    this.pesquisarPessoas('');
 
     this.contaService.listarPerfis().subscribe({
       next: (perfis) => this.perfis.set(perfis),
@@ -133,7 +173,9 @@ export class ContaCadastroPageComponent {
           .atualizar(Number(this.id()), {
             nomeUsuario: valores.nomeUsuario.trim(),
           } satisfies ContaAtualizacao)
-          .pipe(concatMap(() => this.contaService.atualizarPerfis(Number(this.id()), valores.perfis)))
+          .pipe(
+            concatMap(() => this.contaService.atualizarPerfis(Number(this.id()), valores.perfis)),
+          )
       : this.contaService.cadastrar({
           pessoaId: valores.pessoaId,
           nomeUsuario: valores.nomeUsuario.trim(),
@@ -143,7 +185,9 @@ export class ContaCadastroPageComponent {
 
     requisicao.subscribe({
       next: () => {
-        this.notificacao.sucesso(`Conta ${this.modoEdicao() ? 'atualizada' : 'cadastrada'} com sucesso.`);
+        this.notificacao.sucesso(
+          `Conta ${this.modoEdicao() ? 'atualizada' : 'cadastrada'} com sucesso.`,
+        );
         this.location.back();
       },
       error: (erro: HttpErrorResponse) => this.tratarErro(erro),
@@ -170,12 +214,15 @@ export class ContaCadastroPageComponent {
       nomePessoa: conta.nomePessoa,
       nomeUsuario: conta.nomeUsuario,
     };
-    this.dialog.open<ContaRedefinirSenhaDialogComponent, ContaRedefinirSenhaDialogData, boolean>(
-      ContaRedefinirSenhaDialogComponent,
-      { width: '480px', maxWidth: 'calc(100vw - 32px)', data },
-    ).afterClosed().subscribe((atualizada) => {
-      if (atualizada) this.carregar(conta.id);
-    });
+    this.dialog
+      .open<ContaRedefinirSenhaDialogComponent, ContaRedefinirSenhaDialogData, boolean>(
+        ContaRedefinirSenhaDialogComponent,
+        { width: '480px', maxWidth: 'calc(100vw - 32px)', data },
+      )
+      .afterClosed()
+      .subscribe((atualizada) => {
+        if (atualizada) this.carregar(conta.id);
+      });
   }
 
   protected async alternarEstado(): Promise<void> {
@@ -205,6 +252,10 @@ export class ContaCadastroPageComponent {
     return this.perfis().find((perfil) => perfil.codigo === codigo)?.descricao ?? codigo;
   }
 
+  protected pesquisarPessoas(consulta: string): void {
+    this.pesquisasPessoas.next(consulta);
+  }
+
   private carregar(id: number): void {
     this.carregando.set(true);
     this.contaService.buscarPorId(id).subscribe({
@@ -230,7 +281,9 @@ export class ContaCadastroPageComponent {
   private tratarErro(erro: HttpErrorResponse): void {
     this.carregando.set(false);
     const corpo = erro.error as (ErroApi & { invalidFields?: Record<string, string> }) | undefined;
-    corpo?.erros?.forEach(({ campo, mensagem }) => this.form.get(campo)?.setErrors({ backend: mensagem }));
+    corpo?.erros?.forEach(({ campo, mensagem }) =>
+      this.form.get(campo)?.setErrors({ backend: mensagem }),
+    );
     Object.entries(corpo?.invalidFields ?? {}).forEach(([campo, mensagem]) => {
       this.form.get(campo)?.setErrors({ backend: mensagem });
     });

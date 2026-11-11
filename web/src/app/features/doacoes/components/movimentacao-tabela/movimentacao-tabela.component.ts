@@ -5,24 +5,14 @@ import { PageEvent } from '@angular/material/paginator';
 import { MatSortModule, Sort } from '@angular/material/sort';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { MovimentacaoResumo } from '../../models/movimentacao.model';
-import { formatarDataHoraEntrada } from '../../models/entrada.model';
-import {
-  ColunaExportacao,
-  SolicitacaoExportacao,
-} from '@features/shared/models/exportacao.model';
+import { formatarDataHoraMovimentacao, MovimentacaoResumo } from '../../models/movimentacao.model';
+import { ColunaExportacao, SolicitacaoExportacao } from '@features/shared/models/exportacao.model';
 import { filtrarColunasExibidas } from '@features/shared/utils/colunas-tabela';
 
 @Component({
   selector: 'app-movimentacao-tabela',
   standalone: true,
-  imports: [
-    MatTableModule,
-    MatSortModule,
-    MatIconModule,
-    MatButtonModule,
-    MatTooltipModule,
-  ],
+  imports: [MatTableModule, MatSortModule, MatIconModule, MatButtonModule, MatTooltipModule],
   templateUrl: './movimentacao-tabela.component.html',
 })
 export class MovimentacaoTabelaComponent {
@@ -56,7 +46,7 @@ export class MovimentacaoTabelaComponent {
     {
       id: 'dataHora',
       titulo: 'Data hora',
-      valor: (movimentacao) => formatarDataHoraEntrada(movimentacao.dataHora),
+      valor: (movimentacao) => formatarDataHoraMovimentacao(movimentacao.dataHora),
     },
   ];
 
@@ -84,6 +74,10 @@ export class MovimentacaoTabelaComponent {
 
   protected get direcaoOrdenada(): 'asc' | 'desc' {
     return this.ordenacao().split(',')[1] === 'asc' ? 'asc' : 'desc';
+  }
+
+  protected formatarDataHora(dataHora: string): string {
+    return formatarDataHoraMovimentacao(dataHora);
   }
 
   exportar(solicitacao: { formato: 'xlsx' | 'csv'; idsColunas: string[] }): void {

@@ -1,5 +1,6 @@
 import { ParametrosConsulta } from '@features/shared/models/parametros-consulta.model';
 import { UfCodigo, UfItem } from '@features/pessoas/models/pessoa.model';
+import { UnidadeMedidaValor } from './unidade-medida.model';
 
 export interface EnderecoArmazenamentoRequisicao {
   nome: string;
@@ -33,7 +34,7 @@ export interface EnderecoEstoqueItem {
   idItem: number;
   nomeItem: string;
   categoria: string;
-  unidadeMedida: string;
+  unidadeMedida: UnidadeMedidaValor;
   quantidade: number;
 }
 

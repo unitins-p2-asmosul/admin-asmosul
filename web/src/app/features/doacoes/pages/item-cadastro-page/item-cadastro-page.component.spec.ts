@@ -203,6 +203,25 @@ describe('ItemCadastroPageComponent', () => {
       expect(notificacaoMock.sucesso).toHaveBeenCalledWith('Item atualizado com sucesso.');
     });
 
+    it('converte o código retornado pela API para a opção do mat-select', async () => {
+      itemServiceMock.buscarPorId.mockReturnValue(
+        of({
+          ...ITEM_COM_LOCAIS,
+          unidadeMedida: { codigo: 'PCT', descricao: 'Pacote' },
+        }),
+      );
+
+      fixture = TestBed.createComponent(ItemCadastroPageComponent);
+      fixture.componentRef.setInput('id', '1');
+      fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.detectChanges();
+
+      expect(fixture.componentInstance['form'].controls.unidadeMedida.value).toBe(
+        UnidadeMedidaCodigo.PACOTE,
+      );
+    });
+
     it('exibe alerta de conflito ao receber status 409', () => {
       const erro409 = new HttpErrorResponse({
         status: 409,

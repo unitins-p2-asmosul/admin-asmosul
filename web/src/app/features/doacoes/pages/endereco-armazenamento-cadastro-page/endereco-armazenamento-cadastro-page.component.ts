@@ -27,6 +27,8 @@ import {
   EnderecoArmazenamentoDetalhe,
   EnderecoArmazenamentoRequisicao,
 } from '../../models/endereco-armazenamento.model';
+import { obterSiglaUnidade } from '../../models/item.model';
+import { UnidadeMedidaValor } from '../../models/unidade-medida.model';
 import { EnderecoArmazenamentoService } from '../../services/endereco-armazenamento.service';
 
 @Component({
@@ -73,6 +75,11 @@ export class EnderecoArmazenamentoCadastroPageComponent {
     complemento: ['', Validators.maxLength(100)],
     informacoesAdicionais: [''],
   });
+
+  protected obterUnidadeMedida(unidade: UnidadeMedidaValor): string {
+    if (typeof unidade === 'string') return unidade;
+    return unidade.descricao || obterSiglaUnidade(unidade) || '-';
+  }
 
   constructor() {
     this.configurarBuscaCep();

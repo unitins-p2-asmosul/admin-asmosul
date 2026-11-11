@@ -113,7 +113,9 @@ class EntradaControllerTest extends BaseAPITest {
                             "Doação recebida",
                             List.of(
                                     new EntradaDTO.ItemEntradaRequisicao(
-                                            item.getId(), endereco.getId(), 10)));
+                                            item.getId(), endereco.getId(), 4),
+                                    new EntradaDTO.ItemEntradaRequisicao(
+                                            item.getId(), endereco.getId(), 6)));
 
             mockMvc.perform(
                             post("/doacoes/entradas")
@@ -130,7 +132,8 @@ class EntradaControllerTest extends BaseAPITest {
                     .andExpect(jsonPath("$.descricao").value("Doação recebida"))
                     .andExpect(jsonPath("$.itens.length()").value(1))
                     .andExpect(jsonPath("$.itens[0].idItem").value(item.getId()))
-                    .andExpect(jsonPath("$.itens[0].quantidade").value(10));
+                    .andExpect(jsonPath("$.itens[0].quantidade").value(10))
+                    .andExpect(jsonPath("$.itens[0].unidadeMedida.codigo").value("PCT"));
 
             Estoque estoque =
                     estoqueRepository
@@ -205,6 +208,7 @@ class EntradaControllerTest extends BaseAPITest {
         @DisplayName("Deve listar entradas de forma paginada e permitir filtro por item")
         void listar_comEntradaCadastrada_retorna200EListaPaginada() throws Exception {
             Entrada entrada = criarEntradaComItem(4, 4);
+            entradaEstoqueRepository.save(new EntradaEstoque(item, endereco, entrada, 3));
 
             mockMvc.perform(
                             get("/doacoes/entradas")
@@ -213,7 +217,10 @@ class EntradaControllerTest extends BaseAPITest {
                     .andExpect(jsonPath("$.dados.length()").value(1))
                     .andExpect(jsonPath("$.dados[0].id").value(entrada.getId()))
                     .andExpect(jsonPath("$.dados[0].itens[0].nomeItem").value("Arroz 5kg"))
-                    .andExpect(jsonPath("$.dados[0].quantidadeTotalItens").value(4))
+                    .andExpect(jsonPath("$.dados[0].itens.length()").value(1))
+                    .andExpect(jsonPath("$.dados[0].itens[0].quantidade").value(7))
+                    .andExpect(jsonPath("$.dados[0].itens[0].unidadeMedida.codigo").value("PCT"))
+                    .andExpect(jsonPath("$.dados[0].quantidadeTotalItens").value(7))
                     .andExpect(jsonPath("$.paginaAtual").value(0))
                     .andExpect(jsonPath("$.totalElementos").value(1));
         }
@@ -234,7 +241,8 @@ class EntradaControllerTest extends BaseAPITest {
                     .andExpect(jsonPath("$.nomeDoador").value("Doador Teste"))
                     .andExpect(jsonPath("$.itens.length()").value(1))
                     .andExpect(jsonPath("$.itens[0].idArmazenamento").value(endereco.getId()))
-                    .andExpect(jsonPath("$.itens[0].quantidade").value(6));
+                    .andExpect(jsonPath("$.itens[0].quantidade").value(6))
+                    .andExpect(jsonPath("$.itens[0].unidadeMedida.codigo").value("PCT"));
         }
     }
 

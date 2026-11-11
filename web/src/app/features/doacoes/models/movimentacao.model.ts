@@ -54,3 +54,22 @@ export interface MovimentacaoFiltros {
 }
 
 export interface MovimentacaoConsultaParametros extends ParametrosConsulta, MovimentacaoFiltros {}
+
+export function formatarDataHoraMovimentacao(dataHora: string | null | undefined): string {
+  if (!dataHora) return '-';
+
+  const valor = dataHora.trim();
+  const dataBrasileira = /^(\d{2})-(\d{2})-(\d{4})[ T](\d{2}):(\d{2})/.exec(valor);
+  if (dataBrasileira) {
+    const [, dia, mes, ano, hora, minuto] = dataBrasileira;
+    return `${dia}/${mes}/${ano} ${hora}:${minuto}`;
+  }
+
+  const dataIso = /^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2})/.exec(valor);
+  if (dataIso) {
+    const [, ano, mes, dia, hora, minuto] = dataIso;
+    return `${dia}/${mes}/${ano} ${hora}:${minuto}`;
+  }
+
+  return valor;
+}
