@@ -10,7 +10,11 @@ import br.org.asmosul.api.doacoes.models.CategoriaItem;
 import br.org.asmosul.api.doacoes.repositories.CategoriaItemRepository;
 import br.org.asmosul.api.doacoes.repositories.ItemRepository;
 import br.org.asmosul.api.doacoes.repositories.specifications.CategoriaItemSpecification;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -64,8 +68,16 @@ public class CategoriaItemService {
         Page<CategoriaItem> pagina =
                 categoriaItemRepository.findAll(spec, paginacaoSanitizada);
 
+        Map<Long, Integer> itensPertencentesPorCategoria =
+                buscarItensPertencentesPorCategorias(pagina.getContent());
+
         Page<CategoriaItemDTO.Resumo> paginaDtos =
-                pagina.map(CategoriaItemDTO.Resumo::deEntidade);
+                pagina.map(
+                        categoria ->
+                                CategoriaItemDTO.Resumo.deEntidade(
+                                        categoria,
+                                        itensPertencentesPorCategoria.getOrDefault(
+                                                categoria.getId(), 0)));
 
         return RespostaPaginada.dePage(paginaDtos);
     }
@@ -77,7 +89,17 @@ public class CategoriaItemService {
                         ? categoriaItemRepository.findAll()
                         : categoriaItemRepository.findAllByDataInativoIsNull();
 
-        return categorias.stream().map(CategoriaItemDTO.Resumo::deEntidade).toList();
+        Map<Long, Integer> itensPertencentesPorCategoria =
+                buscarItensPertencentesPorCategorias(categorias);
+
+        return categorias.stream()
+                .map(
+                        categoria ->
+                                CategoriaItemDTO.Resumo.deEntidade(
+                                        categoria,
+                                        itensPertencentesPorCategoria.getOrDefault(
+                                                categoria.getId(), 0)))
+                .toList();
     }
 
     @Transactional(readOnly = true)
@@ -132,9 +154,9 @@ public class CategoriaItemService {
                                                 "Categoria de item ativa não encontrada com o ID informado: "
                                                         + id));
 
-        if (itemRepository.existsByCategoria_Id(id)) {
-            throw new ConflitoDadosException(
-                    "Não é possível inativar a categoria porque ela está vinculada a um ou mais itens.");
+        if (itemRepository.existsByCategoria_IdAndDataInativoIsNull(id)) {
+                throw new ConflitoDadosException(
+                        "Não é possível inativar a categoria porque ela possui itens ativos vinculados.");
         }
 
         categoria.desativar();
@@ -152,5 +174,29 @@ public class CategoriaItemService {
                                                         + id));
 
         categoria.reativar();
+    }
+
+    private Map<Long, Integer> buscarItensPertencentesPorCategorias(
+            List<CategoriaItem> categorias) {
+        if (categorias == null || categorias.isEmpty()) {
+            return Collections.emptyMap();
+        }
+
+        List<Long> ids =
+                categorias.stream().map(CategoriaItem::getId).filter(Objects::nonNull).toList();
+        if (ids.isEmpty()) {
+            return Collections.emptyMap();
+        }
+
+        List<Object[]> resultados = itemRepository.contarItensAtivosPorCategoriaIds(ids);
+        Map<Long, Integer> mapa = new HashMap<>();
+        if (resultados != null) {
+            for (Object[] linha : resultados) {
+                Long id = ((Number) linha[0]).longValue();
+                Number total = (Number) linha[1];
+                mapa.put(id, total != null ? total.intValue() : 0);
+            }
+        }
+        return mapa;
     }
 }

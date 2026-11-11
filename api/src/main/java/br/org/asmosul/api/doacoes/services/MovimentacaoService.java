@@ -16,22 +16,24 @@ import br.org.asmosul.api.doacoes.repositories.ItemRepository;
 import br.org.asmosul.api.doacoes.repositories.MovimentacaoEstoqueRepository;
 import br.org.asmosul.api.doacoes.repositories.MovimentacaoRepository;
 import br.org.asmosul.api.doacoes.repositories.specifications.MovimentacaoSpecification;
-import java.time.LocalDateTime;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.domain.Specification;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class MovimentacaoService {
+
+    private static final Logger log = LoggerFactory.getLogger(MovimentacaoService.class);
 
     private static final Set<String> CAMPOS_ORDENACAO_VALIDOS =
             Set.of("id", "dataHora", "descricao");
@@ -61,11 +63,14 @@ public class MovimentacaoService {
             throw ValidationException.of("itens", "A movimentação deve possuir ao menos um item.");
         }
 
-        EnderecoArmazenamento novoArmazenamento = enderecoArmazenamentoRepository
-                .findById(requisicao.idNovoArmazenamento())
-                .orElseThrow(() -> new EntidadeNaoEncontradaException(
-                        "Endereço de armazenamento de destino não encontrado com o ID informado: "
-                                + requisicao.idNovoArmazenamento()));
+        EnderecoArmazenamento novoArmazenamento =
+                enderecoArmazenamentoRepository
+                        .findById(requisicao.idNovoArmazenamento())
+                        .orElseThrow(
+                                () ->
+                                        new EntidadeNaoEncontradaException(
+                                                "Endereço de armazenamento de destino não encontrado com o ID informado: "
+                                                        + requisicao.idNovoArmazenamento()));
 
         for (MovimentacaoDTO.ItemMovimentacaoRequisicao itemReq : requisicao.itens()) {
             if (itemReq.idArmazenamentoAntigo().equals(requisicao.idNovoArmazenamento())) {
@@ -81,16 +86,23 @@ public class MovimentacaoService {
         movimentacao = movimentacaoRepository.save(movimentacao);
 
         for (MovimentacaoDTO.ItemMovimentacaoRequisicao itemReq : requisicao.itens()) {
-            Item item = itemRepository
-                    .findById(itemReq.idItem())
-                    .orElseThrow(() -> new EntidadeNaoEncontradaException(
-                            "Item não encontrado com o ID informado: " + itemReq.idItem()));
+            Item item =
+                    itemRepository
+                            .findById(itemReq.idItem())
+                            .orElseThrow(
+                                    () ->
+                                            new EntidadeNaoEncontradaException(
+                                                    "Item não encontrado com o ID informado: "
+                                                            + itemReq.idItem()));
 
-            EnderecoArmazenamento armazenamentoAntigo = enderecoArmazenamentoRepository
-                    .findById(itemReq.idArmazenamentoAntigo())
-                    .orElseThrow(() -> new EntidadeNaoEncontradaException(
-                            "Endereço de armazenamento de origem não encontrado com o ID informado: "
-                                    + itemReq.idArmazenamentoAntigo()));
+            EnderecoArmazenamento armazenamentoAntigo =
+                    enderecoArmazenamentoRepository
+                            .findById(itemReq.idArmazenamentoAntigo())
+                            .orElseThrow(
+                                    () ->
+                                            new EntidadeNaoEncontradaException(
+                                                    "Endereço de armazenamento de origem não encontrado com o ID informado: "
+                                                            + itemReq.idArmazenamentoAntigo()));
 
             Estoque estoqueOrigem = getOrLoadEstoque(estoqueCache, item, armazenamentoAntigo);
             if (estoqueOrigem.getQuantidade() < itemReq.quantidade()) {
@@ -104,16 +116,27 @@ public class MovimentacaoService {
             Estoque estoqueDestino = getOrLoadEstoque(estoqueCache, item, novoArmazenamento);
             estoqueDestino.setQuantidade(estoqueDestino.getQuantidade() + itemReq.quantidade());
 
-            itensParaSalvar.add(new MovimentacaoEstoque(
-                    item, armazenamentoAntigo, movimentacao, itemReq.quantidade()));
+            itensParaSalvar.add(
+                    new MovimentacaoEstoque(
+                            item, armazenamentoAntigo, movimentacao, itemReq.quantidade()));
         }
 
         estoqueRepository.saveAll(estoqueCache.values());
-        List<MovimentacaoEstoque> itensSalvos = movimentacaoEstoqueRepository.saveAll(itensParaSalvar);
+        List<MovimentacaoEstoque> itensSalvos =
+                movimentacaoEstoqueRepository.saveAll(itensParaSalvar);
 
-        List<MovimentacaoDTO.ItemMovimentacaoDetalhe> itensDetalhe = itensSalvos.stream()
-                .map(MovimentacaoDTO.ItemMovimentacaoDetalhe::deEntidade)
-                .toList();
+        for (MovimentacaoEstoque itemMovimentado : itensSalvos) {
+            log.info(
+                    "Movimentação bem-sucedida: item='{}', quantidade={}, destino='{}'",
+                    itemMovimentado.getItem().getNome(),
+                    itemMovimentado.getQuantidade(),
+                    novoArmazenamento.getNome());
+        }
+
+        List<MovimentacaoDTO.ItemMovimentacaoDetalhe> itensDetalhe =
+                itensSalvos.stream()
+                        .map(MovimentacaoDTO.ItemMovimentacaoDetalhe::deEntidade)
+                        .toList();
 
         return MovimentacaoDTO.Detalhe.deEntidade(movimentacao, itensDetalhe);
     }
@@ -135,46 +158,56 @@ public class MovimentacaoService {
         Page<Movimentacao> pagina = movimentacaoRepository.findAll(spec, paginacaoSanitizada);
 
         List<Long> ids = pagina.getContent().stream().map(Movimentacao::getId).toList();
-        Map<Long, List<MovimentacaoEstoque>> itensPorMovimentacao = ids.isEmpty()
-                ? Map.of()
-                : movimentacaoEstoqueRepository.findAllByMovimentacaoIdIn(ids).stream()
-                        .collect(Collectors.groupingBy(me -> me.getMovimentacao().getId()));
+        Map<Long, List<MovimentacaoEstoque>> itensPorMovimentacao =
+                ids.isEmpty()
+                        ? Map.of()
+                        : movimentacaoEstoqueRepository.findAllByMovimentacaoIdIn(ids).stream()
+                                .collect(Collectors.groupingBy(me -> me.getMovimentacao().getId()));
 
-        Page<MovimentacaoDTO.Resumo> paginaDtos = pagina.map(mov ->
-                MovimentacaoDTO.Resumo.deEntidade(
-                        mov, itensPorMovimentacao.getOrDefault(mov.getId(), List.of())));
+        Page<MovimentacaoDTO.Resumo> paginaDtos =
+                pagina.map(
+                        mov ->
+                                MovimentacaoDTO.Resumo.deEntidade(
+                                        mov,
+                                        itensPorMovimentacao.getOrDefault(mov.getId(), List.of())));
 
         return RespostaPaginada.dePage(paginaDtos);
     }
 
     @Transactional(readOnly = true)
     public MovimentacaoDTO.Detalhe buscarPorId(Long id) {
-        Movimentacao movimentacao = movimentacaoRepository
-                .findById(id)
-                .orElseThrow(() -> new EntidadeNaoEncontradaException(
-                        "Movimentação não encontrada com o ID informado: " + id));
+        Movimentacao movimentacao =
+                movimentacaoRepository
+                        .findById(id)
+                        .orElseThrow(
+                                () ->
+                                        new EntidadeNaoEncontradaException(
+                                                "Movimentação não encontrada com o ID informado: "
+                                                        + id));
 
         List<MovimentacaoEstoque> itens = movimentacaoEstoqueRepository.findAllByMovimentacaoId(id);
-        List<MovimentacaoDTO.ItemMovimentacaoDetalhe> itensDetalhe = itens.stream()
-                .map(MovimentacaoDTO.ItemMovimentacaoDetalhe::deEntidade)
-                .toList();
+        List<MovimentacaoDTO.ItemMovimentacaoDetalhe> itensDetalhe =
+                itens.stream().map(MovimentacaoDTO.ItemMovimentacaoDetalhe::deEntidade).toList();
 
         return MovimentacaoDTO.Detalhe.deEntidade(movimentacao, itensDetalhe);
     }
 
     @Transactional
     public MovimentacaoDTO.Detalhe atualizar(Long id, MovimentacaoDTO.Atualizacao atualizacao) {
-        Movimentacao movimentacao = movimentacaoRepository
-                .findById(id)
-                .orElseThrow(() -> new EntidadeNaoEncontradaException(
-                        "Movimentação não encontrada com o ID informado: " + id));
+        Movimentacao movimentacao =
+                movimentacaoRepository
+                        .findById(id)
+                        .orElseThrow(
+                                () ->
+                                        new EntidadeNaoEncontradaException(
+                                                "Movimentação não encontrada com o ID informado: "
+                                                        + id));
 
         movimentacao.setDescricao(atualizacao.descricao());
 
         List<MovimentacaoEstoque> itens = movimentacaoEstoqueRepository.findAllByMovimentacaoId(id);
-        List<MovimentacaoDTO.ItemMovimentacaoDetalhe> itensDetalhe = itens.stream()
-                .map(MovimentacaoDTO.ItemMovimentacaoDetalhe::deEntidade)
-                .toList();
+        List<MovimentacaoDTO.ItemMovimentacaoDetalhe> itensDetalhe =
+                itens.stream().map(MovimentacaoDTO.ItemMovimentacaoDetalhe::deEntidade).toList();
 
         return MovimentacaoDTO.Detalhe.deEntidade(movimentacao, itensDetalhe);
     }
@@ -182,8 +215,11 @@ public class MovimentacaoService {
     private Estoque getOrLoadEstoque(
             Map<String, Estoque> cache, Item item, EnderecoArmazenamento armazenamento) {
         String chave = item.getId() + "_" + armazenamento.getId();
-        return cache.computeIfAbsent(chave, k ->
-                estoqueRepository.findByItemIdAndArmazenamentoId(item.getId(), armazenamento.getId())
-                        .orElseGet(() -> new Estoque(item, armazenamento, 0)));
+        return cache.computeIfAbsent(
+                chave,
+                k ->
+                        estoqueRepository
+                                .findByItemIdAndArmazenamentoId(item.getId(), armazenamento.getId())
+                                .orElseGet(() -> new Estoque(item, armazenamento, 0)));
     }
 }

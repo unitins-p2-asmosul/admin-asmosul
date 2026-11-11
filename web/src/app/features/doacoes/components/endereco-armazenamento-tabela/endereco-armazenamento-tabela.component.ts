@@ -50,6 +50,11 @@ export class EnderecoArmazenamentoTabelaComponent {
     { id: 'nome', titulo: 'Nome', valor: (endereco) => endereco.nome },
     { id: 'bairro', titulo: 'Bairro', valor: (endereco) => endereco.bairro },
     { id: 'logradouro', titulo: 'Logradouro', valor: (endereco) => endereco.logradouro },
+    {
+      id: 'volumeFisico',
+      titulo: 'Volume Físico',
+      valor: (endereco) => endereco.volumeFisico ?? 0,
+    },
     { id: 'status', titulo: 'Status', valor: (endereco) => (endereco.ativo ? 'Ativo' : 'Inativo') },
   ];
 
@@ -59,6 +64,7 @@ export class EnderecoArmazenamentoTabelaComponent {
     'nome',
     'bairro',
     'logradouro',
+    'volumeFisico',
     'status',
   ];
 

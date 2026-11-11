@@ -1,0 +1,32 @@
+<section class="pagina-pessoas pb-12">
+  <header class="pagina-pessoas__header">
+    <div class="pagina-pessoas__title-wrap">
+      <span class="pagina-pessoas__title-icon" aria-hidden="true">
+        <mat-icon>category</mat-icon>
+      </span>
+      <h1>Relatório de Categorias de Pessoas</h1>
+    </div>
+  </header>
+
+  <!-- Estado de Carregamento -->
+  @if (carregando()) {
+    <div class="flex items-center justify-center py-16 text-[#8298a9]">
+      <span class="text-base font-semibold">Carregando indicadores...</span>
+    </div>
+  } @else {
+    <div class="flex flex-col gap-6">
+      <!-- Seção do Top 5 Categorias -->
+      <app-ranking-cards
+        titulo="Top 5 Categorias Mais Frequentes de Pessoas"
+        [itens]="dados().top5MaisFrequentes"
+        sufixo="pessoas"
+      />
+
+      <!-- Seção do Gráfico de Rosca com Proporções -->
+      <app-grafico-rosca
+        titulo="Contagem de Pessoas por Categoria"
+        [dados]="dados().distribuicao"
+      />
+    </div>
+  }
+</section>

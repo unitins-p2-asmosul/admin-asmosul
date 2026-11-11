@@ -7,6 +7,7 @@ export interface CategoriaResumo {
   id: number;
   nome: string;
   descricao?: string;
+  pessoasPertencentes?: number;
   ativo: boolean;
 }
 

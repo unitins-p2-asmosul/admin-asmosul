@@ -1,0 +1,31 @@
+<article class="flex h-full flex-col rounded-2xl border border-[#dfe4ea] bg-white p-5 shadow-xs">
+  <h3 class="m-0 border-b border-[#f1f3f5] pb-3 text-center text-sm font-bold tracking-wide text-[#0b3c5d] uppercase">
+    {{ titulo() }}
+  </h3>
+
+  <ul class="mt-4 flex flex-1 flex-col justify-center gap-3 pl-0">
+    @for (item of itens(); track item.posicao) {
+      <li class="flex items-center justify-between gap-3 text-sm">
+        <div class="flex items-center gap-2.5 min-w-0">
+          <span
+            class="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-[#f1f5f9] text-xs font-bold text-[#0b3c5d]"
+          >
+            {{ item.posicao }}
+          </span>
+          <span class="truncate font-semibold text-[#344054]" [title]="item.nome">
+            {{ item.nome }}
+          </span>
+        </div>
+
+        <div class="flex flex-shrink-0 items-center gap-1">
+          <span class="font-extrabold text-[#1f2937]">{{ item.quantidade }}</span>
+          <span class="text-xs font-medium text-[#8298a9]">{{ sufixo() }}</span>
+        </div>
+      </li>
+    } @empty {
+      <li class="py-4 text-center text-xs font-medium text-[#8298a9]">
+        Sem dados registrados.
+      </li>
+    }
+  </ul>
+</article>

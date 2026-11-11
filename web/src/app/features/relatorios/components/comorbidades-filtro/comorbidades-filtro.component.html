@@ -1,0 +1,37 @@
+<div [formGroup]="form" class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+  <div>
+    <label for="termoBusca" class="mb-1.5 block text-xs font-bold text-[#344054]">
+      Filtrar por Pessoa (Nome ou CPF)
+    </label>
+    <mat-form-field appearance="outline" class="w-full">
+      <mat-icon matPrefix class="mr-2 text-[#9ca3af]">search</mat-icon>
+      <input
+        id="termoBusca"
+        matInput
+        formControlName="termoBusca"
+        placeholder="Buscar pessoa..."
+        (keydown.enter)="aplicar()"
+        (blur)="aplicar()"
+      />
+    </mat-form-field>
+  </div>
+
+  <div>
+    <label for="comorbidadeIds" class="mb-1.5 block text-xs font-bold text-[#344054]">
+      Filtrar por Comorbidade
+    </label>
+    <mat-form-field appearance="outline" class="w-full">
+      <mat-select
+        id="comorbidadeIds"
+        formControlName="comorbidadeIds"
+        multiple
+        placeholder="Selecionar comorbidade(s)..."
+        (selectionChange)="aoSelecionarComorbidades()"
+      >
+        @for (item of comorbidadesOpcoes(); track item.id) {
+          <mat-option [value]="item.id">{{ item.nome }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+  </div>
+</div>

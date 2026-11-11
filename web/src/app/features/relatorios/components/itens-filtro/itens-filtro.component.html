@@ -1,2 +1,133 @@
+<form [formGroup]="form" class="pagina-formulario !my-0 !w-full !max-w-none">
+  <div class="grid gap-x-5 gap-y-2 sm:grid-cols-2">
+    <!-- Nome do item -->
+    <div class="sm:col-span-2">
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>Nome do item</mat-label>
+        <input
+          matInput
+          formControlName="nomeItem"
+          (keydown.enter)="submeter()"
+          placeholder="Buscar por nome"
+        />
+      </mat-form-field>
+    </div>
 
+    <!-- Categoria -->
+    <div>
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>Categoria</mat-label>
+        <mat-select formControlName="categoriaId" placeholder="Selecione a categoria">
+          <mat-option [value]="null">Todas as categorias</mat-option>
+          @for (categoria of categorias(); track categoria.id) {
+            <mat-option [value]="categoria.id">{{ categoria.nome }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+    </div>
 
+    <!-- Unidade de Medida -->
+    <div>
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>Unidade de medida</mat-label>
+        <mat-select formControlName="unidadeMedida" placeholder="Selecione a unidade">
+          <mat-option value="">Todas as unidades</mat-option>
+          @for (um of unidadesMedida; track um.codigo) {
+            <mat-option [value]="um.codigo">{{ um.descricao }} ({{ um.codigo }})</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    <!-- Faixa de Saldo em Estoque -->
+    <div class="grid grid-cols-2 gap-2">
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>Saldo mín.</mat-label>
+        <input
+          matInput
+          type="number"
+          min="0"
+          formControlName="saldoEstoqueMin"
+          (keydown.enter)="submeter()"
+          placeholder="0"
+        />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>Saldo máx.</mat-label>
+        <input
+          matInput
+          type="number"
+          min="0"
+          formControlName="saldoEstoqueMax"
+          (keydown.enter)="submeter()"
+          placeholder="999"
+        />
+      </mat-form-field>
+    </div>
+
+    <!-- Faixa de Entradas -->
+    <div class="grid grid-cols-2 gap-2">
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>Entradas mín.</mat-label>
+        <input
+          matInput
+          type="number"
+          min="0"
+          formControlName="totalEntradasMin"
+          (keydown.enter)="submeter()"
+          placeholder="0"
+        />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>Entradas máx.</mat-label>
+        <input
+          matInput
+          type="number"
+          min="0"
+          formControlName="totalEntradasMax"
+          (keydown.enter)="submeter()"
+          placeholder="999"
+        />
+      </mat-form-field>
+    </div>
+
+    <!-- Faixa de Saídas -->
+    <div class="grid grid-cols-2 gap-2 sm:col-span-2">
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>Saídas mín.</mat-label>
+        <input
+          matInput
+          type="number"
+          min="0"
+          formControlName="totalSaidasMin"
+          (keydown.enter)="submeter()"
+          placeholder="0"
+        />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>Saídas máx.</mat-label>
+        <input
+          matInput
+          type="number"
+          min="0"
+          formControlName="totalSaidasMax"
+          (keydown.enter)="submeter()"
+          placeholder="999"
+        />
+      </mat-form-field>
+    </div>
+  </div>
+
+  <!-- Ações padronizadas -->
+  <div class="flex items-center justify-center !gap-4 !pt-4 !pb-2">
+    <button mat-flat-button type="button" (click)="limpar()">
+      Limpar
+    </button>
+    <button mat-flat-button type="button" class="acao-primaria" (click)="submeter()">
+      Aplicar filtros
+    </button>
+  </div>
+</form>

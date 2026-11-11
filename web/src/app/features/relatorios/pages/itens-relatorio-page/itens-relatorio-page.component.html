@@ -1,0 +1,83 @@
+<section class="pagina-pessoas pb-12">
+  <header class="pagina-pessoas__header">
+    <div class="pagina-pessoas__title-wrap">
+      <span class="pagina-pessoas__title-icon" aria-hidden="true">
+        <mat-icon>inventory_2</mat-icon>
+      </span>
+      <h1>Relatório de Itens e Giro de Estoque</h1>
+    </div>
+  </header>
+
+  <div class="flex flex-col gap-6">
+    <!-- Grid dos 4 Cards de Ranking -->
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <app-ranking-cards
+        titulo="Itens que Mais Saem"
+        [itens]="resumo().itensMaisSaem"
+        sufixo="un."
+      />
+      <app-ranking-cards
+        titulo="Itens que Menos Saem"
+        [itens]="resumo().itensMenosSaem"
+        sufixo="un."
+      />
+      <app-ranking-cards
+        titulo="Itens que Mais Entram"
+        [itens]="resumo().itensMaisEntram"
+        sufixo="un."
+      />
+      <app-ranking-cards
+        titulo="Itens que Menos Entram"
+        [itens]="resumo().itensMenosEntram"
+        sufixo="un."
+      />
+    </div>
+
+    <!-- Card da Tabela de Itens com Filtros Integrados -->
+    <article class="w-full rounded-2xl border border-[#dfe4ea] bg-white p-6 shadow-xs">
+      <div class="mb-5 flex items-center gap-2">
+        <h2 class="m-0 text-lg font-bold text-[#0b3c5d]">
+          Consolidação de Giro e Saldo de Itens
+        </h2>
+        <span
+          class="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-[#f1f5f9] px-2 text-xs font-bold text-[#475569]"
+        >
+          {{ respostaTabela().totalElementos }}
+        </span>
+      </div>
+
+      <!-- Filtros Inline -->
+      <div class="mb-5">
+        <app-itens-filtro
+          [filtrosIniciais]="filtrosAtuais()"
+          (aoFiltrar)="aplicarFiltros($event)"
+        />
+      </div>
+
+      <!-- Barra de Exportação -->
+      <div class="mb-3">
+        <app-controles-exportacao
+          [colunas]="tabela.colunasExportaveis"
+          chaveStorage="relatorio_itens_colunas"
+          (aoExportar)="tabela.exportar($event)"
+          (aoMudarColunas)="idsColunasVisiveis.set($event)"
+        />
+      </div>
+
+      <!-- Tabela Paginada -->
+      <app-itens-tabela
+        #tabela
+        [dados]="respostaTabela().dados"
+        [totalElementos]="respostaTabela().totalElementos"
+        [tamanhoPagina]="respostaTabela().tamanhoPagina"
+        [paginaAtual]="respostaTabela().paginaAtual"
+        [carregando]="carregandoTabela()"
+        [colunasVisiveis]="idsColunasVisiveis()"
+        [ordenacao]="parametrosAtuais().sort ?? 'nomeItem,asc'"
+        (aoMudarPagina)="mudarPagina($event)"
+        (aoMudarOrdem)="mudarOrdem($event)"
+        (aoExportar)="exportar($event)"
+      />
+    </article>
+  </div>
+</section>

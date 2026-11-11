@@ -2,8 +2,8 @@ package br.org.asmosul.api.relatorios.dtos;
 
 import br.org.asmosul.api.comum.dtos.ItemGrafico;
 import br.org.asmosul.api.comum.dtos.ItemRanking;
-import br.org.asmosul.api.doacoes.models.UnidadeMedida;
 import io.swagger.v3.oas.annotations.media.Schema;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -34,7 +34,8 @@ public final class RelatorioDoacoesDTO {
     public record FiltroGiroEstoque(
         String nomeItem,
         Long categoriaId,
-        UnidadeMedida unidadeMedida,
+        @Schema(description = "Código/sigla ou nome da unidade de medida (ex.: PCT ou PACOTE)")
+        String unidadeMedida,
         Integer saldoEstoqueMin,
         Integer saldoEstoqueMax,
         Integer totalEntradasMin,
@@ -128,7 +129,9 @@ public final class RelatorioDoacoesDTO {
     // --- Relatório Financeiro ---
 
     public record FiltroFinanceiro(
+        @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
         LocalDate dataInicio,
+        @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
         LocalDate dataFim,
         String termoItem,
         String termoCategoria
@@ -157,7 +160,9 @@ public final class RelatorioDoacoesDTO {
 
     @Schema(description = "Filtros aplicáveis ao relatório de saídas e entregas")
     public record FiltroSaidas(
+        @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
         LocalDate dataInicio,
+        @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
         LocalDate dataFim,
         Long recebedorId,
         Long localArmazenamentoId,
@@ -215,7 +220,9 @@ public final class RelatorioDoacoesDTO {
 
     @Schema(description = "Filtros aplicáveis ao relatório de entradas e doações recebidas")
     public record FiltroEntradas(
+        @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
         LocalDate dataInicio,
+        @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
         LocalDate dataFim,
         Long doadorId,
         Long localArmazenamentoId,

@@ -11,6 +11,7 @@ export interface CategoriaItemResumo {
   id: number;
   nome: string;
   descricao?: string;
+  itensPertencentes?: number;
   ativo: boolean;
 }
 

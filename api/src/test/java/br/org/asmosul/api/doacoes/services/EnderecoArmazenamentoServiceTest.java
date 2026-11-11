@@ -84,7 +84,8 @@ class EnderecoArmazenamentoServiceTest {
             when(enderecoArmazenamentoRepository.save(any(EnderecoArmazenamento.class)))
                     .thenReturn(salvo);
 
-            EnderecoArmazenamentoDTO.Detalhe resultado = enderecoArmazenamentoService.cadastrar(requisicao);
+            EnderecoArmazenamentoDTO.Detalhe resultado =
+                    enderecoArmazenamentoService.cadastrar(requisicao);
 
             assertThat(resultado).isNotNull();
             assertThat(resultado.id()).isEqualTo(1L);
@@ -120,12 +121,15 @@ class EnderecoArmazenamentoServiceTest {
     class Listar {
 
         @Test
-        @DisplayName("Deve listar endereços com paginação")
+        @DisplayName("Deve listar endereços com paginação e volume físico calculado")
         void listar_comPaginacao_retornaRespostaPaginada() {
             Pageable pageable = PageRequest.of(0, 10);
             EnderecoArmazenamento endereco = criarEnderecoExemplo(1L, "Depósito Central");
-            when(enderecoArmazenamentoRepository.findAll(any(Specification.class), any(Pageable.class)))
+            when(enderecoArmazenamentoRepository.findAll(
+                            any(Specification.class), any(Pageable.class)))
                     .thenReturn(new PageImpl<>(List.of(endereco), pageable, 1));
+            when(estoqueRepository.somarVolumeFisicoPorArmazenamentoIds(List.of(1L)))
+                    .thenReturn(List.<Object[]>of(new Object[] {1L, 75L}));
 
             RespostaPaginada<EnderecoArmazenamentoDTO.Resumo> resultado =
                     enderecoArmazenamentoService.listar(
@@ -134,6 +138,7 @@ class EnderecoArmazenamentoServiceTest {
             assertThat(resultado).isNotNull();
             assertThat(resultado.dados()).hasSize(1);
             assertThat(resultado.dados().get(0).nome()).isEqualTo("Depósito Central");
+            assertThat(resultado.dados().get(0).volumeFisico()).isEqualTo(75);
         }
 
         @Test
@@ -141,11 +146,14 @@ class EnderecoArmazenamentoServiceTest {
         void listarTodas_apenasAtivos_retornaListaResumo() {
             EnderecoArmazenamento e1 = criarEnderecoExemplo(1L, "Dep 1");
             EnderecoArmazenamento e2 = criarEnderecoExemplo(2L, "Dep 2");
-            when(enderecoArmazenamentoRepository.findAllByDataInativoIsNull()).thenReturn(List.of(e1, e2));
+            when(enderecoArmazenamentoRepository.findAllByDataInativoIsNull())
+                    .thenReturn(List.of(e1, e2));
 
-            List<EnderecoArmazenamentoDTO.Resumo> resultado = enderecoArmazenamentoService.listarTodas(false);
+            List<EnderecoArmazenamentoDTO.Resumo> resultado =
+                    enderecoArmazenamentoService.listarTodas(false);
 
             assertThat(resultado).hasSize(2);
+            assertThat(resultado.get(0).volumeFisico()).isZero();
         }
 
         @Test
@@ -155,7 +163,8 @@ class EnderecoArmazenamentoServiceTest {
             EnderecoArmazenamento e2 = criarEnderecoExemplo(2L, "Dep 2");
             when(enderecoArmazenamentoRepository.findAll()).thenReturn(List.of(e1, e2));
 
-            List<EnderecoArmazenamentoDTO.Resumo> resultado = enderecoArmazenamentoService.listarTodas(true);
+            List<EnderecoArmazenamentoDTO.Resumo> resultado =
+                    enderecoArmazenamentoService.listarTodas(true);
 
             assertThat(resultado).hasSize(2);
         }
@@ -173,7 +182,8 @@ class EnderecoArmazenamentoServiceTest {
             when(estoqueRepository.findAllByArmazenamentoIdAndQuantidadeGreaterThan(5L, 0))
                     .thenReturn(List.of());
 
-            EnderecoArmazenamentoDTO.Detalhe resultado = enderecoArmazenamentoService.buscarPorId(5L);
+            EnderecoArmazenamentoDTO.Detalhe resultado =
+                    enderecoArmazenamentoService.buscarPorId(5L);
 
             assertThat(resultado).isNotNull();
             assertThat(resultado.id()).isEqualTo(5L);
@@ -182,7 +192,8 @@ class EnderecoArmazenamentoServiceTest {
         }
 
         @Test
-        @DisplayName("Deve retornar detalhes do endereço incluindo itens em estoque com saldo maior que zero (US-91)")
+        @DisplayName(
+                "Deve retornar detalhes do endereço incluindo itens em estoque com saldo maior que zero (US-91)")
         void buscarPorId_quandoPossuiItensEmEstoque_retornaListaDeItens() {
             EnderecoArmazenamento endereco = criarEnderecoExemplo(5L, "Depósito Sul");
             when(enderecoArmazenamentoRepository.findById(5L)).thenReturn(Optional.of(endereco));
@@ -195,7 +206,8 @@ class EnderecoArmazenamentoServiceTest {
             when(estoqueRepository.findAllByArmazenamentoIdAndQuantidadeGreaterThan(5L, 0))
                     .thenReturn(List.of(estoque));
 
-            EnderecoArmazenamentoDTO.Detalhe resultado = enderecoArmazenamentoService.buscarPorId(5L);
+            EnderecoArmazenamentoDTO.Detalhe resultado =
+                    enderecoArmazenamentoService.buscarPorId(5L);
 
             assertThat(resultado).isNotNull();
             assertThat(resultado.itens()).hasSize(1);
@@ -243,7 +255,8 @@ class EnderecoArmazenamentoServiceTest {
                             "Galpão 2",
                             "Novo depósito");
 
-            EnderecoArmazenamentoDTO.Detalhe resultado = enderecoArmazenamentoService.atualizar(6L, requisicao);
+            EnderecoArmazenamentoDTO.Detalhe resultado =
+                    enderecoArmazenamentoService.atualizar(6L, requisicao);
 
             assertThat(resultado).isNotNull();
             assertThat(resultado.nome()).isEqualTo("Nome Novo");
@@ -257,7 +270,8 @@ class EnderecoArmazenamentoServiceTest {
             EnderecoArmazenamento endereco = criarEnderecoExemplo(6L, "Nome Antigo");
             when(enderecoArmazenamentoRepository.findByIdAndDataInativoIsNull(6L))
                     .thenReturn(Optional.of(endereco));
-            when(enderecoArmazenamentoRepository.existsByNomeIgnoreCaseAndIdNot("Nome Existente", 6L))
+            when(enderecoArmazenamentoRepository.existsByNomeIgnoreCaseAndIdNot(
+                            "Nome Existente", 6L))
                     .thenReturn(true);
 
             var requisicao =
@@ -318,7 +332,8 @@ class EnderecoArmazenamentoServiceTest {
         }
 
         @Test
-        @DisplayName("Deve lançar ValidationException ao tentar desativar endereço com itens vinculados (RN012)")
+        @DisplayName(
+                "Deve lançar ValidationException ao tentar desativar endereço com itens vinculados (RN012)")
         void desativar_comItensVinculados_lancaValidationException() {
             EnderecoArmazenamento endereco = criarEnderecoExemplo(8L, "Dep Com Itens");
             when(enderecoArmazenamentoRepository.findByIdAndDataInativoIsNull(8L))

@@ -6,6 +6,8 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
+import { CategoriaService } from '../../services/categoria.service';
+import { ComorbidadeService } from '../../services/comorbidade.service';
 import {
   ESCOLARIDADE_OPCOES,
   RENDA_FAMILIAR_OPCOES,
@@ -28,154 +30,182 @@ import { PessoaService } from '../../services/pessoa.service';
   ],
   template: `
     <div class="pagina-formulario">
-      <h2 mat-dialog-title class="flex items-center gap-3 !text-2xl !font-bold !text-[#0b3c5d]">
-        <mat-icon aria-hidden="true">tune</mat-icon>
-        <span>Filtrar Pessoas</span>
-      </h2>
+    <h2 mat-dialog-title class="pessoa-filtro__titulo">
+      <span class="material-icons" aria-hidden="true">tune</span>
+      <span>Filtrar Pessoas</span>
+    </h2>
 
-      <mat-dialog-content>
-        <form [formGroup]="form" class="grid gap-x-5 gap-y-2 sm:grid-cols-2">
-          <h3 class="mb-1 text-base font-semibold text-gray-800 sm:col-span-2">Identificação</h3>
-          <mat-form-field appearance="outline" class="w-full">
-            <mat-label>Nome</mat-label>
-            <input matInput formControlName="nome" />
-          </mat-form-field>
+    <mat-dialog-content class="pessoa-filtro__content">
+      <form [formGroup]="form" class="pessoa-filtro__form grid gap-4 sm:grid-cols-2">
+        <h3 class="pessoa-filtro__section-title sm:col-span-2">Identificação</h3>
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>Data de Nascimento Mínima</mat-label>
 
-          <mat-form-field appearance="outline" class="w-full">
-            <mat-label>CPF/CNPJ</mat-label>
-            <input matInput formControlName="cpfCnpj" />
-          </mat-form-field>
+          <input
+            matInput
+            type="date"
+            formControlName="dataNascimentoInicio"
+          />
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>Data de Nascimento Final</mat-label>
 
-          <mat-form-field appearance="outline" class="w-full">
-            <mat-label>Telefone</mat-label>
-            <input matInput formControlName="telefone" />
-          </mat-form-field>
+          <input
+            matInput
+            type="date"
+            formControlName="dataNascimentoFim"
+          />
 
-          <mat-form-field appearance="outline" class="w-full">
-            <mat-label>E-mail</mat-label>
-            <input matInput type="email" formControlName="email" />
-          </mat-form-field>
+          @if (form.controls.dataNascimentoFim.hasError('intervaloInvalido')) {
+            <mat-error>
+              A data final não pode ser anterior à data inicial.
+            </mat-error>
+          }
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>Nome</mat-label>
+          <input matInput formControlName="nome" />
+        </mat-form-field>
 
-          <h3 class="mb-1 mt-3 text-base font-semibold text-gray-800 sm:col-span-2">
-            Dados pessoais
-          </h3>
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>CPF/CNPJ</mat-label>
+          <input matInput formControlName="cpfCnpj" />
+        </mat-form-field>
 
-          <mat-form-field appearance="outline" class="w-full">
-            <mat-label>Data de nascimento</mat-label>
-            <input matInput placeholder="dd-mm-aaaa" formControlName="dataNascimento" />
-          </mat-form-field>
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>Telefone</mat-label>
+          <input matInput formControlName="telefone" />
+        </mat-form-field>
 
-          <mat-form-field appearance="outline" class="w-full">
-            <mat-label>Tipo de pessoa</mat-label>
-            <mat-select formControlName="tipoPessoa">
-              <mat-option value="">Todos</mat-option>
-              <mat-option value="FISICA">Física</mat-option>
-              <mat-option value="JURIDICA">Jurídica</mat-option>
-            </mat-select>
-          </mat-form-field>
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>E-mail</mat-label>
+          <input matInput type="email" formControlName="email" />
+        </mat-form-field>
 
-          <mat-form-field appearance="outline" class="w-full">
-            <mat-label>Sexo</mat-label>
-            <mat-select formControlName="sexo">
-              <mat-option value="">Todos</mat-option>
-              @for (opcao of sexoOpcoes; track opcao.codigo) {
-                <mat-option [value]="opcao.codigo">{{ opcao.descricao }}</mat-option>
-              }
-            </mat-select>
-          </mat-form-field>
+        <h3 class="pessoa-filtro__section-title sm:col-span-2">Dados pessoais</h3>
 
-          <mat-form-field appearance="outline" class="w-full">
-            <mat-label>Escolaridade</mat-label>
-            <mat-select formControlName="escolaridade">
-              <mat-option value="">Todas</mat-option>
-              @for (opcao of escolaridadeOpcoes; track opcao.codigo) {
-                <mat-option [value]="opcao.codigo">{{ opcao.descricao }}</mat-option>
-              }
-            </mat-select>
-          </mat-form-field>
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>Data de nascimento</mat-label>
+          <input matInput placeholder="dd-mm-aaaa" formControlName="dataNascimento" />
+        </mat-form-field>
 
-          <mat-form-field appearance="outline" class="w-full">
-            <mat-label>Renda familiar</mat-label>
-            <mat-select formControlName="rendaFamiliar">
-              <mat-option value="">Todas</mat-option>
-              @for (opcao of rendaFamiliarOpcoes; track opcao.codigo) {
-                <mat-option [value]="opcao.codigo">{{ opcao.descricao }}</mat-option>
-              }
-            </mat-select>
-          </mat-form-field>
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>Tipo de pessoa</mat-label>
+          <mat-select formControlName="tipoPessoa">
+            <mat-option value="">Todos</mat-option>
+            <mat-option value="FISICA">Física</mat-option>
+            <mat-option value="JURIDICA">Jurídica</mat-option>
+          </mat-select>
+        </mat-form-field>
 
-          <mat-form-field appearance="outline" class="w-full">
-            <mat-label>Profissão</mat-label>
-            <input matInput formControlName="profissao" />
-          </mat-form-field>
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>Sexo</mat-label>
+          <mat-select formControlName="sexo">
+            <mat-option value="">Todos</mat-option>
+            @for (opcao of sexoOpcoes; track opcao.codigo) {
+              <mat-option [value]="opcao.codigo">{{ opcao.descricao }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
 
-          <mat-form-field appearance="outline" class="w-full">
-            <mat-label>Bairro</mat-label>
-            <input matInput formControlName="bairro" />
-          </mat-form-field>
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>Escolaridade</mat-label>
+          <mat-select formControlName="escolaridade">
+            <mat-option value="">Todas</mat-option>
+            @for (opcao of escolaridadeOpcoes; track opcao.codigo) {
+              <mat-option [value]="opcao.codigo">{{ opcao.descricao }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
 
-          <h3 class="mb-1 mt-3 text-base font-semibold text-gray-800 sm:col-span-2">
-            Relacionamentos
-          </h3>
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>Renda familiar</mat-label>
+          <mat-select formControlName="rendaFamiliar">
+            <mat-option value="">Todas</mat-option>
+            @for (opcao of rendaFamiliarOpcoes; track opcao.codigo) {
+              <mat-option [value]="opcao.codigo">{{ opcao.descricao }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
 
-          <mat-form-field appearance="outline" class="w-full">
-            <mat-label>Comorbidades</mat-label>
-            <mat-select formControlName="comorbidadeId">
-              <mat-option value="">Todas</mat-option>
-              @for (opcao of comorbidades(); track opcao.id) {
-                <mat-option [value]="opcao.id">{{ opcao.nome }}</mat-option>
-              }
-            </mat-select>
-          </mat-form-field>
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>Profissão</mat-label>
+          <input matInput formControlName="profissao" />
+        </mat-form-field>
 
-          <mat-form-field appearance="outline" class="w-full">
-            <mat-label>Categoria</mat-label>
-            <mat-select formControlName="categoriaId">
-              <mat-option value="">Todas</mat-option>
-              @for (opcao of categorias(); track opcao.id) {
-                <mat-option [value]="opcao.id">{{ opcao.nome }}</mat-option>
-              }
-            </mat-select>
-          </mat-form-field>
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>Bairro</mat-label>
+          <input matInput formControlName="bairro" />
+        </mat-form-field>
 
-          <mat-form-field appearance="outline" class="w-full">
-            <mat-label>Quantidade de coabitantes</mat-label>
-            <input matInput type="number" min="0" formControlName="quantidadeCoabitantes" />
-          </mat-form-field>
+        <h3 class="pessoa-filtro__section-title sm:col-span-2">Relacionamentos e status</h3>
 
-          <mat-form-field appearance="outline" class="w-full">
-            <mat-label>Beneficiário?</mat-label>
-            <mat-select formControlName="ehBeneficiario">
-              <mat-option value="">Todos</mat-option>
-              <mat-option value="true">Sim</mat-option>
-              <mat-option value="false">Não</mat-option>
-            </mat-select>
-          </mat-form-field>
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>Comorbidade</mat-label>
+          <mat-select formControlName="comorbidadeId">
+            <mat-option value="">Todas</mat-option>
+            @for (opcao of comorbidades(); track opcao.id) {
+              <mat-option [value]="opcao.id">{{ opcao.nome }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
 
-          <mat-form-field appearance="outline" class="w-full">
-            <mat-label>Doador?</mat-label>
-            <mat-select formControlName="ehDoador">
-              <mat-option value="">Todos</mat-option>
-              <mat-option value="true">Sim</mat-option>
-              <mat-option value="false">Não</mat-option>
-            </mat-select>
-          </mat-form-field>
-        </form>
-      </mat-dialog-content>
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>Categoria</mat-label>
+          <mat-select formControlName="categoriaId">
+            <mat-option value="">Todas</mat-option>
+            @for (opcao of categorias(); track opcao.id) {
+              <mat-option [value]="opcao.id">{{ opcao.nome }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
 
-      <mat-dialog-actions align="center" class="!gap-4 !pb-5">
-        <button mat-flat-button type="button" (click)="limpar()">Limpar</button>
-        <button mat-flat-button type="submit" (click)="aplicar()">Aplicar Filtros</button>
-      </mat-dialog-actions>
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>Quantidade de coabitantes</mat-label>
+          <input matInput type="number" min="0" formControlName="quantidadeCoabitantes" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>Beneficiário?</mat-label>
+          <mat-select formControlName="ehBeneficiario">
+            <mat-option value="">Todos</mat-option>
+            <mat-option value="true">Sim</mat-option>
+            <mat-option value="false">Não</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>Doador?</mat-label>
+          <mat-select formControlName="ehDoador">
+            <mat-option value="">Todos</mat-option>
+            <mat-option value="true">Sim</mat-option>
+            <mat-option value="false">Não</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-checkbox class="sm:col-span-2" formControlName="apenasInativos">Apenas inativos</mat-checkbox>
+      </form>
+    </mat-dialog-content>
+
+    <mat-dialog-actions align="center" class="pessoa-filtro__actions !gap-4 !pb-5">
+      <button mat-flat-button type="button" (click)="limpar()">Limpar</button>
+      <button mat-flat-button type="submit" (click)="aplicar()">
+        Aplicar Filtros
+      </button>
+    </mat-dialog-actions>
     </div>
   `,
 })
 export class PessoaFiltroDialogComponent {
   private readonly fb = inject(NonNullableFormBuilder);
-  private readonly pessoaService = inject(PessoaService);
-  private readonly dialogRef = inject(MatDialogRef<PessoaFiltroDialogComponent, PessoaFiltros>);
+  private readonly categoriaService = inject(CategoriaService);
+  private readonly comorbidadeService = inject(ComorbidadeService);
+  private readonly dialogRef = inject(
+    MatDialogRef<PessoaFiltroDialogComponent, PessoaFiltros>,
+  );
   private readonly filtrosAtuais = inject<PessoaFiltros>(MAT_DIALOG_DATA, { optional: true });
 
+  
   protected readonly sexoOpcoes = SEXO_OPCOES;
   protected readonly escolaridadeOpcoes = ESCOLARIDADE_OPCOES;
   protected readonly rendaFamiliarOpcoes = RENDA_FAMILIAR_OPCOES;
@@ -187,6 +217,8 @@ export class PessoaFiltroDialogComponent {
     cpfCnpj: [this.filtrosAtuais?.cpfCnpj ?? ''],
     tipoPessoa: [this.filtrosAtuais?.tipoPessoa ?? ''],
     dataNascimento: [this.filtrosAtuais?.dataNascimento ?? ''],
+    dataNascimentoInicio: [this.filtrosAtuais?.dataNascimentoInicio ?? '',],
+    dataNascimentoFim: [this.filtrosAtuais?.dataNascimentoFim ?? '',],
     sexo: [this.filtrosAtuais?.sexo ?? ''],
     telefone: [this.filtrosAtuais?.telefone ?? ''],
     email: [this.filtrosAtuais?.email ?? ''],
@@ -208,17 +240,43 @@ export class PessoaFiltroDialogComponent {
   });
 
   constructor() {
-    this.pessoaService.listarComorbidades().subscribe((itens) => this.comorbidades.set(itens));
-    this.pessoaService.listarCategorias().subscribe((itens) => this.categorias.set(itens));
+    this.comorbidadeService.listarTodas(false).subscribe({
+      next: (itens) => {
+        this.comorbidades.set(
+          itens.map(({ id, nome }) => ({ id, nome }))
+        );
+      },
+    });
+
+    this.categoriaService.listarTodas(false).subscribe({
+      next: (itens) => {
+        this.categorias.set(
+          itens.map(({ id, nome }) => ({ id, nome }))
+        );
+      },
+    });
   }
 
   protected aplicar(): void {
     const valores = this.form.getRawValue();
+    if (
+      valores.dataNascimentoInicio &&
+      valores.dataNascimentoFim &&
+      valores.dataNascimentoInicio > valores.dataNascimentoFim
+    ) {
+      this.form.controls.dataNascimentoFim.setErrors({
+        intervaloInvalido: true,
+      });
+
+      return;
+    }
     this.dialogRef.close({
       nome: valores.nome.trim() || undefined,
       cpfCnpj: valores.cpfCnpj.trim() || undefined,
       tipoPessoa: valores.tipoPessoa || undefined,
       dataNascimento: valores.dataNascimento.trim() || undefined,
+      dataNascimentoInicio: valores.dataNascimentoInicio || undefined,
+      dataNascimentoFim: valores.dataNascimentoFim || undefined,
       sexo: valores.sexo || undefined,
       telefone: valores.telefone.trim() || undefined,
       email: valores.email.trim() || undefined,

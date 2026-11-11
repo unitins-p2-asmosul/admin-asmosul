@@ -1,6 +1,7 @@
 package br.org.asmosul.api.pessoas.services;
 
 import br.org.asmosul.api.comum.dtos.RespostaPaginada;
+import br.org.asmosul.api.acesso.repositories.ContaRepository;
 import br.org.asmosul.api.comum.exceptions.ConflitoDadosException;
 import br.org.asmosul.api.comum.exceptions.EntidadeNaoEncontradaException;
 import br.org.asmosul.api.comum.exceptions.ValidationException;
@@ -34,19 +35,25 @@ public class PessoaService {
                     "profissao",
                     "cidade",
                     "bairro",
-                    "tipoPessoa");
+                    "tipoPessoa",
+                    "rendaFamiliar",
+                    "quantidadeCoabitantes");
 
     private final PessoaRepository pessoaRepository;
     private final ComorbidadeRepository comorbidadeRepository;
     private final CategoriaRepository categoriaRepository;
+    private final ContaRepository contaRepository;
 
     public PessoaService(
             PessoaRepository pessoaRepository,
             ComorbidadeRepository comorbidadeRepository,
-            CategoriaRepository categoriaRepository) {
+            CategoriaRepository categoriaRepository,
+            ContaRepository contaRepository) {
+
         this.pessoaRepository = pessoaRepository;
         this.comorbidadeRepository = comorbidadeRepository;
         this.categoriaRepository = categoriaRepository;
+        this.contaRepository = contaRepository;
     }
 
     @Transactional
@@ -185,6 +192,7 @@ public class PessoaService {
 
     @Transactional
     public void desativar(Long id) {
+
         Pessoa pessoa =
                 pessoaRepository
                         .findByIdAndDataInativoIsNull(id)
@@ -194,8 +202,17 @@ public class PessoaService {
                                                 "Pessoa ativa não encontrada com o ID informado: "
                                                         + id));
 
+        if (contaRepository.existsByPessoaId(id)) {
+            throw new ValidationException(
+                    "Não é possível desativar uma pessoa que possui uma conta de acesso vinculada.",
+                    List.of(
+                            new ValidationException.CampoErro(
+                                    "pessoa",
+                                    "A pessoa possui uma conta de acesso vinculada.")));
+        }
+
         pessoa.desativar();
-    }
+}
 
     @Transactional
     public void reativar(Long id) {

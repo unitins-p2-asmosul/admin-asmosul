@@ -25,6 +25,17 @@
       <mat-icon>visibility_off</mat-icon>
       Exibir inativos
     </button>
+    @if (filtrosAtivos > 0 || parametrosAtuais().apenasInativos) {
+      <button
+        mat-icon-button
+        type="button"
+        matTooltip="Limpar filtros"
+        aria-label="Limpar filtros"
+        (click)="limparFiltros()"
+      >
+        <mat-icon>filter_alt_off</mat-icon>
+      </button>
+    }
     <app-controles-exportacao
       class="min-w-0 flex-1"
       [colunas]="tabela.colunasExportaveis"

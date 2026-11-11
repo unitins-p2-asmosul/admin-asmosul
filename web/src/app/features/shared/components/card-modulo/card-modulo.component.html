@@ -1,0 +1,24 @@
+<article [class]="classesCard()">
+  <span class="card-modulo__icone" aria-hidden="true">
+    <mat-icon>{{ icone() }}</mat-icon>
+  </span>
+
+  <h3 class="card-modulo__titulo">{{ titulo() }}</h3>
+  <p class="card-modulo__descricao">{{ descricao() }}</p>
+
+  @if (bloqueado()) {
+    <p class="card-modulo__bloqueio">
+      <mat-icon aria-hidden="true">lock</mat-icon>
+      {{ motivoBloqueio() ?? 'Módulo ainda não disponível.' }}
+    </p>
+    <button mat-flat-button type="button" [class]="classesAcao()" disabled>
+      {{ rotuloAcao() }}
+      <mat-icon iconPositionEnd>arrow_forward</mat-icon>
+    </button>
+  } @else {
+    <a mat-flat-button [routerLink]="rota()" [class]="classesAcao()">
+      {{ rotuloAcao() }}
+      <mat-icon iconPositionEnd>arrow_forward</mat-icon>
+    </a>
+  }
+</article>

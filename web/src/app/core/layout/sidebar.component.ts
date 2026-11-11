@@ -1,4 +1,4 @@
-import { Component, computed, effect, inject, signal } from '@angular/core';
+import {Component, computed, effect, inject, input, output, signal} from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterLink } from '@angular/router';
 import { filter, map } from 'rxjs/operators';
@@ -29,6 +29,8 @@ export interface MenuSecao {
   templateUrl: './sidebar.component.html',
 })
 export class SidebarComponent {
+  readonly menuAberto = input(false);
+  readonly aoFechar = output<void>();
   private readonly router = inject(Router);
   private readonly authService = inject(AuthService);
 
@@ -68,18 +70,21 @@ export class SidebarComponent {
       ],
     },
     {
-      id: 'capacitacoes',
-      titulo: 'Capacitações',
-      icone: 'menu_book',
-      itens: [],
-      emDefinicao: true,
-    },
-    {
       id: 'relatorios',
       titulo: 'Relatórios',
-      icone: 'edit_note',
-      itens: [],
-      emDefinicao: true,
+      icone: 'description',
+      itens: [
+        { rotulo: 'Pessoas - Pessoas', icone: 'person_outline', rota: '/relatorios/pessoas' },
+        { rotulo: 'Pessoas - Comorbidades', icone: 'favorite_border', rota: '/relatorios/pessoas/comorbidades' },
+        { rotulo: 'Pessoas - Categorias', icone: 'category', rota: '/relatorios/pessoas/categorias' },
+        { rotulo: 'Doações - Itens', icone: 'inventory_2', rota: '/relatorios/doacoes/itens' },
+        { rotulo: 'Doações - Locais de Armazenamento', icone: 'location_on', rota: '/relatorios/doacoes/enderecos' },
+        { rotulo: 'Doações - Estoque', icone: 'layers', rota: '/relatorios/doacoes/estoque' },
+        { rotulo: 'Doações - Categorias de Itens', icone: 'category', rota: '/relatorios/doacoes/categorias' },
+        { rotulo: 'Doações - Saídas', icone: 'logout', rota: '/relatorios/saidas' },
+        { rotulo: 'Doações - Entradas', icone: 'login', rota: '/relatorios/entradas' },
+        { rotulo: 'Doações - Financeiro', icone: 'attach_money', rota: '/relatorios/financeiro' },
+      ],
     },
     {
       id: 'acesso',
@@ -140,11 +145,22 @@ export class SidebarComponent {
   constructor() {
     effect(() => {
       const secao = this.secaoAtiva();
+
       if (!secao) {
         return;
       }
 
-      this.expandidas.update((atuais) => (atuais.has(secao) ? atuais : new Set(atuais).add(secao)));
+      this.expandidas.update(atuais =>
+        atuais.has(secao)
+          ? atuais
+          : new Set(atuais).add(secao)
+      );
+    });
+
+    // Fecha a sidebar quando ocorre uma navegação.
+    effect(() => {
+      this.urlAtual();
+      this.aoFechar.emit();
     });
   }
 

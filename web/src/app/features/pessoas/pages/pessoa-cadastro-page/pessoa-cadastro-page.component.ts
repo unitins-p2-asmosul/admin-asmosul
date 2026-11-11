@@ -33,7 +33,6 @@ import {
   RendaFamiliarCodigo,
   SEXO_OPCOES,
   SexoCodigo,
-  TipoPessoa,
   TipoPessoaCodigo,
   UF_OPCOES,
   UfCodigo,
@@ -79,6 +78,35 @@ export class PessoaCadastroPageComponent {
   protected readonly buscandoCep = signal<boolean>(false);
   protected readonly registro = signal<PessoaDetalhe | null>(null);
   protected readonly modoEdicao = computed(() => !!this.id() && !this.visualizacao());
+
+  protected get titulo(): string {
+    if (this.visualizacao()) {
+      return 'Detalhes da Pessoa';
+    }
+
+    if (this.modoEdicao()) {
+      return 'Editar Pessoa';
+    }
+
+    return this.ehPessoaJuridica()
+      ? 'Cadastro de Pessoa Jurídica'
+      : 'Cadastro de Pessoa';
+  }
+
+  protected get descricao(): string {
+    if (this.visualizacao()) {
+      return 'Visualize as informações cadastradas da pessoa.';
+    }
+
+    if (this.modoEdicao()) {
+      return 'Altere os dados abaixo e salve para atualizar o cadastro.';
+    }
+
+    return this.ehPessoaJuridica()
+      ? 'Preencha os dados para cadastrar uma nova pessoa jurídica.'
+      : 'Preencha os dados para cadastrar uma nova pessoa.';
+  }
+
 
   private ultimoCepBuscado = '';
 
@@ -339,11 +367,6 @@ export class PessoaCadastroPageComponent {
         this.comorbidades.set(
           mesclarRelacionados(itens.map((i) => ({ id: i.id, nome: i.nome })), this.registro()?.comorbidades),
         ),
-      error: () => {
-        this.pessoaService.listarComorbidades().subscribe({
-          next: (itens) => this.comorbidades.set(itens),
-        });
-      },
     });
 
     this.categoriaService.listarTodas(false).subscribe({
@@ -351,11 +374,6 @@ export class PessoaCadastroPageComponent {
         this.categorias.set(
           mesclarRelacionados(itens.map((i) => ({ id: i.id, nome: i.nome })), this.registro()?.categorias),
         ),
-      error: () => {
-        this.pessoaService.listarCategorias().subscribe({
-          next: (itens) => this.categorias.set(itens),
-        });
-      },
     });
   }
 
@@ -366,8 +384,13 @@ export class PessoaCadastroPageComponent {
         this.registro.set(pessoa);
         this.comorbidades.update((itens) => mesclarRelacionados(itens, pessoa.comorbidades));
         this.categorias.update((itens) => mesclarRelacionados(itens, pessoa.categorias));
-        const ehPessoaJuridica = pessoa.tipoPessoa === TipoPessoa.JURIDICA;
+        const ehPessoaJuridica = pessoa.tipoPessoa.codigo === TipoPessoaCodigo.JURIDICA;
         this.form.controls.ehPessoaJuridica.setValue(ehPessoaJuridica);
+        if (!somenteLeitura) {
+          this.form.controls.ehPessoaJuridica.disable({
+            emitEvent: false,
+          });
+        }
         this.form.patchValue({
           nome: pessoa.nome,
           cpfCnpj: pessoa.cpfCnpj,
@@ -405,7 +428,6 @@ export class PessoaCadastroPageComponent {
 
     const requisicao: PessoaRequisicao = {
       nome: valores.nome.trim(),
-      dataNascimento: valores.dataNascimento.replace(/\//g, '-'),
       cpfCnpj: somenteDigitos(valores.cpfCnpj),
       tipoPessoa: ehJuridica ? TipoPessoaCodigo.JURIDICA : TipoPessoaCodigo.FISICA,
       telefone: somenteDigitos(valores.telefone),
@@ -473,10 +495,25 @@ export function somenteDigitos(valor: string | null | undefined): string {
   return String(valor ?? '').replace(/\D/g, '');
 }
 
+
 function formatarDataParaCampo(valor?: string): string {
   if (!valor) return '';
-  const partes = /^(\d{4})-(\d{2})-(\d{2})/.exec(valor);
-  return partes ? `${partes[3]}/${partes[2]}/${partes[1]}` : valor;
+
+  // Formato devolvido pela API: dd-MM-yyyy
+  const formatoApi = /^(\d{2})-(\d{2})-(\d{4})$/.exec(valor);
+
+  if (formatoApi) {
+    return `${formatoApi[1]}/${formatoApi[2]}/${formatoApi[3]}`;
+  }
+
+  // Compatibilidade com formato ISO: yyyy-MM-dd
+  const formatoIso = /^(\d{4})-(\d{2})-(\d{2})$/.exec(valor);
+
+  if (formatoIso) {
+    return `${formatoIso[3]}/${formatoIso[2]}/${formatoIso[1]}`;
+  }
+
+  return valor;
 }
 
 function mesclarRelacionados(

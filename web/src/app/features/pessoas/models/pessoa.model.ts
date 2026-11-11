@@ -1,19 +1,16 @@
 import { ItemDominio } from '@features/shared/models/item-dominio.model';
 
-export enum TipoPessoa {
+export enum TipoPessoaCodigo {
   FISICA = 'FISICA',
   JURIDICA = 'JURIDICA',
 }
+
+export type TipoPessoaItem = ItemDominio<TipoPessoaCodigo>;
 
 export enum SexoCodigo {
   FEMININO = 'FEMININO',
   MASCULINO = 'MASCULINO',
   PREFIRO_NAO_INFORMAR = 'PREFIRO_NAO_INFORMAR',
-}
-
-export enum TipoPessoaCodigo {
-  FISICA = 'FISICA',
-  JURIDICA = 'JURIDICA',
 }
 
 export enum UfCodigo {
@@ -117,7 +114,7 @@ export interface PessoaResumo {
   id: number;
   nome: string;
   cpfCnpj: string;
-  tipoPessoa?: TipoPessoa;
+  tipoPessoa?: TipoPessoaItem;
   dataNascimento?: string;
   telefone: string;
   email?: string;
@@ -138,7 +135,7 @@ export interface PessoaRequisicao {
   nome: string;
   cpfCnpj: string;
   tipoPessoa: TipoPessoaCodigo;
-  dataNascimento: string;
+  dataNascimento?: string;
   sexo?: SexoCodigo;
   telefone: string;
   email?: string;
@@ -163,7 +160,7 @@ export interface PessoaDetalhe {
   id: number;
   nome: string;
   cpfCnpj: string;
-  tipoPessoa: TipoPessoa;
+  tipoPessoa: TipoPessoaItem;
   dataNascimento?: string;
   sexo?: SexoItem;
   telefone: string;
@@ -191,6 +188,8 @@ export interface PessoaFiltros {
   cpfCnpj?: string;
   tipoPessoa?: string;
   dataNascimento?: string;
+  dataNascimentoInicio?: string;
+  dataNascimentoFim?: string;
   sexo?: SexoCodigo;
   telefone?: string;
   email?: string;
@@ -214,6 +213,8 @@ export interface PessoaConsultaParametros {
   cpfCnpj?: string;
   tipoPessoa?: string;
   dataNascimento?: string;
+  dataNascimentoInicio?: string;
+  dataNascimentoFim?: string;
   sexo?: SexoCodigo;
   telefone?: string;
   email?: string;

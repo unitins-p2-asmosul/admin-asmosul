@@ -3,7 +3,6 @@ package br.org.asmosul.api.doacoes.services;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -14,7 +13,6 @@ import br.org.asmosul.api.doacoes.dtos.CategoriaItemDTO;
 import br.org.asmosul.api.doacoes.models.CategoriaItem;
 import br.org.asmosul.api.doacoes.repositories.CategoriaItemRepository;
 import br.org.asmosul.api.doacoes.repositories.ItemRepository;
-
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
@@ -73,7 +71,8 @@ class CategoriaItemServiceTest {
 
             assertThatThrownBy(() -> categoriaItemService.cadastrar(requisicao))
                     .isInstanceOf(ConflitoDadosException.class)
-                    .hasMessageContaining("Já existe uma categoria de item cadastrada com este nome.");
+                    .hasMessageContaining(
+                            "Já existe uma categoria de item cadastrada com este nome.");
         }
     }
 
@@ -82,7 +81,7 @@ class CategoriaItemServiceTest {
     class Listar {
 
         @Test
-        @DisplayName("Deve retornar listagem paginada sanitizada com sucesso")
+        @DisplayName("Deve retornar listagem paginada sanitizada com itens pertencentes calculados")
         void listar_comPaginacaoESanitizacao_retornaRespostaPaginada() {
             Pageable paginacao = PageRequest.of(0, 10);
             CategoriaItem cat = new CategoriaItem("Roupas", "Vestuário geral");
@@ -90,6 +89,8 @@ class CategoriaItemServiceTest {
 
             when(categoriaItemRepository.findAll(any(Specification.class), any(Pageable.class)))
                     .thenReturn(new PageImpl<>(List.of(cat), paginacao, 1));
+            when(itemRepository.contarItensAtivosPorCategoriaIds(List.of(2L)))
+                    .thenReturn(List.<Object[]>of(new Object[] {2L, 4L}));
 
             RespostaPaginada<CategoriaItemDTO.Resumo> resposta =
                     categoriaItemService.listar(paginacao, false, false, "Roupas", null);
@@ -97,6 +98,7 @@ class CategoriaItemServiceTest {
             assertThat(resposta).isNotNull();
             assertThat(resposta.dados()).hasSize(1);
             assertThat(resposta.dados().get(0).nome()).isEqualTo("Roupas");
+            assertThat(resposta.dados().get(0).itensPertencentes()).isEqualTo(4);
             assertThat(resposta.totalElementos()).isEqualTo(1);
         }
     }
@@ -116,6 +118,7 @@ class CategoriaItemServiceTest {
 
             assertThat(resultado).hasSize(1);
             assertThat(resultado.get(0).nome()).isEqualTo("Higiene");
+            assertThat(resultado.get(0).itensPertencentes()).isZero();
         }
 
         @Test
@@ -144,8 +147,7 @@ class CategoriaItemServiceTest {
         void buscarPorId_comIdExistenteEAtivo_retornaDetalhe() {
             CategoriaItem cat = new CategoriaItem("Móveis", "Mesas e cadeiras");
             ReflectionTestUtils.setField(cat, "id", 5L);
-            when(categoriaItemRepository.findById(5L))
-                    .thenReturn(Optional.of(cat));
+            when(categoriaItemRepository.findById(5L)).thenReturn(Optional.of(cat));
 
             CategoriaItemDTO.Detalhe resultado = categoriaItemService.buscarPorId(5L);
 
@@ -171,8 +173,7 @@ class CategoriaItemServiceTest {
         @Test
         @DisplayName("Deve lançar EntidadeNaoEncontradaException quando não encontrada")
         void buscarPorId_comIdInexistente_lancaEntidadeNaoEncontradaException() {
-            when(categoriaItemRepository.findById(99L))
-                    .thenReturn(Optional.empty());
+            when(categoriaItemRepository.findById(99L)).thenReturn(Optional.empty());
 
             assertThatThrownBy(() -> categoriaItemService.buscarPorId(99L))
                     .isInstanceOf(EntidadeNaoEncontradaException.class)
@@ -218,11 +219,13 @@ class CategoriaItemServiceTest {
 
             assertThatThrownBy(() -> categoriaItemService.atualizar(6L, requisicao))
                     .isInstanceOf(ConflitoDadosException.class)
-                    .hasMessageContaining("Já existe uma categoria de item cadastrada com este nome.");
+                    .hasMessageContaining(
+                            "Já existe uma categoria de item cadastrada com este nome.");
         }
 
         @Test
-        @DisplayName("Deve lançar EntidadeNaoEncontradaException ao atualizar registro inexistente ou inativo")
+        @DisplayName(
+                "Deve lançar EntidadeNaoEncontradaException ao atualizar registro inexistente ou inativo")
         void atualizar_comIdInexistente_lancaEntidadeNaoEncontradaException() {
             when(categoriaItemRepository.findByIdAndDataInativoIsNull(99L))
                     .thenReturn(Optional.empty());
@@ -245,7 +248,7 @@ class CategoriaItemServiceTest {
             ReflectionTestUtils.setField(cat, "id", 7L);
             when(categoriaItemRepository.findByIdAndDataInativoIsNull(7L))
                     .thenReturn(Optional.of(cat));
-            when(itemRepository.existsByCategoria_Id(7L)).thenReturn(false);
+            when(itemRepository.existsByCategoria_IdAndDataInativoIsNull(7L)).thenReturn(false);
 
             categoriaItemService.desativar(7L);
 
@@ -260,16 +263,17 @@ class CategoriaItemServiceTest {
             ReflectionTestUtils.setField(cat, "id", 9L);
             when(categoriaItemRepository.findByIdAndDataInativoIsNull(9L))
                     .thenReturn(Optional.of(cat));
-            when(itemRepository.existsByCategoria_Id(9L)).thenReturn(true);
+            when(itemRepository.existsByCategoria_IdAndDataInativoIsNull(9L)).thenReturn(true);
 
             assertThatThrownBy(() -> categoriaItemService.desativar(9L))
                     .isInstanceOf(ConflitoDadosException.class)
-                    .hasMessageContaining("vinculada a um ou mais itens");
+                    .hasMessageContaining("possui itens ativos vinculados");
             assertThat(cat.isAtivo()).isTrue();
         }
 
         @Test
-        @DisplayName("Deve lançar EntidadeNaoEncontradaException ao tentar desativar categoria já inativa ou inexistente")
+        @DisplayName(
+                "Deve lançar EntidadeNaoEncontradaException ao tentar desativar categoria já inativa ou inexistente")
         void desativar_comIdInexistenteOuJaInativo_lancaEntidadeNaoEncontradaException() {
             when(categoriaItemRepository.findByIdAndDataInativoIsNull(99L))
                     .thenReturn(Optional.empty());

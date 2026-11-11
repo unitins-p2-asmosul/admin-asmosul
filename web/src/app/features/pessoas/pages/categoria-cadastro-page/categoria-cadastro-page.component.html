@@ -2,50 +2,40 @@
   class="pagina-formulario"
   [class.pagina-formulario__visualizacao]="visualizacao()"
 >
-  <div class="mb-8">
-    @if (visualizacao()) {
-      <div class="mb-4 flex items-center gap-3">
-        <button
-          mat-icon-button
-          type="button"
-          color="primary"
-          aria-label="Voltar"
-          (click)="cancelar()"
-          class="shrink-0"
-        >
-          <mat-icon>arrow_back</mat-icon>
-        </button>
+  <header class="mb-10">
+    <div class="flex flex-wrap items-center gap-3">
 
-        <div class="flex flex-wrap items-center gap-4">
-          <h1 class="text-[2rem] font-bold">Detalhes da Categoria</h1>
-          @if (categoria()?.ativo !== undefined) {
-            <span
-              class="pagina-formulario__status"
-              [class.pagina-formulario__status--ativo]="categoria()?.ativo"
-              [class.pagina-formulario__status--inativo]="!categoria()?.ativo"
-            >
-              {{ categoria()?.ativo ? 'Ativo' : 'Inativo' }}
-            </span>
-          }
-        </div>
-      </div>
-    } @else {
-      <div class="mb-4 flex items-center gap-3">
-        <button
-          mat-icon-button
-          type="button"
-          color="primary"
-          aria-label="Voltar"
-          (click)="cancelar()"
-          class="shrink-0"
-        >
-          <mat-icon>arrow_back</mat-icon>
-        </button>
+      <button
+        mat-icon-button
+        type="button"
+        aria-label="Voltar"
+        (click)="cancelar()"
+      >
+        <mat-icon>arrow_back</mat-icon>
+      </button>
 
-        <h1 class="text-[2rem] font-bold">{{ titulo }}</h1>
+      <div>
+        <h1 class="m-0 text-[2.5rem] leading-tight font-bold text-[#0b3c5d]">
+          {{ titulo }}
+        </h1>
+
+        <p class="mt-2 text-lg font-semibold text-[#8298a9]">
+          {{ descricao }}
+        </p>
       </div>
-    }
-  </div>
+
+      @if (visualizacao() && categoria()?.ativo !== undefined) {
+        <span
+          class="pagina-formulario__status"
+          [class.pagina-formulario__status--ativo]="categoria()?.ativo"
+          [class.pagina-formulario__status--inativo]="!categoria()?.ativo"
+        >
+          {{ categoria()?.ativo ? 'Ativo' : 'Inativo' }}
+        </span>
+      }
+
+    </div>
+  </header>
 
   <form
     [formGroup]="form"
@@ -93,16 +83,22 @@
         <button mat-flat-button type="button" (click)="cancelar()" [disabled]="carregando()">
           Voltar
         </button>
+        
         <button
           mat-flat-button
           type="button"
-          class="acao-perigo"
-          (click)="excluir()"
+          [class.acao-perigo]="categoria()?.ativo"
+          [class.acao-primaria]="!categoria()?.ativo"
+          (click)="alternarEstado()"
           [disabled]="carregando()"
         >
-          <mat-icon>delete_outline</mat-icon>
-          Excluir
+          <mat-icon>
+            {{ categoria()?.ativo ? 'block' : 'check_circle' }}
+          </mat-icon>
+
+          {{ categoria()?.ativo ? 'Desativar' : 'Reativar' }}
         </button>
+
         <button
           mat-flat-button
           type="button"

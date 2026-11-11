@@ -52,6 +52,16 @@ export class CategoriaCadastroPageComponent {
     return this.visualizacao() ? 'Detalhes da Categoria' : this.modoEdicao ? 'Atualização de Categoria' : 'Cadastro de Categoria';
   }
 
+  protected get descricao(): string {
+    if (this.visualizacao()) {
+      return 'Consulte os dados desta categoria.';
+    }
+
+    return this.modoEdicao
+      ? 'Atualize os dados cadastrais da categoria.'
+      : 'Preencha os campos para cadastrar uma nova categoria.';
+  }
+
   protected salvar(): void {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
@@ -80,24 +90,51 @@ export class CategoriaCadastroPageComponent {
   protected editar(): void {
     this.router.navigate(['/pessoas/categorias', this.id(), 'editar']);
   }
+  
+  protected async alternarEstado(): Promise<void> {
+    const categoria = this.categoria();
+    const id = this.id();
 
-  protected async excluir(): Promise<void> {
+    if (!categoria || !id) {
+      return;
+    }
+
+    const estaAtiva = categoria.ativo ?? true;
+
+    const acao = estaAtiva ? 'desativar' : 'reativar';
+
     const confirmou = await this.confirmacao.confirmar(
-      'Excluir categoria',
-      'Esta ação removerá definitivamente a categoria. Deseja continuar?',
+      `${estaAtiva ? 'Desativar' : 'Reativar'} categoria`,
+      `Tem certeza que deseja ${acao} esta categoria?`,
     );
-    if (!confirmou || !this.id()) return;
+
+    if (!confirmou) {
+      return;
+    }
 
     this.carregando.set(true);
-    this.categoriaService.excluir(Number(this.id())).subscribe({
+
+    const requisicao$ = estaAtiva
+      ? this.categoriaService.desativar(Number(id))
+      : this.categoriaService.reativar(Number(id));
+
+    requisicao$.subscribe({
       next: () => {
-        this.notificacaoService.sucesso('Categoria excluída com sucesso!');
-        this.location.back();
+        this.categoria.update((atual) =>
+          atual
+            ? { ...atual, ativo: !estaAtiva }
+            : atual
+        );
+
+        this.notificacaoService.sucesso(
+          `Categoria ${estaAtiva ? 'desativada' : 'reativada'} com sucesso!`,
+        );
       },
       error: (erro: HttpErrorResponse) => this.tratarErro(erro),
       complete: () => this.carregando.set(false),
     });
   }
+
 
   private carregar(id: number): void {
     this.carregando.set(true);
