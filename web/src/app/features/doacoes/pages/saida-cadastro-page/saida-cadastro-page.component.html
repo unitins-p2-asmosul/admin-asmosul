@@ -19,15 +19,29 @@
     (ngSubmit)="salvar()"
     class="rounded-xl border border-[#dfe4ea] bg-white px-5 pt-7 pb-12 shadow-none sm:px-7 sm:pt-8"
   >
-    <h2 class="mb-6 text-xl font-bold text-[#0b3c5d]">
-      @if (visualizacao()) {
-        Dados da Saída
-      } @else if (modoEdicao()) {
-        Alterar Dados da Saída
-      } @else {
-        Dados da Saída de Doação
+    <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
+      <h2 class="m-0 text-xl font-bold text-[#0b3c5d]">
+        @if (visualizacao()) {
+          Dados da Saída
+        } @else if (modoEdicao()) {
+          Alterar Dados da Saída
+        } @else {
+          Dados da Saída de Doação
+        }
+      </h2>
+
+      @if (modoCriacao()) {
+        <button
+          mat-flat-button
+          type="button"
+          class="!min-w-44 !bg-[#0b3c5d] !text-white"
+          (click)="abrirDialogoKit()"
+        >
+          <mat-icon>widgets</mat-icon>
+          Adicionar por Kit
+        </button>
       }
-    </h2>
+    </div>
 
     @if (modoCriacao()) {
       <fieldset
@@ -126,7 +140,7 @@
           }
         </div>
 
-        <div class="flex justify-end">
+        <div class="flex flex-wrap justify-end gap-3">
           <button
             mat-flat-button
             type="button"

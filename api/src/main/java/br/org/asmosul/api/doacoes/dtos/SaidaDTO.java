@@ -24,13 +24,6 @@ public final class SaidaDTO {
                     @Positive(message = "A quantidade deve ser maior que zero")
                     Integer quantidade) {}
 
-    public record KitSaidaRequisicao(
-            @NotNull(message = "O ID do kit é obrigatório") Long idKit,
-            @NotNull(message = "A quantidade de kits é obrigatória")
-                    @Positive(message = "A quantidade de kits deve ser maior que zero")
-                    Integer quantidade,
-            @NotNull(message = "O local de saída do kit é obrigatório") Long idArmazenamento) {}
-
     public record ItemSaidaDetalhe(
             Long id,
             Long idItem,
@@ -106,7 +99,6 @@ public final class SaidaDTO {
 
     public record SaidaFiltroDTO(
             List<Long> itensIds,
-            List<Long> kitsIds,
             Integer quantidade,
             Long recebedorId,
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate data) {}

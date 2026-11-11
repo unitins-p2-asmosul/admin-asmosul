@@ -1,15 +1,16 @@
 package br.org.asmosul.api.doacoes.models;
 
-import br.org.asmosul.api.comum.models.EntidadeBase;
+import br.org.asmosul.api.comum.models.EntidadeInativavel;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "kit")
-public class Kit extends EntidadeBase {
+public class Kit extends EntidadeInativavel {
 
-    @Column(nullable = false, length = 100)
+    @Column(nullable = false, unique = true, length = 100)
     private String nome;
 
     @Column(columnDefinition = "TEXT")
@@ -20,6 +21,14 @@ public class Kit extends EntidadeBase {
     public Kit(String nome, String descricao) {
         this.nome = nome;
         this.descricao = descricao;
+    }
+
+    public void desativar() {
+        this.setDataInativo(LocalDateTime.now());
+    }
+
+    public void reativar() {
+        this.setDataInativo(null);
     }
 
     public String getNome() {

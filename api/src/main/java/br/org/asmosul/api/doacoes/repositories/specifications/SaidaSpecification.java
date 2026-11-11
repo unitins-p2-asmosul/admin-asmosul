@@ -15,7 +15,6 @@ public final class SaidaSpecification {
 
     private SaidaSpecification() {}
 
-    /** O filtro {@code kitsIds} ainda não é aplicado, pois a saída não registra kits. */
     public static Specification<Saida> comFiltro(SaidaDTO.SaidaFiltroDTO filtro) {
         return (root, query, cb) -> {
             if (filtro == null) {

@@ -6,12 +6,6 @@ export interface ItemSaidaRequisicao {
   quantidade: number;
 }
 
-export interface KitSaidaRequisicao {
-  idKit: number;
-  quantidade: number;
-  idArmazenamento: number;
-}
-
 export interface ItemSaidaDetalhe {
   id: number;
   idItem: number;
@@ -25,7 +19,6 @@ export interface SaidaRequisicao {
   idRecebedor: number;
   descricao?: string;
   itens?: ItemSaidaRequisicao[];
-  kits?: KitSaidaRequisicao[];
 }
 
 export interface SaidaAtualizacao {
@@ -52,7 +45,6 @@ export interface SaidaDetalhe {
 
 export interface SaidaFiltros {
   itensIds?: number[];
-  kitsIds?: number[];
   quantidade?: number;
   recebedorId?: number;
   data?: string;
