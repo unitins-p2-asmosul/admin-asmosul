@@ -1,0 +1,81 @@
+<form [formGroup]="form" class="pagina-formulario !my-0 !w-full !max-w-none">
+  <div class="grid gap-x-5 gap-y-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
+    <!-- Nome do Item -->
+    <div class="sm:col-span-2 md:col-span-3 lg:col-span-1">
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>Nome do item</mat-label>
+        <input
+          matInput
+          formControlName="nomeItem"
+          (keydown.enter)="submeter()"
+          placeholder="Buscar por nome"
+        />
+      </mat-form-field>
+    </div>
+
+    <!-- Categorias (Múltiplo) -->
+    <div class="sm:col-span-1 md:col-span-1 lg:col-span-1">
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>Categorias</mat-label>
+        <mat-select formControlName="categoriasIds" multiple placeholder="Selecione as categorias">
+          @for (cat of categorias(); track cat.id) {
+            <mat-option [value]="cat.id">{{ cat.nome }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    <!-- Locais de Armazenamento (Múltiplo) -->
+    <div class="sm:col-span-1 md:col-span-2 lg:col-span-1">
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>Local de armazenamento</mat-label>
+        <mat-select formControlName="locaisIds" multiple placeholder="Selecione os locais">
+          @for (loc of locais(); track loc.id) {
+            <mat-option [value]="loc.id">{{ loc.nome }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    <!-- Quantidade Mínima -->
+    <div>
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>Qtd. mínima</mat-label>
+        <input
+          matInput
+          type="number"
+          min="0"
+          formControlName="quantidadeMinima"
+          (keydown.enter)="submeter()"
+          placeholder="0 un."
+        />
+      </mat-form-field>
+    </div>
+
+    <!-- Valor Mínimo -->
+    <div>
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>Valor mín. (R$)</mat-label>
+        <input
+          matInput
+          type="number"
+          min="0"
+          step="0.01"
+          formControlName="valorMinimo"
+          (keydown.enter)="submeter()"
+          placeholder="0,00"
+        />
+      </mat-form-field>
+    </div>
+  </div>
+
+  <!-- Ações -->
+  <div class="flex items-center justify-center !gap-4 !pt-4 !pb-2">
+    <button mat-flat-button type="button" (click)="limpar()">
+      Limpar
+    </button>
+    <button mat-flat-button type="button" class="acao-primaria" (click)="submeter()">
+      Aplicar filtros
+    </button>
+  </div>
+</form>

@@ -27,4 +27,37 @@ export const RELATORIOS_ROUTES: Routes = [
       },
     ]
   },
+  {
+    path: 'doacoes',
+    children: [
+      {
+        path: 'itens',
+        loadComponent: () =>
+          import('./pages/itens-relatorio-page/itens-relatorio-page.component').then(
+            (modulo) => modulo.ItensRelatorioPageComponent,
+          ),
+      },
+      {
+        path: 'enderecos',
+        loadComponent: () =>
+          import('./pages/armazenamentos-relatorio-page/armazenamentos-relatorios-page.component').then(
+            (modulo) => modulo.ArmazenamentosRelatorioPageComponent
+          )
+      },
+      {
+        path: 'estoque',
+        loadComponent: () =>
+          import('./pages/estoque-relatorio-page/estoque-relatorio-page.component').then(
+            (modulo) => modulo.EstoqueRelatorioPageComponent
+          )
+      },
+      {
+        path: 'categorias',
+        loadComponent: () =>
+          import('./pages/categoria-itens-relatorio-page/categoria-itens-relatorio-page.component').then(
+            (modulo) => modulo.CategoriaItensRelatorioPageComponent
+          )
+      }
+    ]
+  }
 ];

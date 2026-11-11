@@ -1,40 +1,31 @@
-<section class="w-full rounded-2xl border border-[#dfe4ea] bg-white p-6 shadow-xs">
-  <!-- Cabeçalho da Seção -->
-  <header class="mb-5 flex items-center gap-2">
-    <mat-icon class="!h-5 !w-5 !text-[20px] text-[#00a86b]">{{ icone() }}</mat-icon>
-    <h2 class="m-0 text-sm font-bold tracking-wider text-[#0b3c5d] uppercase">
-      {{ titulo() }}
-    </h2>
-  </header>
+<article class="flex h-full flex-col rounded-2xl border border-[#dfe4ea] bg-white p-5 shadow-xs">
+  <h3 class="m-0 border-b border-[#f1f3f5] pb-3 text-center text-sm font-bold tracking-wide text-[#0b3c5d] uppercase">
+    {{ titulo() }}
+  </h3>
 
-  <!-- Grid com os Cards do Top 5 -->
-  <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
+  <ul class="mt-4 flex flex-1 flex-col justify-center gap-3 pl-0">
     @for (item of itens(); track item.posicao) {
-      <article
-        class="flex min-h-[96px] flex-col justify-between rounded-xl border border-[#dfe4ea] bg-white p-4 transition-shadow hover:shadow-sm"
-      >
-        <div class="flex items-center justify-between gap-2">
+      <li class="flex items-center justify-between gap-3 text-sm">
+        <div class="flex items-center gap-2.5 min-w-0">
           <span
-            class="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-[#0b3c5d] px-1.5 text-xs font-bold text-white"
+            class="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-[#f1f5f9] text-xs font-bold text-[#0b3c5d]"
           >
-            #{{ item.posicao }}
+            {{ item.posicao }}
           </span>
-          <span class="text-xs font-medium text-[#8298a9]">
-            {{ item.quantidade }} {{ sufixo() }}
+          <span class="truncate font-semibold text-[#344054]" [title]="item.nome">
+            {{ item.nome }}
           </span>
         </div>
 
-        <h3
-          class="m-0 mt-2 line-clamp-2 text-sm font-bold text-[#1f2937]"
-          [title]="item.nome"
-        >
-          {{ item.nome }}
-        </h3>
-      </article>
+        <div class="flex flex-shrink-0 items-center gap-1">
+          <span class="font-extrabold text-[#1f2937]">{{ item.quantidade }}</span>
+          <span class="text-xs font-medium text-[#8298a9]">{{ sufixo() }}</span>
+        </div>
+      </li>
     } @empty {
-      <div class="col-span-full py-6 text-center text-sm font-medium text-[#8298a9]">
-        Nenhum dado disponível para o ranking.
-      </div>
+      <li class="py-4 text-center text-xs font-medium text-[#8298a9]">
+        Sem dados registrados.
+      </li>
     }
-  </div>
-</section>
+  </ul>
+</article>

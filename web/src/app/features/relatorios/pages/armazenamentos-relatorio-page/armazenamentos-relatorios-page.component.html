@@ -1,0 +1,41 @@
+<section class="pagina-pessoas pb-12">
+  <!-- Cabeçalho -->
+  <header class="pagina-pessoas__header">
+    <div class="pagina-pessoas__title-wrap">
+      <span class="pagina-pessoas__title-icon" aria-hidden="true">
+        <mat-icon>warehouse</mat-icon>
+      </span>
+      <h1>Relatório de Locais de Armazenamento</h1>
+    </div>
+  </header>
+
+  <div class="flex flex-col gap-6">
+    <!-- Grid dos 3 Cards Resumo -->
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <app-card-resumo
+        titulo="Total de Locais"
+        [valor]="dados().totalLocais"
+      />
+      <app-card-resumo
+        titulo="Volume Físico Total"
+        [valor]="dados().volumeFisicoTotal"
+      />
+      <app-card-resumo
+        titulo="Locais em Uso"
+        [valor]="dados().locaisEmUso"
+      />
+    </div>
+
+    <!-- Gráfico de Rosca de Distribuição com Exportação de Imagem -->
+    @if (carregando()) {
+      <div class="flex items-center justify-center py-16 text-[#8298a9]">
+        <span class="text-base font-semibold">Carregando dados de armazenamento...</span>
+      </div>
+    } @else {
+      <app-grafico-rosca
+        titulo="Distribuição do Volume Físico por Local de Armazenamento"
+        [dados]="dados().distribuicaoVolumePorLocal"
+      />
+    }
+  </div>
+</section>
