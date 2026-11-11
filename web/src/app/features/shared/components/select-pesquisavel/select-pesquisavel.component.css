@@ -1,0 +1,27 @@
+:host {
+  display: block;
+  width: 100%;
+}
+
+:host .mat-mdc-form-field {
+  width: 100%;
+}
+
+.select-pesquisavel-opcao {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 4px 0;
+  line-height: 1.25;
+}
+
+.select-pesquisavel-rotulo {
+  font-weight: 500;
+  color: #344054;
+}
+
+.select-pesquisavel-subtexto {
+  font-size: 0.75rem;
+  color: #8298a9;
+  margin-top: 2px;
+}
