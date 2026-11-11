@@ -50,17 +50,19 @@ describe('ContaCadastroPageComponent', () => {
       reativar: vi.fn().mockReturnValue(of(void 0)),
     };
     pessoaServiceMock = {
-      listar: vi.fn().mockReturnValue(of({
-        dados: [
-          { id: 1, nome: 'Ana Silva', tipoPessoa: 'FISICA', ativo: true },
-          { id: 2, nome: 'Pessoa inativa', tipoPessoa: 'FISICA', ativo: false },
-          { id: 3, nome: 'Empresa', tipoPessoa: 'JURIDICA', ativo: true },
-        ],
-        paginaAtual: 0,
-        tamanhoPagina: 100,
-        totalElementos: 3,
-        totalPaginas: 1,
-      })),
+      listar: vi.fn().mockReturnValue(
+        of({
+          dados: [
+            { id: 1, nome: 'Ana Silva', tipoPessoa: 'FISICA', ativo: true },
+            { id: 2, nome: 'Pessoa inativa', tipoPessoa: 'FISICA', ativo: false },
+            { id: 3, nome: 'Empresa', tipoPessoa: 'JURIDICA', ativo: true },
+          ],
+          paginaAtual: 0,
+          tamanhoPagina: 100,
+          totalElementos: 3,
+          totalPaginas: 1,
+        }),
+      ),
     };
     notificacaoMock = { sucesso: vi.fn(), alerta: vi.fn(), erro: vi.fn() };
     locationMock = { back: vi.fn() };
@@ -71,7 +73,10 @@ describe('ContaCadastroPageComponent', () => {
         { provide: ContaService, useValue: contaServiceMock },
         { provide: PessoaService, useValue: pessoaServiceMock },
         { provide: NotificacaoService, useValue: notificacaoMock },
-        { provide: DialogoConfirmacaoService, useValue: { confirmar: vi.fn().mockResolvedValue(true) } },
+        {
+          provide: DialogoConfirmacaoService,
+          useValue: { confirmar: vi.fn().mockResolvedValue(true) },
+        },
         { provide: Location, useValue: locationMock },
         { provide: Router, useValue: { navigate: vi.fn() } },
         { provide: ActivatedRoute, useValue: { snapshot: { queryParams: { page: '2' } } } },
@@ -189,12 +194,18 @@ describe('ContaCadastroPageComponent', () => {
     expect(component['form'].controls.pessoaId.getError('backend')).toBe('A pessoa está inativa.');
 
     component['tratarErro'](
-      new HttpErrorResponse({ status: 409, error: { detail: 'Já existe uma conta com este nome de usuário.' } }),
+      new HttpErrorResponse({
+        status: 409,
+        error: { detail: 'Já existe uma conta com este nome de usuário.' },
+      }),
     );
     expect(component['form'].controls.nomeUsuario.getError('backend')).toContain('nome de usuário');
 
     component['tratarErro'](
-      new HttpErrorResponse({ status: 409, error: { detail: 'Esta pessoa já possui uma conta vinculada.' } }),
+      new HttpErrorResponse({
+        status: 409,
+        error: { detail: 'Esta pessoa já possui uma conta vinculada.' },
+      }),
     );
     expect(component['form'].controls.pessoaId.getError('backend')).toContain('pessoa');
   });

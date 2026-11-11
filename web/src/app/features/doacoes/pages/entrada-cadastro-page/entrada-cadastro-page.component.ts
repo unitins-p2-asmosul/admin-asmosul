@@ -12,6 +12,11 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { ActivatedRoute, Router } from '@angular/router';
 import { PessoaResumo } from '@features/pessoas/models/pessoa.model';
 import { PessoaService } from '@features/pessoas/services/pessoa.service';
+import {
+  OpcaoSelectPesquisavel,
+  SelectPesquisavelComponent,
+} from '@features/shared/components/select-pesquisavel/select-pesquisavel.component';
+import { CpfCnpjPipe } from '@features/shared/pipes/cpf-cnpj.pipe';
 import { DialogoConfirmacaoService } from '@features/shared/services/dialogo-confirmacao.service';
 import { NotificacaoService } from '@features/shared/services/notificacao.service';
 import { finalize } from 'rxjs/operators';
@@ -50,6 +55,7 @@ export interface LinhaItemEntrada {
     MatInputModule,
     MatSelectModule,
     MatTooltipModule,
+    SelectPesquisavelComponent,
   ],
   templateUrl: './entrada-cadastro-page.component.html',
 })
@@ -64,6 +70,7 @@ export class EntradaCadastroPageComponent implements OnInit {
   private readonly pessoaService = inject(PessoaService);
   private readonly confirmacao = inject(DialogoConfirmacaoService);
   private readonly notificacao = inject(NotificacaoService);
+  private readonly cpfPipe = new CpfCnpjPipe();
 
   readonly id = input<string>();
   readonly visualizacao = input(false);
@@ -75,6 +82,25 @@ export class EntradaCadastroPageComponent implements OnInit {
   protected readonly itensIncluidos = signal<LinhaItemEntrada[]>([]);
   protected readonly carregando = signal(false);
   protected readonly registro = signal<EntradaDetalhe | null>(null);
+
+  protected readonly opcoesItens = computed<OpcaoSelectPesquisavel<number>[]>(() =>
+    this.itens().map((item) => ({
+      valor: item.id,
+      rotulo: item.nome,
+      subtexto: item.categoria ? `Categoria: ${item.categoria}` : undefined,
+    })),
+  );
+
+  protected readonly opcoesDoadores = computed<OpcaoSelectPesquisavel<number>[]>(() =>
+    this.doadores().map((doador) => {
+      const subtexto = doador.cpfCnpj ? this.cpfPipe.transform(doador.cpfCnpj) : undefined;
+      return {
+        valor: doador.id,
+        rotulo: doador.nome,
+        subtexto,
+      };
+    }),
+  );
 
   protected readonly modoEdicao = computed(() => !!this.id() && !this.visualizacao());
   protected readonly modoCriacao = computed(() => !this.id());
@@ -102,6 +128,25 @@ export class EntradaCadastroPageComponent implements OnInit {
     const item = this.itens().find((candidato) => candidato.id === idItem);
     return item ? obterSiglaUnidade(item.unidadeMedida) : '';
   });
+
+  protected obterErroItem(): string | null {
+    const ctrl = this.itemForm.controls.idItem;
+    if ((ctrl.touched || ctrl.dirty) && ctrl.hasError('required')) {
+      return 'Selecione o item recebido.';
+    }
+    return null;
+  }
+
+  protected obterErroDoador(): string | null {
+    const ctrl = this.form.controls.idDoador;
+    if ((ctrl.touched || ctrl.dirty) && ctrl.hasError('required')) {
+      return 'Selecione o doador desta entrada.';
+    }
+    if (ctrl.hasError('backend')) {
+      return ctrl.getError('backend');
+    }
+    return null;
+  }
 
   constructor() {
     effect(() => {

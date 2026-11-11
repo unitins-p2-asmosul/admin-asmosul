@@ -37,14 +37,10 @@ export interface ComorbidadeRequisicao {
 export type ComorbidadeAtualizacao = ComorbidadeRequisicao;
 
 /**
- * Filtros por campo da listagem.
- *
- * `nome` e `apenasInativos` seguem o padrão já existente em GET /pessoas.
- * O backend de comorbidades ainda não os aceita — até lá, só têm efeito no mock.
+ * The API supports `nome`; inclusion of inactive records comes from shared query parameters.
  */
 export interface ComorbidadeFiltros {
   nome?: string;
-  apenasInativos?: boolean;
 }
 
 /** Parâmetros finais enviados à API (paginação + filtros). */

@@ -112,20 +112,20 @@ class CategoriaControllerTest extends BaseAPITest {
 
         @Test
         @DisplayName("Deve filtrar inativos por padrÃ£o na listagem")
-        void listar_comFiltroIncluirInativos_retornaStatus200() throws Exception {
+        void listar_comFiltroapenasInativos_retornaStatus200() throws Exception {
             categoriaRepository.save(new Categoria("Categoria Ativa", "Desc"));
             Categoria inativa = new Categoria("Categoria Inativa", "Desc");
             inativa.setDataInativo(java.time.LocalDateTime.now());
             categoriaRepository.save(inativa);
 
-            mockMvc.perform(get("/pessoas/categorias").param("incluirInativos", "false"))
+            mockMvc.perform(get("/pessoas/categorias").param("apenasInativos", "false"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.totalElementos").value(1))
                     .andExpect(jsonPath("$.dados[0].nome").value("Categoria Ativa"));
 
-            mockMvc.perform(get("/pessoas/categorias").param("incluirInativos", "true"))
+            mockMvc.perform(get("/pessoas/categorias").param("apenasInativos", "true"))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.totalElementos").value(2));
+                    .andExpect(jsonPath("$.totalElementos").value(1));
         }
     }
 

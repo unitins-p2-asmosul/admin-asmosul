@@ -57,16 +57,13 @@
             <label for="idItem" class="mb-2 block text-sm font-semibold text-[#344054]">
               Item e Estoque Geral *
             </label>
-            <mat-form-field appearance="outline" class="w-full">
-              <mat-select id="idItem" formControlName="idItem" placeholder="Selecione o item">
-                @for (item of itens(); track item.id) {
-                  <mat-option [value]="item.id">{{ rotuloSaldoTotal(item) }}</mat-option>
-                }
-              </mat-select>
-              @if (itemForm.controls.idItem.hasError('required')) {
-                <mat-error>Selecione o item a ser retirado.</mat-error>
-              }
-            </mat-form-field>
+            <app-select-pesquisavel
+              id="idItem"
+              formControlName="idItem"
+              placeholder="Selecione o item"
+              [opcoes]="opcoesItens()"
+              [mensagemErro]="obterErroItem()"
+            />
           </div>
 
           <div>
@@ -220,27 +217,18 @@
             Recebedor (Beneficiário) *
           }
         </label>
-        <mat-form-field appearance="outline" class="w-full">
-          <mat-select
-            id="idRecebedor"
-            formControlName="idRecebedor"
-            placeholder="Selecione o recebedor"
-          >
-            @for (recebedor of recebedores(); track recebedor.id) {
-              <mat-option [value]="recebedor.id">{{ recebedor.nome }}</mat-option>
-            }
-          </mat-select>
-          @if (form.controls.idRecebedor.hasError('required')) {
-            <mat-error>Selecione o beneficiário recebedor.</mat-error>
-          } @else if (form.controls.idRecebedor.hasError('backend')) {
-            <mat-error>{{ form.controls.idRecebedor.getError('backend') }}</mat-error>
-          }
-        </mat-form-field>
+        <app-select-pesquisavel
+          id="idRecebedor"
+          formControlName="idRecebedor"
+          placeholder="Selecione o recebedor"
+          [opcoes]="opcoesRecebedores()"
+          [mensagemErro]="obterErroRecebedor()"
+        />
       </div>
 
       @if (!modoCriacao()) {
         <div>
-          <label class="mb-2 block text-sm font-semibold text-[#344054]">Data e Hora</label>
+          <span class="mb-2 block text-sm font-semibold text-[#344054]">Data e Hora</span>
           <p
             class="m-0 rounded-lg border border-[#dfe4ea] bg-[#f8fafc] px-4 py-4 font-medium text-[#344054]"
           >

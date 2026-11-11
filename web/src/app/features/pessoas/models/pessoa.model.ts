@@ -202,14 +202,12 @@ export interface PessoaFiltros {
   quantidadeCoabitantes?: number;
   ehBeneficiario?: boolean;
   ehDoador?: boolean;
-  apenasInativos?: boolean;
 }
 
 export interface PessoaConsultaParametros {
   page: number;
   size: number;
   sort?: string;
-  incluirInativos?: boolean;
   apenasInativos?: boolean;
   nome?: string;
   cpfCnpj?: string;

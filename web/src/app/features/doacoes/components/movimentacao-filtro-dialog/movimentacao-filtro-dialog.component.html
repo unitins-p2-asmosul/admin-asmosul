@@ -1,5 +1,6 @@
 <div class="pagina-formulario !my-0 !w-full !max-w-none">
-  <h2 mat-dialog-title class="!text-2xl !font-bold !text-[#0b3c5d]">
+  <h2 mat-dialog-title class="flex items-center gap-3 !text-2xl !font-bold !text-[#0b3c5d]">
+    <mat-icon>tune</mat-icon>
     Filtrar movimentações de estoque
   </h2>
   <mat-dialog-content>
@@ -53,7 +54,7 @@
       </mat-form-field>
     </form>
   </mat-dialog-content>
-  <mat-dialog-actions align="center" class="pessoa-filtro__actions !gap-4 !pb-5">
+  <mat-dialog-actions align="center" class="!gap-4 !pb-5">
     <button mat-flat-button type="button" (click)="limpar()">Limpar</button>
     <button mat-flat-button type="button" class="acao-primaria" (click)="aplicar()">
       Aplicar filtros

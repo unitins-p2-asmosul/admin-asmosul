@@ -39,6 +39,16 @@ public enum UnidadeMedida {
         return descricao;
     }
 
+    @JsonProperty("sigla")
+    public String getSigla() {
+        return codigo;
+    }
+
+    @JsonProperty("nome")
+    public String getNome() {
+        return name();
+    }
+
     @JsonCreator
     public static UnidadeMedida deCodigo(Object valor) {
         if (valor == null) {
@@ -53,13 +63,23 @@ public enum UnidadeMedida {
             if (codigo != null) {
                 texto = codigo.toString();
             } else {
-                Object name = map.get("name");
-                if (name != null) {
-                    texto = name.toString();
+                Object sigla = map.get("sigla");
+                if (sigla != null) {
+                    texto = sigla.toString();
                 } else {
-                    Object descricao = map.get("descricao");
-                    if (descricao != null) {
-                        texto = descricao.toString();
+                    Object nome = map.get("nome");
+                    if (nome != null) {
+                        texto = nome.toString();
+                    } else {
+                        Object name = map.get("name");
+                        if (name != null) {
+                            texto = name.toString();
+                        } else {
+                            Object descricao = map.get("descricao");
+                            if (descricao != null) {
+                                texto = descricao.toString();
+                            }
+                        }
                     }
                 }
             }
@@ -70,12 +90,17 @@ public enum UnidadeMedida {
         }
 
         final String finalTexto = texto.trim();
+        final String textoSemParenteses = finalTexto.replaceAll("\\s*\\([^)]*\\)", "").trim();
+
         return Arrays.stream(UnidadeMedida.values())
                 .filter(
                         u ->
                                 u.name().equalsIgnoreCase(finalTexto)
                                         || u.getCodigo().equalsIgnoreCase(finalTexto)
-                                        || u.getDescricao().equalsIgnoreCase(finalTexto))
+                                        || u.getDescricao().equalsIgnoreCase(finalTexto)
+                                        || u.name().equalsIgnoreCase(textoSemParenteses)
+                                        || u.getCodigo().equalsIgnoreCase(textoSemParenteses)
+                                        || u.getDescricao().equalsIgnoreCase(textoSemParenteses))
                 .findFirst()
                 .orElseThrow(
                         () ->

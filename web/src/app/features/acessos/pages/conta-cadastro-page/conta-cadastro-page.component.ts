@@ -15,8 +15,12 @@ import { DialogoConfirmacaoService } from '@features/shared/services/dialogo-con
 import { NotificacaoService } from '@features/shared/services/notificacao.service';
 import { PessoaResumo } from '@features/pessoas/models/pessoa.model';
 import { PessoaService } from '@features/pessoas/services/pessoa.service';
-import { EMPTY } from 'rxjs';
-import { concatMap, expand, map, reduce } from 'rxjs/operators';
+import {
+  OpcaoSelectPesquisavel,
+  SelectPesquisavelComponent,
+} from '@features/shared/components/select-pesquisavel/select-pesquisavel.component';
+import { CpfCnpjPipe } from '@features/shared/pipes/cpf-cnpj.pipe';
+import { concatMap } from 'rxjs/operators';
 import {
   ContaAtualizacao,
   ContaDetalhe,
@@ -40,6 +44,7 @@ import {
     MatInputModule,
     MatIconModule,
     MatSelectModule,
+    SelectPesquisavelComponent,
   ],
   templateUrl: './conta-cadastro-page.component.html',
 })
@@ -53,6 +58,7 @@ export class ContaCadastroPageComponent {
   private readonly confirmacao = inject(DialogoConfirmacaoService);
   private readonly notificacao = inject(NotificacaoService);
   private readonly dialog = inject(MatDialog);
+  private readonly cpfPipe = new CpfCnpjPipe();
 
   readonly id = input<string>();
   readonly visualizacao = input(false);
@@ -63,6 +69,23 @@ export class ContaCadastroPageComponent {
   protected readonly registro = signal<ContaDetalhe | null>(null);
   protected readonly pessoas = signal<PessoaResumo[]>([]);
   protected readonly perfis = signal<PerfilDisponivel[]>([]);
+
+  protected readonly opcoesPessoas = computed<OpcaoSelectPesquisavel<number>[]>(() =>
+    this.pessoas().map((pessoa) => {
+      const partesSubtexto: string[] = [];
+      if (pessoa.cpfCnpj) {
+        partesSubtexto.push(this.cpfPipe.transform(pessoa.cpfCnpj));
+      }
+      if (pessoa.email) {
+        partesSubtexto.push(pessoa.email);
+      }
+      return {
+        valor: pessoa.id,
+        rotulo: pessoa.nome,
+        subtexto: partesSubtexto.length > 0 ? partesSubtexto.join(' · ') : undefined,
+      };
+    }),
+  );
 
   protected readonly form = this.fb.group(
     {
@@ -77,22 +100,38 @@ export class ContaCadastroPageComponent {
 
   protected readonly confirmarSenhaErrorStateMatcher: ErrorStateMatcher = {
     isErrorState: (controle, formulario) =>
-      !!controle
-      && (controle.invalid || this.form.hasError('senhasDiferentes'))
-      && (controle.touched || !!formulario?.submitted),
+      !!controle &&
+      (controle.invalid || this.form.hasError('senhasDiferentes')) &&
+      (controle.touched || !!formulario?.submitted),
   };
+
+  protected obterErroPessoa(): string | null {
+    const ctrl = this.form.controls.pessoaId;
+    if ((ctrl.touched || ctrl.dirty) && (ctrl.hasError('required') || ctrl.hasError('min'))) {
+      return 'Selecione uma pessoa física ativa.';
+    }
+    if (ctrl.hasError('backend')) {
+      return ctrl.getError('backend');
+    }
+    return null;
+  }
 
   constructor() {
     this.pessoaService
       .listar({ page: 0, size: 100, sort: 'nome,asc', tipoPessoa: 'FISICA' })
       .subscribe({
         next: (resposta) => {
-          const lista = resposta.dados || (resposta as any).content || [];
+          const lista =
+            resposta.dados || (resposta as unknown as { content?: PessoaResumo[] }).content || [];
           this.pessoas.set(
-            lista.filter((p: any) => p.tipoPessoa === 'FISICA' || p.tipoPessoa?.codigo === 'FISICA')
+            lista.filter(
+              (p: PessoaResumo) =>
+                ((p.tipoPessoa as unknown) === 'FISICA' || p.tipoPessoa?.codigo === 'FISICA') &&
+                p.ativo !== false,
+            ),
           );
         },
-        error: (err) => console.error('Erro ao carregar pessoas para o select:', err)
+        error: (err) => console.error('Erro ao carregar pessoas para o select:', err),
       });
 
     this.contaService.listarPerfis().subscribe({
@@ -133,7 +172,9 @@ export class ContaCadastroPageComponent {
           .atualizar(Number(this.id()), {
             nomeUsuario: valores.nomeUsuario.trim(),
           } satisfies ContaAtualizacao)
-          .pipe(concatMap(() => this.contaService.atualizarPerfis(Number(this.id()), valores.perfis)))
+          .pipe(
+            concatMap(() => this.contaService.atualizarPerfis(Number(this.id()), valores.perfis)),
+          )
       : this.contaService.cadastrar({
           pessoaId: valores.pessoaId,
           nomeUsuario: valores.nomeUsuario.trim(),
@@ -143,7 +184,9 @@ export class ContaCadastroPageComponent {
 
     requisicao.subscribe({
       next: () => {
-        this.notificacao.sucesso(`Conta ${this.modoEdicao() ? 'atualizada' : 'cadastrada'} com sucesso.`);
+        this.notificacao.sucesso(
+          `Conta ${this.modoEdicao() ? 'atualizada' : 'cadastrada'} com sucesso.`,
+        );
         this.location.back();
       },
       error: (erro: HttpErrorResponse) => this.tratarErro(erro),
@@ -170,12 +213,15 @@ export class ContaCadastroPageComponent {
       nomePessoa: conta.nomePessoa,
       nomeUsuario: conta.nomeUsuario,
     };
-    this.dialog.open<ContaRedefinirSenhaDialogComponent, ContaRedefinirSenhaDialogData, boolean>(
-      ContaRedefinirSenhaDialogComponent,
-      { width: '480px', maxWidth: 'calc(100vw - 32px)', data },
-    ).afterClosed().subscribe((atualizada) => {
-      if (atualizada) this.carregar(conta.id);
-    });
+    this.dialog
+      .open<ContaRedefinirSenhaDialogComponent, ContaRedefinirSenhaDialogData, boolean>(
+        ContaRedefinirSenhaDialogComponent,
+        { width: '480px', maxWidth: 'calc(100vw - 32px)', data },
+      )
+      .afterClosed()
+      .subscribe((atualizada) => {
+        if (atualizada) this.carregar(conta.id);
+      });
   }
 
   protected async alternarEstado(): Promise<void> {
@@ -230,7 +276,9 @@ export class ContaCadastroPageComponent {
   private tratarErro(erro: HttpErrorResponse): void {
     this.carregando.set(false);
     const corpo = erro.error as (ErroApi & { invalidFields?: Record<string, string> }) | undefined;
-    corpo?.erros?.forEach(({ campo, mensagem }) => this.form.get(campo)?.setErrors({ backend: mensagem }));
+    corpo?.erros?.forEach(({ campo, mensagem }) =>
+      this.form.get(campo)?.setErrors({ backend: mensagem }),
+    );
     Object.entries(corpo?.invalidFields ?? {}).forEach(([campo, mensagem]) => {
       this.form.get(campo)?.setErrors({ backend: mensagem });
     });

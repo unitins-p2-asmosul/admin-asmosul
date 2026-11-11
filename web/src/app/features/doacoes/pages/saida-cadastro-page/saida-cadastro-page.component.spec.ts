@@ -1,8 +1,8 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, provideRouter } from '@angular/router';
-import { PessoaService } from '@features/pessoas/services/pessoa.service';
-import { DialogoConfirmacaoService } from '@features/shared/services/dialogo-confirmacao.service';
+ import { DialogoConfirmacaoService } from '@features/shared/services/dialogo-confirmacao.service';
 import { NotificacaoService } from '@features/shared/services/notificacao.service';
+import { PessoaService } from '@features/pessoas/services/pessoa.service';
 import { of } from 'rxjs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ItemService } from '../../services/item.service';

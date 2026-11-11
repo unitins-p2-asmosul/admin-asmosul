@@ -1,0 +1,77 @@
+<mat-form-field appearance="outline" class="w-full">
+  <input
+    matInput
+    #inputElement
+    #autoTrigger="matAutocompleteTrigger"
+    type="text"
+    [placeholder]="placeholder()"
+    [formControl]="buscaControl"
+    [matAutocomplete]="auto"
+    [errorStateMatcher]="errorStateMatcher"
+    autocomplete="off"
+    (focus)="onFocus($event)"
+    (blur)="onBlur()"
+  />
+
+  <div matSuffix class="flex items-center pr-1">
+    @if (carregando()) {
+      <mat-spinner diameter="18" class="mr-2"></mat-spinner>
+    } @else if (permitirLimpar() && temValor() && !desabilitadoEfetivo()) {
+      <button
+        mat-icon-button
+        type="button"
+        (click)="limpar($event)"
+        aria-label="Limpar seleção"
+        class="!h-8 !w-8 !p-0 text-[#8298a9] hover:text-[#344054]"
+      >
+        <mat-icon class="!text-lg">close</mat-icon>
+      </button>
+    } @else {
+      <button
+        mat-icon-button
+        type="button"
+        tabindex="-1"
+        [disabled]="desabilitadoEfetivo()"
+        (click)="alternarPainel(autoTrigger, $event)"
+        aria-label="Abrir opções"
+        class="!h-8 !w-8 !p-0 text-[#8298a9]"
+      >
+        <mat-icon class="!text-xl">arrow_drop_down</mat-icon>
+      </button>
+    }
+  </div>
+
+  <mat-autocomplete
+    #auto="matAutocomplete"
+    [displayWith]="displayFn"
+    (optionSelected)="onOptionSelected($event)"
+  >
+    @if (carregando()) {
+      <mat-option disabled class="select-pesquisavel-carregando">
+        <div class="flex items-center gap-2 py-1 text-sm text-[#8298a9]">
+          <mat-spinner diameter="16"></mat-spinner>
+          <span>Carregando opções...</span>
+        </div>
+      </mat-option>
+    } @else if (opcoesFiltradas().length === 0) {
+      <mat-option disabled class="select-pesquisavel-vazio">
+        <span class="py-1 text-sm italic text-[#8298a9]">{{ mensagemVazio() }}</span>
+      </mat-option>
+    } @else {
+      @for (opcao of opcoesFiltradas(); track opcao.valor) {
+        <mat-option [value]="opcao.valor" [disabled]="opcao.desabilitado">
+          <div class="select-pesquisavel-opcao">
+            <span class="select-pesquisavel-rotulo">{{ opcao.rotulo }}</span>
+            @if (opcao.subtexto) {
+              <span class="select-pesquisavel-subtexto">{{ opcao.subtexto }}</span>
+            }
+          </div>
+        </mat-option>
+      }
+    }
+  </mat-autocomplete>
+
+  @if (erroExibido) {
+    <mat-error>{{ erroExibido }}</mat-error>
+  }
+</mat-form-field>
