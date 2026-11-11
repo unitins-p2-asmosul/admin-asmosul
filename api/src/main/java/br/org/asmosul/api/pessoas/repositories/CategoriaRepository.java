@@ -16,12 +16,18 @@ public interface CategoriaRepository extends JpaRepository<Categoria, Long> {
 
     Page<Categoria> findAllByDataInativoIsNull(Pageable pageable);
 
+    Page<Categoria> findAllByDataInativoIsNotNull(Pageable pageable);
+
+
     List<Categoria> findAllByDataInativoIsNull();
 
     Page<Categoria> findByNomeContainingIgnoreCase(String nome, Pageable pageable);
 
     Page<Categoria> findByNomeContainingIgnoreCaseAndDataInativoIsNull(
             String nome, Pageable pageable);
+
+    Page<Categoria> findByNomeContainingIgnoreCaseAndDataInativoIsNotNull(
+        String nome, Pageable pageable);
 
     boolean existsByNome(String nome);
 

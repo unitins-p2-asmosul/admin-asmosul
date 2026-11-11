@@ -21,7 +21,7 @@ export class CategoriaService {
     let params = new HttpParams()
       .set('page', parametros.page)
       .set('size', parametros.size)
-      .set('incluirInativos', parametros.incluirInativos ?? false);
+      .set('apenasInativos', parametros.apenasInativos ?? false);
     if (parametros.sort) params = params.set('sort', parametros.sort);
     if (parametros.nome) params = params.set('nome', parametros.nome.trim());
     return this.http.get<RespostaPaginada<CategoriaResumo>>(this.endpoint, { params });

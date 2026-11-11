@@ -76,7 +76,7 @@ export class ComorbidadeListaPageComponent {
       page: params['page'] ? Number(params['page']) : 0,
       size: TAMANHO_PAGINA_PADRAO,
       sort: params['sort'] || ORDENACAO_PADRAO,
-      incluirInativos: params['incluirInativos'] === 'true',
+      apenasInativos: params['incluirInativos'] === 'true',
       nome: params['nome'] || undefined,
     })),
   );
@@ -159,7 +159,7 @@ export class ComorbidadeListaPageComponent {
   protected alternarInativos(): void {
     this.atualizarUrl({
       page: 0,
-      incluirInativos: this.parametrosAtuais().incluirInativos ? null : 'true',
+      incluirInativos: this.parametrosAtuais().apenasInativos ? null : 'true',
       apenasInativos: null,
     });
   }

@@ -50,7 +50,7 @@ export class CategoriaListaPageComponent {
       page: params['page'] ? Number(params['page']) : 0,
       size: 20,
       sort: params['sort'] || 'nome,asc',
-      incluirInativos: params['incluirInativos'] === 'true',
+      apenasInativos: params['incluirInativos'] === 'true',
       nome: params['nome'] || undefined,
     })),
   );
@@ -60,7 +60,7 @@ export class CategoriaListaPageComponent {
       page: 0,
       size: 20,
       sort: 'nome,asc',
-      incluirInativos: false,
+      apenasInativos: false,
       nome: undefined,
     },
   });
@@ -141,7 +141,7 @@ export class CategoriaListaPageComponent {
   protected alternarInativos(): void {
     this.atualizarUrl({
       page: 0,
-      incluirInativos: this.parametrosAtuais().incluirInativos ? null : 'true',
+      incluirInativos: this.parametrosAtuais().apenasInativos ? null : 'true',
       apenasDesativados: null,
     });
   }

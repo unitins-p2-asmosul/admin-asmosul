@@ -93,13 +93,13 @@ public class PessoaService {
 
     @Transactional(readOnly = true)
     public RespostaPaginada<PessoaDTO.Resumo> listar(
-            PessoaFiltroDTO filtro, Pageable paginacao, boolean incluirInativos) {
+            PessoaFiltroDTO filtro, Pageable paginacao, boolean apenasInativos) {
         Pageable paginacaoSanitizada =
                 PaginacaoUtils.sanitizarPaginacao(paginacao, CAMPOS_ORDENACAO_VALIDOS, "nome");
 
         Page<Pessoa> pagina =
                 pessoaRepository.findAll(
-                        PessoaSpecification.comFiltro(filtro, incluirInativos),
+                        PessoaSpecification.comFiltro(filtro, apenasInativos),
                         paginacaoSanitizada);
 
         Page<PessoaDTO.Resumo> paginaDtos = pagina.map(PessoaDTO.Resumo::deEntidade);

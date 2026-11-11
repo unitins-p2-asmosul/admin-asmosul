@@ -208,7 +208,7 @@ export interface PessoaConsultaParametros {
   page: number;
   size: number;
   sort?: string;
-  incluirInativos?: boolean;
+  apenasInativos?: boolean;
   nome?: string;
   cpfCnpj?: string;
   tipoPessoa?: string;

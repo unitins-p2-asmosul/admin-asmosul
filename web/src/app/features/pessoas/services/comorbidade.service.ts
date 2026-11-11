@@ -29,8 +29,8 @@ export class ComorbidadeService {
       if (parametros.page !== undefined) params = params.set('page', parametros.page);
       if (parametros.size !== undefined) params = params.set('size', parametros.size);
       if (parametros.sort) params = params.set('sort', parametros.sort);
-      if (parametros.incluirInativos !== undefined) {
-        params = params.set('incluirInativos', parametros.incluirInativos);
+      if (parametros.apenasInativos !== undefined) {
+        params = params.set('apenasInativos', parametros.apenasInativos);
       }
       if (parametros.nome) params = params.set('nome', parametros.nome.trim());
     }

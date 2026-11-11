@@ -22,6 +22,6 @@ export interface CategoriaConsultaParametros {
   page: number;
   size: number;
   sort?: string;
-  incluirInativos?: boolean;
+  apenasInativos?: boolean;
   nome?: string;
 }

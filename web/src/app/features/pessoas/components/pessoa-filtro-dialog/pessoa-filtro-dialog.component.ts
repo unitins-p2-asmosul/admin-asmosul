@@ -14,7 +14,6 @@ import {
   SEXO_OPCOES,
   PessoaFiltros,
 } from '../../models/pessoa.model';
-import { PessoaService } from '../../services/pessoa.service';
 
 @Component({
   selector: 'app-pessoa-filtro-dialog',
@@ -39,6 +38,27 @@ import { PessoaService } from '../../services/pessoa.service';
       <form [formGroup]="form" class="pessoa-filtro__form grid gap-4 sm:grid-cols-2">
         <h3 class="pessoa-filtro__section-title sm:col-span-2">Identificação</h3>
         <mat-form-field appearance="outline" class="w-full">
+          <mat-label>Nome</mat-label>
+          <input matInput formControlName="nome" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>CPF/CNPJ</mat-label>
+          <input matInput formControlName="cpfCnpj" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>Telefone</mat-label>
+          <input matInput formControlName="telefone" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>E-mail</mat-label>
+          <input matInput type="email" formControlName="email" />
+        </mat-form-field>
+
+        <h3 class="pessoa-filtro__section-title sm:col-span-2">Dados pessoais</h3>
+        <mat-form-field appearance="outline" class="w-full">
           <mat-label>Data de Nascimento Mínima</mat-label>
 
           <input
@@ -62,31 +82,15 @@ import { PessoaService } from '../../services/pessoa.service';
             </mat-error>
           }
         </mat-form-field>
+
         <mat-form-field appearance="outline" class="w-full">
-          <mat-label>Nome</mat-label>
-          <input matInput formControlName="nome" />
+          <mat-label>Profissão</mat-label>
+          <input matInput formControlName="profissao" />
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="w-full">
-          <mat-label>CPF/CNPJ</mat-label>
-          <input matInput formControlName="cpfCnpj" />
-        </mat-form-field>
-
-        <mat-form-field appearance="outline" class="w-full">
-          <mat-label>Telefone</mat-label>
-          <input matInput formControlName="telefone" />
-        </mat-form-field>
-
-        <mat-form-field appearance="outline" class="w-full">
-          <mat-label>E-mail</mat-label>
-          <input matInput type="email" formControlName="email" />
-        </mat-form-field>
-
-        <h3 class="pessoa-filtro__section-title sm:col-span-2">Dados pessoais</h3>
-
-        <mat-form-field appearance="outline" class="w-full">
-          <mat-label>Data de nascimento</mat-label>
-          <input matInput placeholder="dd-mm-aaaa" formControlName="dataNascimento" />
+          <mat-label>Bairro</mat-label>
+          <input matInput formControlName="bairro" />
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="w-full">
@@ -126,16 +130,6 @@ import { PessoaService } from '../../services/pessoa.service';
               <mat-option [value]="opcao.codigo">{{ opcao.descricao }}</mat-option>
             }
           </mat-select>
-        </mat-form-field>
-
-        <mat-form-field appearance="outline" class="w-full">
-          <mat-label>Profissão</mat-label>
-          <input matInput formControlName="profissao" />
-        </mat-form-field>
-
-        <mat-form-field appearance="outline" class="w-full">
-          <mat-label>Bairro</mat-label>
-          <input matInput formControlName="bairro" />
         </mat-form-field>
 
         <h3 class="pessoa-filtro__section-title sm:col-span-2">Relacionamentos e status</h3>
@@ -182,8 +176,6 @@ import { PessoaService } from '../../services/pessoa.service';
             <mat-option value="false">Não</mat-option>
           </mat-select>
         </mat-form-field>
-
-        <mat-checkbox class="sm:col-span-2" formControlName="apenasInativos">Apenas inativos</mat-checkbox>
       </form>
     </mat-dialog-content>
 
@@ -205,7 +197,7 @@ export class PessoaFiltroDialogComponent {
   );
   private readonly filtrosAtuais = inject<PessoaFiltros>(MAT_DIALOG_DATA, { optional: true });
 
-  
+
   protected readonly sexoOpcoes = SEXO_OPCOES;
   protected readonly escolaridadeOpcoes = ESCOLARIDADE_OPCOES;
   protected readonly rendaFamiliarOpcoes = RENDA_FAMILIAR_OPCOES;

@@ -19,7 +19,7 @@ describe('ComorbidadeService', () => {
   afterEach(() => http.verify());
 
   it('envia incluirInativos para a listagem paginada', () => {
-    service.listar({ page: 0, size: 20, incluirInativos: true }).subscribe();
+    service.listar({ page: 0, size: 20, apenasInativos: true }).subscribe();
 
     const requisicao = http.expectOne((request) => request.url === 'pessoas/comorbidades');
     expect(requisicao.request.method).toBe('GET');

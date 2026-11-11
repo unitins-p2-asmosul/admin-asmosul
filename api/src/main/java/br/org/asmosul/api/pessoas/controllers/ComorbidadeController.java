@@ -66,11 +66,11 @@ public class ComorbidadeController {
             @org.springdoc.core.annotations.ParameterObject
             @PageableDefault(size = 10, sort = "nome")
             Pageable paginacao,
-            @RequestParam(defaultValue = "false") boolean incluirInativos,
+            @RequestParam(defaultValue = "false") boolean apenasInativos,
             @RequestParam(required = false) String nome) {
 
         RespostaPaginada<ComorbidadeDTO.Resumo> resposta =
-            comorbidadeService.listar(paginacao, incluirInativos, nome);
+            comorbidadeService.listar(paginacao, apenasInativos, nome);
 
         return ResponseEntity.ok(resposta);
     }

@@ -11,15 +11,15 @@
       mat-stroked-button
       type="button"
       class="pagina-pessoas__status-toggle"
-      [class.pagina-pessoas__status-toggle--ativo]="parametrosAtuais().incluirInativos"
-      [attr.aria-pressed]="parametrosAtuais().incluirInativos"
+      [class.pagina-pessoas__status-toggle--ativo]="parametrosAtuais().apenasInativos"
+      [attr.aria-pressed]="parametrosAtuais().apenasInativos"
       [matTooltip]="
-        parametrosAtuais().incluirInativos
+        parametrosAtuais().apenasInativos
           ? 'Ocultar pessoas inativas'
           : 'Exibir pessoas inativas'
       "
       [attr.aria-label]="
-        parametrosAtuais().incluirInativos
+        parametrosAtuais().apenasInativos
           ? 'Ocultar pessoas inativas'
           : 'Exibir pessoas inativas'
       "

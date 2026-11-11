@@ -45,7 +45,7 @@ public class ComorbidadeService {
 
     @Transactional(readOnly = true)
     public RespostaPaginada<ComorbidadeDTO.Resumo> listar(
-            Pageable paginacao, boolean incluirInativos, String nome) {
+            Pageable paginacao, boolean apenasInativos, String nome) {
 
         Pageable paginacaoSanitizada =
                 PaginacaoUtils.sanitizarPaginacao(paginacao, CAMPOS_ORDENACAO_VALIDOS, "nome");
@@ -56,16 +56,16 @@ public class ComorbidadeService {
 
         if (!nomeNormalizado.isBlank()) {
             pagina =
-                    incluirInativos
-                            ? comorbidadeRepository.findByNomeContainingIgnoreCase(
+                    apenasInativos
+                            ? comorbidadeRepository.findByNomeContainingIgnoreCaseAndDataInativoIsNotNull(
                                     nomeNormalizado, paginacaoSanitizada)
                             : comorbidadeRepository
                                     .findByNomeContainingIgnoreCaseAndDataInativoIsNull(
                                             nomeNormalizado, paginacaoSanitizada);
         } else {
             pagina =
-                    incluirInativos
-                            ? comorbidadeRepository.findAll(paginacaoSanitizada)
+                    apenasInativos
+                            ? comorbidadeRepository.findAllByDataInativoIsNotNull(paginacaoSanitizada)
                             : comorbidadeRepository.findAllByDataInativoIsNull(paginacaoSanitizada);
         }
 

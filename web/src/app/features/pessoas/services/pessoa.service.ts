@@ -25,9 +25,6 @@ export class PessoaService {
       .set('size', parametros.size);
 
     if (parametros.sort) params = params.set('sort', parametros.sort);
-    if (parametros.incluirInativos !== undefined) {
-      params = params.set('incluirInativos', parametros.incluirInativos);
-    }
     if (parametros.apenasInativos !== undefined) {
       params = params.set('apenasInativos', parametros.apenasInativos);
     }

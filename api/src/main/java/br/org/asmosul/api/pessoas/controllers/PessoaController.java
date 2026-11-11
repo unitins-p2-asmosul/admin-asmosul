@@ -71,9 +71,9 @@ public class PessoaController {
     public ResponseEntity<RespostaPaginada<PessoaDTO.Resumo>> listar(
             @ParameterObject PessoaFiltroDTO filtro,
             @ParameterObject @PageableDefault(size = 10, sort = "nome") Pageable paginacao,
-            @RequestParam(defaultValue = "false") boolean incluirInativos) {
+            @RequestParam(defaultValue = "false") boolean apenasInativos) {
         RespostaPaginada<PessoaDTO.Resumo> resposta =
-                pessoaService.listar(filtro, paginacao, incluirInativos);
+                pessoaService.listar(filtro, paginacao, apenasInativos);
         return ResponseEntity.ok(resposta);
     }
 

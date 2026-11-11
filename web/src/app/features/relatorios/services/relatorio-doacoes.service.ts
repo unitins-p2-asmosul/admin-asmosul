@@ -66,7 +66,7 @@ export class RelatorioDoacoesService {
     if (parametros.totalSaidasMax !== undefined && parametros.totalSaidasMax !== null) {
       params = params.set('saidasMax', parametros.totalSaidasMax);
     }
-    if (parametros.incluirInativos) params = params.set('incluirInativos', true);
+    if (parametros.apenasInativos) params = params.set('incluirInativos', true);
 
     return this.http.get<RespostaPaginada<GiroEstoqueItem>>(`${this.endpoint}/itens/tabela`, {
       params,
