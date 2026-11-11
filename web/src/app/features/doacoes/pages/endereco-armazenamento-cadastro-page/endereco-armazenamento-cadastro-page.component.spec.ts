@@ -86,8 +86,36 @@ describe('EnderecoArmazenamentoCadastroPageComponent (US-91)', () => {
     expect(celulas.length).toBeGreaterThan(0);
     expect(element.textContent).toContain('Arroz 5kg');
     expect(element.textContent).toContain('Alimentos');
-    expect(element.textContent).toContain('Pacote');
+    expect(element.textContent).toContain('pct');
+    expect(element.textContent).not.toContain('[object Object]');
     expect(element.textContent).toContain('50');
+  });
+
+  it('exibe unidade legível sem [object Object] quando unidadeMedida for um objeto', async () => {
+    const enderecoComObjeto: EnderecoArmazenamentoDetalhe = {
+      ...ENDERECO_COM_ITENS,
+      itens: [
+        {
+          idItem: 2,
+          nomeItem: 'Feijão',
+          categoria: 'Alimentos',
+          unidadeMedida: { codigo: 'KG', descricao: 'Quilo' },
+          quantidade: 30,
+        },
+      ],
+    };
+    serviceMock.buscarPorId.mockReturnValue(of(enderecoComObjeto));
+
+    fixture = TestBed.createComponent(EnderecoArmazenamentoCadastroPageComponent);
+    fixture.componentRef.setInput('id', '10');
+    fixture.componentRef.setInput('visualizacao', true);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const element: HTMLElement = fixture.nativeElement;
+    expect(element.textContent).toContain('kg');
+    expect(element.textContent).not.toContain('[object Object]');
   });
 
   it('exibe mensagem amigavel quando nao houver itens armazenados no local', async () => {

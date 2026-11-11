@@ -12,7 +12,11 @@ import { DialogoConfirmacaoService } from '@features/shared/services/dialogo-con
 import { NotificacaoService } from '@features/shared/services/notificacao.service';
 import { finalize } from 'rxjs/operators';
 import { CategoriaItemResumo } from '../../models/categoria-item.model';
-import { ItemDetalhe, ItemRequisicao } from '../../models/item.model';
+import {
+  ItemDetalhe,
+  ItemRequisicao,
+  normalizarUnidadeMedidaCodigo,
+} from '../../models/item.model';
 import { UNIDADE_MEDIDA_OPCOES, UnidadeMedidaCodigo } from '../../models/unidade-medida.model';
 import { CategoriaItemService } from '../../services/categoria-item.service';
 import { ItemService } from '../../services/item.service';
@@ -173,9 +177,7 @@ export class ItemCadastroPageComponent implements OnInit {
         next: (item) => {
           this.registro.set(item);
           const unidadeCodigo =
-            typeof item.unidadeMedida === 'string'
-              ? (item.unidadeMedida as UnidadeMedidaCodigo)
-              : (item.unidadeMedida?.codigo as UnidadeMedidaCodigo);
+            normalizarUnidadeMedidaCodigo(item.unidadeMedida) ?? UnidadeMedidaCodigo.UNIDADE;
 
           this.form.patchValue({
             nome: item.nome,
