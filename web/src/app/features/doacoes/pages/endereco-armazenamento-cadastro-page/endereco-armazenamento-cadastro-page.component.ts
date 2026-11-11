@@ -27,6 +27,7 @@ import {
   EnderecoArmazenamentoDetalhe,
   EnderecoArmazenamentoRequisicao,
 } from '../../models/endereco-armazenamento.model';
+import { obterSiglaUnidade } from '../../models/item.model';
 import { EnderecoArmazenamentoService } from '../../services/endereco-armazenamento.service';
 
 @Component({
@@ -102,6 +103,10 @@ export class EnderecoArmazenamentoCadastroPageComponent {
     if (formatado !== this.form.controls.cep.value) {
       this.form.controls.cep.setValue(formatado, { emitEvent: false });
     }
+  }
+
+  protected obterSigla(unidade: any): string {
+    return obterSiglaUnidade(unidade);
   }
 
   protected salvar(): void {

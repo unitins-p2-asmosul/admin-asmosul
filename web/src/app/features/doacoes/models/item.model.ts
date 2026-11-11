@@ -86,11 +86,111 @@ export const UNIDADE_MEDIDA_SIGLAS: Record<string, string> = {
 };
 
 export function obterSiglaUnidade(
-  unidade: UnidadeMedidaItem | UnidadeMedidaCodigo | string | undefined,
+  unidade:
+    | UnidadeMedidaItem
+    | UnidadeMedidaCodigo
+    | string
+    | { codigo?: string; descricao?: string; sigla?: string; nome?: string }
+    | undefined,
 ): string {
   if (!unidade) return '';
-  const chave = typeof unidade === 'string' ? unidade : unidade.codigo;
-  return UNIDADE_MEDIDA_SIGLAS[chave?.toUpperCase()] || chave?.toLowerCase() || '';
+  if (typeof unidade === 'object') {
+    const obj = unidade as Record<string, any>;
+    if (obj['sigla']) {
+      const siglaUpper = String(obj['sigla']).toUpperCase();
+      return UNIDADE_MEDIDA_SIGLAS[siglaUpper] || String(obj['sigla']).toLowerCase();
+    }
+    const chave = obj['codigo'] || obj['nome'];
+    if (chave) {
+      const chaveUpper = String(chave).toUpperCase();
+      if (UNIDADE_MEDIDA_SIGLAS[chaveUpper]) {
+        return UNIDADE_MEDIDA_SIGLAS[chaveUpper];
+      }
+    }
+    if (obj['descricao']) {
+      const descUpper = String(obj['descricao'])
+        .replace(/\s*\([^)]*\)/, '')
+        .trim()
+        .toUpperCase();
+      if (UNIDADE_MEDIDA_SIGLAS[descUpper]) {
+        return UNIDADE_MEDIDA_SIGLAS[descUpper];
+      }
+      return String(obj['descricao']);
+    }
+    return chave ? String(chave).toLowerCase() : '';
+  }
+  const chaveUpper = String(unidade).trim().toUpperCase();
+  return UNIDADE_MEDIDA_SIGLAS[chaveUpper] || String(unidade).toLowerCase();
+}
+
+export const MAPA_SIGLA_PARA_UNIDADE_MEDIDA_CODIGO: Record<string, UnidadeMedidaCodigo> = {
+  QUILO: UnidadeMedidaCodigo.QUILO,
+  KG: UnidadeMedidaCodigo.QUILO,
+  UNIDADE: UnidadeMedidaCodigo.UNIDADE,
+  UN: UnidadeMedidaCodigo.UNIDADE,
+  GRAMA: UnidadeMedidaCodigo.GRAMA,
+  G: UnidadeMedidaCodigo.GRAMA,
+  METRO: UnidadeMedidaCodigo.METRO,
+  M: UnidadeMedidaCodigo.METRO,
+  CENTIMETRO: UnidadeMedidaCodigo.CENTIMETRO,
+  CM: UnidadeMedidaCodigo.CENTIMETRO,
+  MILIMETRO: UnidadeMedidaCodigo.MILIMETRO,
+  MM: UnidadeMedidaCodigo.MILIMETRO,
+  MILIGRAMA: UnidadeMedidaCodigo.MILIGRAMA,
+  MG: UnidadeMedidaCodigo.MILIGRAMA,
+  CAIXA: UnidadeMedidaCodigo.CAIXA,
+  CX: UnidadeMedidaCodigo.CAIXA,
+  PACOTE: UnidadeMedidaCodigo.PACOTE,
+  PCT: UnidadeMedidaCodigo.PACOTE,
+  FARDO: UnidadeMedidaCodigo.FARDO,
+  FD: UnidadeMedidaCodigo.FARDO,
+  LATA: UnidadeMedidaCodigo.LATA,
+  LT: UnidadeMedidaCodigo.LATA,
+};
+
+export function normalizarUnidadeMedidaCodigo(
+  unidade:
+    | UnidadeMedidaItem
+    | UnidadeMedidaCodigo
+    | string
+    | { codigo?: string; descricao?: string; sigla?: string; nome?: string; name?: string }
+    | null
+    | undefined,
+): UnidadeMedidaCodigo | null {
+  if (!unidade) return null;
+  if (typeof unidade === 'string') {
+    const limpo = unidade.trim().toUpperCase();
+    if (MAPA_SIGLA_PARA_UNIDADE_MEDIDA_CODIGO[limpo]) {
+      return MAPA_SIGLA_PARA_UNIDADE_MEDIDA_CODIGO[limpo];
+    }
+    const semParenteses = limpo.replace(/\s*\([^)]*\)/, '').trim();
+    if (MAPA_SIGLA_PARA_UNIDADE_MEDIDA_CODIGO[semParenteses]) {
+      return MAPA_SIGLA_PARA_UNIDADE_MEDIDA_CODIGO[semParenteses];
+    }
+  } else if (typeof unidade === 'object') {
+    const obj = unidade as Record<string, any>;
+    if (obj['codigo']) {
+      const cod = normalizarUnidadeMedidaCodigo(obj['codigo']);
+      if (cod) return cod;
+    }
+    if (obj['sigla']) {
+      const cod = normalizarUnidadeMedidaCodigo(obj['sigla']);
+      if (cod) return cod;
+    }
+    if (obj['nome']) {
+      const cod = normalizarUnidadeMedidaCodigo(obj['nome']);
+      if (cod) return cod;
+    }
+    if (obj['name']) {
+      const cod = normalizarUnidadeMedidaCodigo(obj['name']);
+      if (cod) return cod;
+    }
+    if (obj['descricao']) {
+      const cod = normalizarUnidadeMedidaCodigo(obj['descricao']);
+      if (cod) return cod;
+    }
+  }
+  return null;
 }
 
 export function formatarEstoqueComUnidade(

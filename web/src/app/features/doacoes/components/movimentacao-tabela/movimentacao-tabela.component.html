@@ -63,7 +63,7 @@
       <ng-container matColumnDef="dataHora">
         <th mat-header-cell *matHeaderCellDef mat-sort-header="dataHora">Data hora</th>
         <td mat-cell *matCellDef="let movimentacao" class="!min-w-[150px]">
-          {{ movimentacao.dataHora }}
+          {{ formatarDataHora(movimentacao.dataHora) }}
         </td>
       </ng-container>
 

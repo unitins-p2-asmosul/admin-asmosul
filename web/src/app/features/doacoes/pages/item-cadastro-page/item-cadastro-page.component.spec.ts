@@ -203,6 +203,22 @@ describe('ItemCadastroPageComponent', () => {
       expect(notificacaoMock.sucesso).toHaveBeenCalledWith('Item atualizado com sucesso.');
     });
 
+    it('preenche unidadeMedida no patchValue com UnidadeMedidaCodigo esperado pelo mat-select quando API retorna objeto', async () => {
+      const itemComObjeto = {
+        ...ITEM_COM_LOCAIS,
+        unidadeMedida: { codigo: 'KG', descricao: 'Quilo' } as any,
+      };
+      itemServiceMock.buscarPorId.mockReturnValue(of(itemComObjeto));
+
+      fixture = TestBed.createComponent(ItemCadastroPageComponent);
+      fixture.componentRef.setInput('id', '1');
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      const component = fixture.componentInstance;
+      expect(component['form'].controls.unidadeMedida.value).toBe(UnidadeMedidaCodigo.QUILO);
+    });
+
     it('exibe alerta de conflito ao receber status 409', () => {
       const erro409 = new HttpErrorResponse({
         status: 409,

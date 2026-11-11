@@ -54,4 +54,13 @@ describe('EnderecoArmazenamentoTabelaComponent', () => {
     expect(texto).toContain('Volume Físico');
     expect(texto).toContain('120');
   });
+
+  it('aplica as classes de status diretamente na celula td sem chip flutuante', () => {
+    const celulaStatus = fixture.nativeElement.querySelector('td.pessoa-table__status-cell');
+    expect(celulaStatus).not.toBeNull();
+    expect(celulaStatus.classList.contains('pessoa-table__status-button')).toBe(true);
+    expect(celulaStatus.classList.contains('pessoa-table__status-button--ativo')).toBe(true);
+    expect(celulaStatus.querySelector('span')).toBeNull();
+    expect(celulaStatus.textContent.trim()).toBe('Ativo');
+  });
 });
