@@ -228,6 +228,71 @@ export class ExportacaoService {
     }
   }
 
+  exportarGraficoBarras(canvas: HTMLCanvasElement, titulo: string): void {
+    if (!canvas) {
+      this.notificacao.erro('Não há gráfico disponível para exportar.');
+      return;
+    }
+
+    try {
+      const escala = 2;
+      const largura = 900;
+      const alturaCabecalho = 70;
+      const alturaCorpo = 380;
+      const alturaTotal = alturaCabecalho + alturaCorpo;
+
+      const canvasExportacao = document.createElement('canvas');
+      canvasExportacao.width = largura * escala;
+      canvasExportacao.height = alturaTotal * escala;
+
+      const ctx = canvasExportacao.getContext('2d');
+      if (!ctx) return;
+
+      ctx.scale(escala, escala);
+
+      // Fundo branco
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, largura, alturaTotal);
+
+      // Faixa superior Azul Marinho (#0b3c5d)
+      ctx.fillStyle = '#0b3c5d';
+      ctx.fillRect(0, 0, largura, alturaCabecalho);
+
+      // Título em branco
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 20px "Segoe UI", Roboto, Helvetica, Arial, sans-serif';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(titulo, 32, alturaCabecalho / 2);
+
+      // Desenha o gráfico centralizado no corpo
+      const margemX = 40;
+      const margemY = 30;
+      ctx.drawImage(
+        canvas,
+        margemX,
+        alturaCabecalho + margemY,
+        largura - margemX * 2,
+        alturaCorpo - margemY * 2,
+      );
+
+      const nomeNormalizado = titulo
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/(^-|-$)/g, '');
+
+      canvasExportacao.toBlob((blob) => {
+        if (blob) {
+          this.baixar(blob, nomeNormalizado || 'grafico-barras', 'png');
+        }
+      }, 'image/png');
+    } catch (erro) {
+      console.error('Não foi possível gerar a imagem do gráfico.', erro);
+      this.notificacao.erro('Não foi possível gerar a imagem do gráfico.');
+    }
+  }
+
   private validarColunas<T>(colunas: ColunaExportacao<T>[]): boolean {
     if (colunas.length > 0) return true;
 

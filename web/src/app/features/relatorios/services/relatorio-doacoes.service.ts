@@ -142,6 +142,10 @@ export class RelatorioDoacoesService {
     let params = new HttpParams();
     if (filtros.dataInicio) params = params.set('dataInicio', filtros.dataInicio);
     if (filtros.dataFim) params = params.set('dataFim', filtros.dataFim);
+    if (filtros.termoItem?.trim()) params = params.set('termoItem', filtros.termoItem.trim());
+    if (filtros.termoCategoria?.trim()) {
+      params = params.set('termoCategoria', filtros.termoCategoria.trim());
+    }
 
     return this.http.get<ResumoBalancoFinanceiro>(`${this.endpoint}/financeiro/balanco`, { params });
   }

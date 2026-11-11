@@ -9,4 +9,5 @@ export interface ItemRanking {
   id?: number | null;
   nome: string;
   quantidade: number;
+  subtitulo?: string;
 }

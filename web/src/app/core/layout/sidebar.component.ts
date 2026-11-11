@@ -81,9 +81,9 @@ export class SidebarComponent {
         { rotulo: 'Doações - Locais de Armazenamento', icone: 'location_on', rota: '/relatorios/doacoes/enderecos' },
         { rotulo: 'Doações - Estoque', icone: 'layers', rota: '/relatorios/doacoes/estoque' },
         { rotulo: 'Doações - Categorias de Itens', icone: 'category', rota: '/relatorios/doacoes/categorias' },
-        { rotulo: 'Doações - Saídas', icone: 'logout', rota: '/relatorios/saidas' },
-        { rotulo: 'Doações - Entradas', icone: 'login', rota: '/relatorios/entradas' },
-        { rotulo: 'Doações - Financeiro', icone: 'attach_money', rota: '/relatorios/financeiro' },
+        { rotulo: 'Doações - Saídas', icone: 'logout', rota: '/relatorios/doacoes/saidas' },
+        { rotulo: 'Doações - Entradas', icone: 'login', rota: '/relatorios/doacoes/entradas' },
+        { rotulo: 'Doações - Financeiro', icone: 'attach_money', rota: '/relatorios/doacoes/financeiro' },
       ],
     },
     {
