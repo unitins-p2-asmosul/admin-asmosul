@@ -1,2 +1,123 @@
+<div class="pessoa-tabela-shell">
+  <div class="pessoa-tabela-scroll">
+    <table
+      mat-table
+      [dataSource]="dados()"
+      matSort
+      [matSortActive]="campoOrdenado"
+      [matSortDirection]="direcaoOrdenada"
+      matSortDisableClear
+      (matSortChange)="aoMudarOrdem.emit($event)"
+      class="pessoa-table"
+    >
+      <!-- Item -->
+      <ng-container matColumnDef="itemNome">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header="itemNome">
+          {{ rotuloItem() }}
+        </th>
+        <td mat-cell *matCellDef="let item" class="pessoa-table__texto font-semibold text-[#0b3c5d]">
+          {{ item.itemNome }}
+        </td>
+      </ng-container>
 
+      <!-- Categoria -->
+      <ng-container matColumnDef="categoriaNome">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header="categoriaNome">Categoria</th>
+        <td mat-cell *matCellDef="let item" class="pessoa-table__texto">
+          {{ item.categoriaNome }}
+        </td>
+      </ng-container>
+
+      <!-- Quantidade -->
+      <ng-container matColumnDef="quantidade">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header="quantidade">
+          {{ rotuloQuantidade() }}
+        </th>
+        <td
+          mat-cell
+          *matCellDef="let item"
+          class="pessoa-table__texto font-bold"
+          [class.text-emerald-600]="tipo() === 'entrada'"
+          [class.text-rose-600]="tipo() === 'saida'"
+        >
+          {{ tipo() === 'entrada' ? '+' : '-' }}{{ item.quantidade }}
+          <span class="text-xs font-normal lowercase opacity-80">{{ item.unidadeMedida }}</span>
+        </td>
+      </ng-container>
+
+      <!-- Preço Unitário Médio -->
+      <ng-container matColumnDef="precoUnitarioMedio">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header="precoUnitarioMedio">
+          Preço Unit. Médio
+        </th>
+        <td mat-cell *matCellDef="let item" class="pessoa-table__texto">
+          {{ item.precoUnitarioMedio | currency: 'BRL':'symbol':'1.2-2' }}
+        </td>
+      </ng-container>
+
+      <!-- Valor Total -->
+      <ng-container matColumnDef="valorTotalFinanceiro">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header="valorTotalFinanceiro">
+          {{ rotuloValorTotal() }}
+        </th>
+        <td
+          mat-cell
+          *matCellDef="let item"
+          class="pessoa-table__texto font-extrabold"
+          [class.text-emerald-700]="tipo() === 'entrada'"
+          [class.text-[#0b3c5d]]="tipo() === 'saida'"
+        >
+          {{ item.valorTotalFinanceiro | currency: 'BRL':'symbol':'1.2-2' }}
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="colunasExibidas"></tr>
+      <tr mat-row *matRowDef="let row; columns: colunasExibidas"></tr>
+
+      <tr class="mat-row" *matNoDataRow>
+        <td class="mat-cell p-6 text-center text-slate-500" [attr.colspan]="colunasExibidas.length">
+          @if (carregando()) {
+            Carregando dados financeiros...
+          } @else {
+            Nenhuma movimentação financeira encontrada no período.
+          }
+        </td>
+      </tr>
+    </table>
+  </div>
+
+  <nav class="pessoa-tabela__paginacao" aria-label="Paginação financeira">
+    <button
+      type="button"
+      class="pessoa-tabela__pagina-seta"
+      [disabled]="paginaAtual() === 0"
+      aria-label="Página anterior"
+      (click)="mudarPagina(paginaAtual() - 1)"
+    >
+      &lt;
+    </button>
+
+    @for (pagina of paginas; track pagina) {
+      <button
+        type="button"
+        class="pessoa-tabela__pagina"
+        [class.pessoa-tabela__pagina--ativa]="pagina === paginaAtual()"
+        [attr.aria-current]="pagina === paginaAtual() ? 'page' : null"
+        (click)="mudarPagina(pagina)"
+      >
+        {{ pagina + 1 }}
+      </button>
+    }
+
+    <button
+      type="button"
+      class="pessoa-tabela__pagina-seta"
+      [disabled]="paginaAtual() >= totalPaginas - 1"
+      aria-label="Próxima página"
+      (click)="mudarPagina(paginaAtual() + 1)"
+    >
+      &gt;
+    </button>
+  </nav>
+</div>
 

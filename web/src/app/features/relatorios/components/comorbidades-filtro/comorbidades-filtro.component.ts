@@ -1,5 +1,6 @@
 import { Component, effect, inject, input, OnInit, output, signal } from '@angular/core';
 import { NonNullableFormBuilder, ReactiveFormsModule } from '@angular/forms';
+import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
@@ -17,6 +18,7 @@ import { PessoaComorbidadeFiltros } from '../../models/relatorio-pessoas.model';
     MatInputModule,
     MatSelectModule,
     MatIconModule,
+    MatButtonModule,
   ],
   templateUrl: './comorbidades-filtro.component.html',
 })
@@ -61,7 +63,11 @@ export class ComorbidadesFiltroComponent implements OnInit {
     });
   }
 
-  protected aoSelecionarComorbidades(): void {
+  protected limpar(): void {
+    this.form.reset({
+      termoBusca: '',
+      comorbidadeIds: [],
+    });
     this.aplicar();
   }
 }

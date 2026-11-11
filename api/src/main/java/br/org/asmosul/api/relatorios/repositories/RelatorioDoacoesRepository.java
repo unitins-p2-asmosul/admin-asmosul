@@ -328,21 +328,29 @@ public interface RelatorioDoacoesRepository extends JpaRepository<Item, Long> {
                 FROM saida_estoque se
                 INNER JOIN saida s ON s.id = se.id_saida
                 INNER JOIN item i ON i.id = se.id_item
+                INNER JOIN categoria_item c ON c.id = i.id_categoria
                 WHERE (:dataInicio IS NULL OR s.data_hora >= :dataInicio)
                   AND (:dataFim IS NULL OR s.data_hora <= :dataFim)
+                  AND (:termoItem IS NULL OR LOWER(i.nome) LIKE LOWER(CONCAT('%', :termoItem, '%')))
+                  AND (:termoCategoria IS NULL OR LOWER(c.nome) LIKE LOWER(CONCAT('%', :termoCategoria, '%')))
             ), 0.00) AS totalSaidas,
             IFNULL((
                 SELECT SUM(ee.quantidade * i.preco_unitario)
                 FROM entrada_estoque ee
                 INNER JOIN entrada e ON e.id = ee.id_entrada
                 INNER JOIN item i ON i.id = ee.id_item
+                INNER JOIN categoria_item c ON c.id = i.id_categoria
                 WHERE (:dataInicio IS NULL OR e.data_hora >= :dataInicio)
                   AND (:dataFim IS NULL OR e.data_hora <= :dataFim)
+                  AND (:termoItem IS NULL OR LOWER(i.nome) LIKE LOWER(CONCAT('%', :termoItem, '%')))
+                  AND (:termoCategoria IS NULL OR LOWER(c.nome) LIKE LOWER(CONCAT('%', :termoCategoria, '%')))
             ), 0.00) AS totalEntradas
     """, nativeQuery = true)
     BalancoFinanceiroProjection buscarBalancoFinanceiro(
         @Param("dataInicio") LocalDateTime dataInicio,
-        @Param("dataFim") LocalDateTime dataFim
+        @Param("dataFim") LocalDateTime dataFim,
+        @Param("termoItem") String termoItem,
+        @Param("termoCategoria") String termoCategoria
     );
 
     @Query(value = """
@@ -484,11 +492,30 @@ public interface RelatorioDoacoesRepository extends JpaRepository<Item, Long> {
             IFNULL(SUM(se.quantidade), 0) AS total
         FROM saida_estoque se
         INNER JOIN saida s ON s.id = se.id_saida
+        INNER JOIN item i ON i.id = se.id_item
         WHERE YEAR(s.data_hora) = :ano
+          AND (:dataInicio IS NULL OR s.data_hora >= :dataInicio)
+          AND (:dataFim IS NULL OR s.data_hora <= :dataFim)
+          AND (:recebedorId IS NULL OR s.id_recebedor = :recebedorId)
+          AND (:localArmazenamentoId IS NULL OR se.id_armazenamento = :localArmazenamentoId)
+          AND (:categoriaItemId IS NULL OR i.id_categoria = :categoriaItemId)
+          AND (
+            :termoBusca IS NULL
+            OR LOWER(i.nome) LIKE LOWER(CONCAT('%', :termoBusca, '%'))
+            OR LOWER(s.descricao) LIKE LOWER(CONCAT('%', :termoBusca, '%'))
+          )
         GROUP BY LPAD(MONTH(s.data_hora), 2, '0')
         ORDER BY chave ASC
     """, nativeQuery = true)
-    List<AgrupamentoContagemProjection> buscarSaidasPorMes(@Param("ano") int ano);
+    List<AgrupamentoContagemProjection> buscarSaidasPorMes(
+        @Param("ano") int ano,
+        @Param("dataInicio") LocalDateTime dataInicio,
+        @Param("dataFim") LocalDateTime dataFim,
+        @Param("recebedorId") Long recebedorId,
+        @Param("localArmazenamentoId") Long localArmazenamentoId,
+        @Param("categoriaItemId") Long categoriaItemId,
+        @Param("termoBusca") String termoBusca
+    );
 
     @Query(value = """
         SELECT
@@ -496,10 +523,28 @@ public interface RelatorioDoacoesRepository extends JpaRepository<Item, Long> {
             IFNULL(SUM(se.quantidade), 0) AS total
         FROM saida_estoque se
         INNER JOIN saida s ON s.id = se.id_saida
+        INNER JOIN item i ON i.id = se.id_item
+        WHERE (:dataInicio IS NULL OR s.data_hora >= :dataInicio)
+          AND (:dataFim IS NULL OR s.data_hora <= :dataFim)
+          AND (:recebedorId IS NULL OR s.id_recebedor = :recebedorId)
+          AND (:localArmazenamentoId IS NULL OR se.id_armazenamento = :localArmazenamentoId)
+          AND (:categoriaItemId IS NULL OR i.id_categoria = :categoriaItemId)
+          AND (
+            :termoBusca IS NULL
+            OR LOWER(i.nome) LIKE LOWER(CONCAT('%', :termoBusca, '%'))
+            OR LOWER(s.descricao) LIKE LOWER(CONCAT('%', :termoBusca, '%'))
+          )
         GROUP BY CAST(YEAR(s.data_hora) AS CHAR)
         ORDER BY chave ASC
     """, nativeQuery = true)
-    List<AgrupamentoContagemProjection> buscarSaidasPorAno();
+    List<AgrupamentoContagemProjection> buscarSaidasPorAno(
+        @Param("dataInicio") LocalDateTime dataInicio,
+        @Param("dataFim") LocalDateTime dataFim,
+        @Param("recebedorId") Long recebedorId,
+        @Param("localArmazenamentoId") Long localArmazenamentoId,
+        @Param("categoriaItemId") Long categoriaItemId,
+        @Param("termoBusca") String termoBusca
+    );
 
     @Query(value = """
         SELECT
@@ -511,16 +556,29 @@ public interface RelatorioDoacoesRepository extends JpaRepository<Item, Long> {
         FROM pessoa p
         INNER JOIN saida s ON s.id_recebedor = p.id
         INNER JOIN saida_estoque se ON se.id_saida = s.id
+        INNER JOIN item i ON i.id = se.id_item
         WHERE p.data_inativo IS NULL
           AND (:dataInicio IS NULL OR s.data_hora >= :dataInicio)
           AND (:dataFim IS NULL OR s.data_hora <= :dataFim)
+          AND (:recebedorId IS NULL OR s.id_recebedor = :recebedorId)
+          AND (:localArmazenamentoId IS NULL OR se.id_armazenamento = :localArmazenamentoId)
+          AND (:categoriaItemId IS NULL OR i.id_categoria = :categoriaItemId)
+          AND (
+            :termoBusca IS NULL
+            OR LOWER(i.nome) LIKE LOWER(CONCAT('%', :termoBusca, '%'))
+            OR LOWER(s.descricao) LIKE LOWER(CONCAT('%', :termoBusca, '%'))
+          )
         GROUP BY p.id, p.nome, p.quantidade_coabitante
         ORDER BY totalItensRecebidos DESC
         LIMIT 10
     """, nativeQuery = true)
     List<RankingRecebedorProjection> buscarTopQuemMaisRecebe(
         @Param("dataInicio") LocalDateTime dataInicio,
-        @Param("dataFim") LocalDateTime dataFim
+        @Param("dataFim") LocalDateTime dataFim,
+        @Param("recebedorId") Long recebedorId,
+        @Param("localArmazenamentoId") Long localArmazenamentoId,
+        @Param("categoriaItemId") Long categoriaItemId,
+        @Param("termoBusca") String termoBusca
     );
 
     @Query(value = """
@@ -528,22 +586,29 @@ public interface RelatorioDoacoesRepository extends JpaRepository<Item, Long> {
             p.id AS idRecebedor,
             p.nome AS nomeRecebedor,
             IFNULL(p.quantidade_coabitante, 1) AS quantidadeCoabitantes,
-            COUNT(DISTINCT s.id) AS totalEntregasRecebidas,
+            COUNT(DISTINCT CASE WHEN se.id IS NOT NULL THEN s.id END) AS totalEntregasRecebidas,
             IFNULL(SUM(se.quantidade), 0) AS totalItensRecebidos
         FROM pessoa p
         LEFT JOIN saida s ON s.id_recebedor = p.id
           AND (:dataInicio IS NULL OR s.data_hora >= :dataInicio)
           AND (:dataFim IS NULL OR s.data_hora <= :dataFim)
         LEFT JOIN saida_estoque se ON se.id_saida = s.id
+          AND (:localArmazenamentoId IS NULL OR se.id_armazenamento = :localArmazenamentoId)
+        LEFT JOIN item i ON i.id = se.id_item
+          AND (:categoriaItemId IS NULL OR i.id_categoria = :categoriaItemId)
         WHERE p.eh_beneficiario = 1
           AND p.data_inativo IS NULL
+          AND (:recebedorId IS NULL OR p.id = :recebedorId)
         GROUP BY p.id, p.nome, p.quantidade_coabitante
         ORDER BY totalItensRecebidos ASC, totalEntregasRecebidas ASC, p.nome ASC
         LIMIT 10
     """, nativeQuery = true)
     List<RankingRecebedorProjection> buscarTopQuemMenosRecebe(
         @Param("dataInicio") LocalDateTime dataInicio,
-        @Param("dataFim") LocalDateTime dataFim
+        @Param("dataFim") LocalDateTime dataFim,
+        @Param("recebedorId") Long recebedorId,
+        @Param("localArmazenamentoId") Long localArmazenamentoId,
+        @Param("categoriaItemId") Long categoriaItemId
     );
 
     @Query(value = """
@@ -661,11 +726,30 @@ public interface RelatorioDoacoesRepository extends JpaRepository<Item, Long> {
             IFNULL(SUM(ee.quantidade), 0) AS total
         FROM entrada_estoque ee
         INNER JOIN entrada e ON e.id = ee.id_entrada
+        INNER JOIN item i ON i.id = ee.id_item
         WHERE YEAR(e.data_hora) = :ano
+          AND (:dataInicio IS NULL OR e.data_hora >= :dataInicio)
+          AND (:dataFim IS NULL OR e.data_hora <= :dataFim)
+          AND (:doadorId IS NULL OR e.id_doador = :doadorId)
+          AND (:localArmazenamentoId IS NULL OR ee.id_armazenamento = :localArmazenamentoId)
+          AND (:categoriaItemId IS NULL OR i.id_categoria = :categoriaItemId)
+          AND (
+            :termoBusca IS NULL
+            OR LOWER(i.nome) LIKE LOWER(CONCAT('%', :termoBusca, '%'))
+            OR LOWER(e.descricao) LIKE LOWER(CONCAT('%', :termoBusca, '%'))
+          )
         GROUP BY LPAD(MONTH(e.data_hora), 2, '0')
         ORDER BY chave ASC
     """, nativeQuery = true)
-    List<AgrupamentoContagemProjection> buscarEntradasPorMes(@Param("ano") int ano);
+    List<AgrupamentoContagemProjection> buscarEntradasPorMes(
+        @Param("ano") int ano,
+        @Param("dataInicio") LocalDateTime dataInicio,
+        @Param("dataFim") LocalDateTime dataFim,
+        @Param("doadorId") Long doadorId,
+        @Param("localArmazenamentoId") Long localArmazenamentoId,
+        @Param("categoriaItemId") Long categoriaItemId,
+        @Param("termoBusca") String termoBusca
+    );
 
     @Query(value = """
         SELECT
@@ -673,10 +757,28 @@ public interface RelatorioDoacoesRepository extends JpaRepository<Item, Long> {
             IFNULL(SUM(ee.quantidade), 0) AS total
         FROM entrada_estoque ee
         INNER JOIN entrada e ON e.id = ee.id_entrada
+        INNER JOIN item i ON i.id = ee.id_item
+        WHERE (:dataInicio IS NULL OR e.data_hora >= :dataInicio)
+          AND (:dataFim IS NULL OR e.data_hora <= :dataFim)
+          AND (:doadorId IS NULL OR e.id_doador = :doadorId)
+          AND (:localArmazenamentoId IS NULL OR ee.id_armazenamento = :localArmazenamentoId)
+          AND (:categoriaItemId IS NULL OR i.id_categoria = :categoriaItemId)
+          AND (
+            :termoBusca IS NULL
+            OR LOWER(i.nome) LIKE LOWER(CONCAT('%', :termoBusca, '%'))
+            OR LOWER(e.descricao) LIKE LOWER(CONCAT('%', :termoBusca, '%'))
+          )
         GROUP BY CAST(YEAR(e.data_hora) AS CHAR)
         ORDER BY chave ASC
     """, nativeQuery = true)
-    List<AgrupamentoContagemProjection> buscarEntradasPorAno();
+    List<AgrupamentoContagemProjection> buscarEntradasPorAno(
+        @Param("dataInicio") LocalDateTime dataInicio,
+        @Param("dataFim") LocalDateTime dataFim,
+        @Param("doadorId") Long doadorId,
+        @Param("localArmazenamentoId") Long localArmazenamentoId,
+        @Param("categoriaItemId") Long categoriaItemId,
+        @Param("termoBusca") String termoBusca
+    );
 
     @Query(value = """
         SELECT
@@ -687,16 +789,29 @@ public interface RelatorioDoacoesRepository extends JpaRepository<Item, Long> {
         FROM pessoa p
         INNER JOIN entrada e ON e.id_doador = p.id
         INNER JOIN entrada_estoque ee ON ee.id_entrada = e.id
+        INNER JOIN item i ON i.id = ee.id_item
         WHERE p.data_inativo IS NULL
           AND (:dataInicio IS NULL OR e.data_hora >= :dataInicio)
           AND (:dataFim IS NULL OR e.data_hora <= :dataFim)
+          AND (:doadorId IS NULL OR e.id_doador = :doadorId)
+          AND (:localArmazenamentoId IS NULL OR ee.id_armazenamento = :localArmazenamentoId)
+          AND (:categoriaItemId IS NULL OR i.id_categoria = :categoriaItemId)
+          AND (
+            :termoBusca IS NULL
+            OR LOWER(i.nome) LIKE LOWER(CONCAT('%', :termoBusca, '%'))
+            OR LOWER(e.descricao) LIKE LOWER(CONCAT('%', :termoBusca, '%'))
+          )
         GROUP BY p.id, p.nome
         ORDER BY totalItensDoados DESC
         LIMIT 10
     """, nativeQuery = true)
     List<RankingDoadorProjection> buscarTopQuemMaisDoa(
         @Param("dataInicio") LocalDateTime dataInicio,
-        @Param("dataFim") LocalDateTime dataFim
+        @Param("dataFim") LocalDateTime dataFim,
+        @Param("doadorId") Long doadorId,
+        @Param("localArmazenamentoId") Long localArmazenamentoId,
+        @Param("categoriaItemId") Long categoriaItemId,
+        @Param("termoBusca") String termoBusca
     );
 
     @Query(value = """
