@@ -1,6 +1,9 @@
 import { Component, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
+import { MatIconModule } from '@angular/material/icon';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { PageEvent } from '@angular/material/paginator';
 import { Sort } from '@angular/material/sort';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -38,7 +41,14 @@ const RESPOSTA_VAZIA: RespostaPaginada<PessoaResumo> = {
 @Component({
   selector: 'app-pessoa-lista-page',
   standalone: true,
-  imports: [PaginaGerenciamentoComponent, PessoaTabelaComponent, ControlesExportacaoComponent],
+  imports: [
+    PaginaGerenciamentoComponent,
+    PessoaTabelaComponent,
+    ControlesExportacaoComponent,
+    MatButtonModule,
+    MatIconModule,
+    MatTooltipModule,
+  ],
   templateUrl: './pessoa-lista-page.component.html',
 })
 export class PessoaListaPageComponent {
@@ -58,8 +68,7 @@ export class PessoaListaPageComponent {
       page: params['page'] ? Number(params['page']) : 0,
       size: TAMANHO_PAGINA_PADRAO,
       sort: params['sort'] || ORDENACAO_PADRAO,
-      incluirInativos: params['incluirInativos'] === 'true',
-      apenasInativos: params['apenasInativos'] === 'true',
+      apenasInativos: params['incluirInativos'] === 'true',
       nome: params['nome'] || undefined,
       cpfCnpj: params['cpfCnpj'] || undefined,
       tipoPessoa: params['tipoPessoa'] || undefined,
@@ -179,8 +188,16 @@ export class PessoaListaPageComponent {
         quantidadeCoabitantes: filtros.quantidadeCoabitantes ?? null,
         ehBeneficiario: filtros.ehBeneficiario === undefined ? null : String(filtros.ehBeneficiario),
         ehDoador: filtros.ehDoador === undefined ? null : String(filtros.ehDoador),
-        apenasInativos: filtros.apenasInativos ? 'true' : null,
+        apenasInativos: null,
       });
+    });
+  }
+
+  protected alternarInativos(): void {
+    this.atualizarUrl({
+      page: 0,
+      incluirInativos: this.parametrosAtuais().apenasInativos ? null : 'true',
+      apenasInativos: null,
     });
   }
 

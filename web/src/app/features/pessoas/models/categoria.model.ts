@@ -22,7 +22,6 @@ export interface CategoriaConsultaParametros {
   page: number;
   size: number;
   sort?: string;
-  incluirInativos?: boolean;
-  apenasDesativados?: boolean;
+  apenasInativos?: boolean;
   nome?: string;
 }

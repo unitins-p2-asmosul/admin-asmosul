@@ -114,20 +114,20 @@ class ComorbidadeControllerTest extends BaseAPITest {
 
         @Test
         @DisplayName("Deve filtrar inativos por padrÃ£o na listagem")
-        void listar_comFiltroIncluirInativos_retornaStatus200() throws Exception {
+        void listar_comFiltroApenasInativos_retornaStatus200() throws Exception {
             comorbidadeRepository.save(new Comorbidade("Comorbidade Ativa", "Desc"));
             Comorbidade inativa = new Comorbidade("Comorbidade Inativa", "Desc");
             inativa.setDataInativo(java.time.LocalDateTime.now());
             comorbidadeRepository.save(inativa);
 
-            mockMvc.perform(get("/pessoas/comorbidades").param("incluirInativos", "false"))
+            mockMvc.perform(get("/pessoas/comorbidades").param("apenasInativos", "false"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.totalElementos").value(1))
                     .andExpect(jsonPath("$.dados[0].nome").value("Comorbidade Ativa"));
 
-            mockMvc.perform(get("/pessoas/comorbidades").param("incluirInativos", "true"))
+            mockMvc.perform(get("/pessoas/comorbidades").param("apenasInativos", "true"))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.totalElementos").value(2));
+                    .andExpect(jsonPath("$.totalElementos").value(1));
         }
     }
 

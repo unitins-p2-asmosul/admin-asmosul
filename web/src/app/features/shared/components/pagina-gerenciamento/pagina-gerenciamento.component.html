@@ -11,8 +11,8 @@
 
     @if (!adicionarNaToolbar()) {
       <button mat-flat-button type="button" class="pagina-pessoas__add" (click)="aoAdicionar.emit()">
+        <mat-icon>{{ iconeAdicionar() }}</mat-icon>
         {{ rotuloAdicionar() }}
-        <mat-icon iconPositionEnd>{{ iconeAdicionar() }}</mat-icon>
       </button>
     }
   </header>
@@ -21,7 +21,7 @@
     class="pagina-pessoas__toolbar"
     [class.pagina-pessoas__toolbar--distribuida]="adicionarNaToolbar()"
   >
-    <div class="flex w-full items-center gap-2">
+    <div class="flex w-full min-w-0 items-center gap-2">
       <button
         mat-stroked-button
         type="button"
@@ -40,8 +40,8 @@
     </div>
     @if (adicionarNaToolbar()) {
       <button mat-flat-button type="button" class="pagina-pessoas__add" (click)="aoAdicionar.emit()">
+        <mat-icon>{{ iconeAdicionar() }}</mat-icon>
         {{ rotuloAdicionar() }}
-        <mat-icon iconPositionEnd>{{ iconeAdicionar() }}</mat-icon>
       </button>
     }
   </div>

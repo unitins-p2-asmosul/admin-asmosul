@@ -1,6 +1,8 @@
 package br.org.asmosul.api.pessoas.repositories;
 
 import br.org.asmosul.api.pessoas.models.Comorbidade;
+
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -16,12 +18,17 @@ public interface ComorbidadeRepository extends JpaRepository<Comorbidade, Long> 
 
     Page<Comorbidade> findAllByDataInativoIsNull(Pageable pageable);
 
+    Page<Comorbidade> findAllByDataInativoIsNotNull(Pageable pageable);
+
     List<Comorbidade> findAllByDataInativoIsNull();
 
     Page<Comorbidade> findByNomeContainingIgnoreCase(String nome, Pageable pageable);
 
     Page<Comorbidade> findByNomeContainingIgnoreCaseAndDataInativoIsNull(
             String nome, Pageable pageable);
+
+    Page<Comorbidade> findByNomeContainingIgnoreCaseAndDataInativoIsNotNull(
+        String nome, Pageable pageable);
 
     boolean existsByNome(String nome);
 
@@ -34,4 +41,5 @@ public interface ComorbidadeRepository extends JpaRepository<Comorbidade, Long> 
                     + "GROUP BY c.id")
     List<Object[]> contarPessoasAtivasPorComorbidadeIds(
             @Param("comorbidadeIds") Collection<Long> comorbidadeIds);
+
 }

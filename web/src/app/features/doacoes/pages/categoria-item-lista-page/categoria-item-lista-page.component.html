@@ -9,9 +9,11 @@
 >
   <div toolbar-actions class="flex min-w-0 flex-1 items-center gap-1">
     <button
-      mat-flat-button
+      mat-stroked-button
       type="button"
-      class="pagina-pessoas__filter"
+      class="pagina-pessoas__status-toggle"
+      [class.pagina-pessoas__status-toggle--ativo]="parametrosAtuais().apenasInativos"
+      [attr.aria-pressed]="parametrosAtuais().apenasInativos"
       [matTooltip]="
         parametrosAtuais().apenasInativos
           ? 'Exibir categorias ativas'
@@ -24,8 +26,8 @@
       "
       (click)="alternarInativos()"
     >
-      <mat-icon>{{ parametrosAtuais().apenasInativos ? 'category' : 'visibility_off' }}</mat-icon>
-      {{ parametrosAtuais().apenasInativos ? 'Exibir ativas' : 'Exibir inativas' }}
+      <mat-icon>visibility_off</mat-icon>
+      Exibir inativas
     </button>
     @if (filtrosAtivos > 0 || parametrosAtuais().apenasInativos) {
       <button

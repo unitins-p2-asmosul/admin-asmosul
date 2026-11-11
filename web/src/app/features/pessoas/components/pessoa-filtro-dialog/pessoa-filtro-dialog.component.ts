@@ -1,9 +1,9 @@
 import { Component, inject, signal } from '@angular/core';
 import { NonNullableFormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
-import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { CategoriaService } from '../../services/categoria.service';
@@ -14,7 +14,6 @@ import {
   SEXO_OPCOES,
   PessoaFiltros,
 } from '../../models/pessoa.model';
-import { PessoaService } from '../../services/pessoa.service';
 
 @Component({
   selector: 'app-pessoa-filtro-dialog',
@@ -24,8 +23,8 @@ import { PessoaService } from '../../services/pessoa.service';
     MatDialogModule,
     MatFormFieldModule,
     MatInputModule,
-    MatCheckboxModule,
     MatButtonModule,
+    MatIconModule,
     MatSelectModule,
   ],
   template: `
@@ -38,6 +37,27 @@ import { PessoaService } from '../../services/pessoa.service';
     <mat-dialog-content class="pessoa-filtro__content">
       <form [formGroup]="form" class="pessoa-filtro__form grid gap-4 sm:grid-cols-2">
         <h3 class="pessoa-filtro__section-title sm:col-span-2">Identificação</h3>
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>Nome</mat-label>
+          <input matInput formControlName="nome" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>CPF/CNPJ</mat-label>
+          <input matInput formControlName="cpfCnpj" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>Telefone</mat-label>
+          <input matInput formControlName="telefone" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>E-mail</mat-label>
+          <input matInput type="email" formControlName="email" />
+        </mat-form-field>
+
+        <h3 class="pessoa-filtro__section-title sm:col-span-2">Dados pessoais</h3>
         <mat-form-field appearance="outline" class="w-full">
           <mat-label>Data de Nascimento Mínima</mat-label>
 
@@ -62,31 +82,15 @@ import { PessoaService } from '../../services/pessoa.service';
             </mat-error>
           }
         </mat-form-field>
+
         <mat-form-field appearance="outline" class="w-full">
-          <mat-label>Nome</mat-label>
-          <input matInput formControlName="nome" />
+          <mat-label>Profissão</mat-label>
+          <input matInput formControlName="profissao" />
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="w-full">
-          <mat-label>CPF/CNPJ</mat-label>
-          <input matInput formControlName="cpfCnpj" />
-        </mat-form-field>
-
-        <mat-form-field appearance="outline" class="w-full">
-          <mat-label>Telefone</mat-label>
-          <input matInput formControlName="telefone" />
-        </mat-form-field>
-
-        <mat-form-field appearance="outline" class="w-full">
-          <mat-label>E-mail</mat-label>
-          <input matInput type="email" formControlName="email" />
-        </mat-form-field>
-
-        <h3 class="pessoa-filtro__section-title sm:col-span-2">Dados pessoais</h3>
-
-        <mat-form-field appearance="outline" class="w-full">
-          <mat-label>Data de nascimento</mat-label>
-          <input matInput placeholder="dd-mm-aaaa" formControlName="dataNascimento" />
+          <mat-label>Bairro</mat-label>
+          <input matInput formControlName="bairro" />
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="w-full">
@@ -126,16 +130,6 @@ import { PessoaService } from '../../services/pessoa.service';
               <mat-option [value]="opcao.codigo">{{ opcao.descricao }}</mat-option>
             }
           </mat-select>
-        </mat-form-field>
-
-        <mat-form-field appearance="outline" class="w-full">
-          <mat-label>Profissão</mat-label>
-          <input matInput formControlName="profissao" />
-        </mat-form-field>
-
-        <mat-form-field appearance="outline" class="w-full">
-          <mat-label>Bairro</mat-label>
-          <input matInput formControlName="bairro" />
         </mat-form-field>
 
         <h3 class="pessoa-filtro__section-title sm:col-span-2">Relacionamentos e status</h3>
@@ -182,8 +176,6 @@ import { PessoaService } from '../../services/pessoa.service';
             <mat-option value="false">Não</mat-option>
           </mat-select>
         </mat-form-field>
-
-        <mat-checkbox class="sm:col-span-2" formControlName="apenasInativos">Apenas inativos</mat-checkbox>
       </form>
     </mat-dialog-content>
 
@@ -205,7 +197,7 @@ export class PessoaFiltroDialogComponent {
   );
   private readonly filtrosAtuais = inject<PessoaFiltros>(MAT_DIALOG_DATA, { optional: true });
 
-  
+
   protected readonly sexoOpcoes = SEXO_OPCOES;
   protected readonly escolaridadeOpcoes = ESCOLARIDADE_OPCOES;
   protected readonly rendaFamiliarOpcoes = RENDA_FAMILIAR_OPCOES;
@@ -229,9 +221,14 @@ export class PessoaFiltroDialogComponent {
     comorbidadeId: [this.filtrosAtuais?.comorbidadeId?.toString() ?? ''],
     categoriaId: [this.filtrosAtuais?.categoriaId?.toString() ?? ''],
     quantidadeCoabitantes: [this.filtrosAtuais?.quantidadeCoabitantes?.toString() ?? ''],
-    ehBeneficiario: [this.filtrosAtuais?.ehBeneficiario === undefined ? '' : String(this.filtrosAtuais.ehBeneficiario)],
-    ehDoador: [this.filtrosAtuais?.ehDoador === undefined ? '' : String(this.filtrosAtuais.ehDoador)],
-    apenasInativos: [this.filtrosAtuais?.apenasInativos ?? false],
+    ehBeneficiario: [
+      this.filtrosAtuais?.ehBeneficiario === undefined
+        ? ''
+        : String(this.filtrosAtuais.ehBeneficiario),
+    ],
+    ehDoador: [
+      this.filtrosAtuais?.ehDoador === undefined ? '' : String(this.filtrosAtuais.ehDoador),
+    ],
   });
 
   constructor() {
@@ -281,10 +278,11 @@ export class PessoaFiltroDialogComponent {
       rendaFamiliar: valores.rendaFamiliar || undefined,
       comorbidadeId: valores.comorbidadeId ? Number(valores.comorbidadeId) : undefined,
       categoriaId: valores.categoriaId ? Number(valores.categoriaId) : undefined,
-      quantidadeCoabitantes: valores.quantidadeCoabitantes ? Number(valores.quantidadeCoabitantes) : undefined,
+      quantidadeCoabitantes: valores.quantidadeCoabitantes
+        ? Number(valores.quantidadeCoabitantes)
+        : undefined,
       ehBeneficiario: valores.ehBeneficiario === '' ? undefined : valores.ehBeneficiario === 'true',
       ehDoador: valores.ehDoador === '' ? undefined : valores.ehDoador === 'true',
-      apenasInativos: valores.apenasInativos || undefined,
     });
   }
 

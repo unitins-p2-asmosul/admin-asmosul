@@ -15,13 +15,13 @@ public final class PessoaSpecification {
 
     private PessoaSpecification() {}
 
-    public static Specification<Pessoa> comFiltro(PessoaFiltroDTO filtro, boolean incluirInativos) {
+    public static Specification<Pessoa> comFiltro(PessoaFiltroDTO filtro, boolean apenasInativos) {
         return (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
 
             if (filtro != null && Boolean.TRUE.equals(filtro.apenasInativos())) {
                 predicates.add(criteriaBuilder.isNotNull(root.get("dataInativo")));
-            } else if (!incluirInativos) {
+            } else if (!apenasInativos) {
                 predicates.add(criteriaBuilder.isNull(root.get("dataInativo")));
             }
 

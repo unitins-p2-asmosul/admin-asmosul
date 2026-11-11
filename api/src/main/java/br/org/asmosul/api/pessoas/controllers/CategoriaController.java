@@ -66,11 +66,11 @@ public class CategoriaController {
             @org.springdoc.core.annotations.ParameterObject
             @PageableDefault(size = 10, sort = "nome")
             Pageable paginacao,
-            @RequestParam(defaultValue = "false") boolean incluirInativos,
+            @RequestParam(defaultValue = "false") boolean apenasInativos,
             @RequestParam(required = false) String nome) {
 
         RespostaPaginada<CategoriaDTO.Resumo> resposta =
-            categoriaService.listar(paginacao, incluirInativos, nome);
+            categoriaService.listar(paginacao, apenasInativos, nome);
 
         return ResponseEntity.ok(resposta);
     }

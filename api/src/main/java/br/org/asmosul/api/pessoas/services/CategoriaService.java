@@ -45,7 +45,7 @@ public class CategoriaService {
 
     @Transactional(readOnly = true)
     public RespostaPaginada<CategoriaDTO.Resumo> listar(
-            Pageable paginacao, boolean incluirInativos, String nome) {
+            Pageable paginacao, boolean apenasInativos, String nome) {
 
         Pageable paginacaoSanitizada =
                 PaginacaoUtils.sanitizarPaginacao(paginacao, CAMPOS_ORDENACAO_VALIDOS, "nome");
@@ -56,16 +56,16 @@ public class CategoriaService {
 
         if (!nomeNormalizado.isBlank()) {
             pagina =
-                    incluirInativos
-                            ? categoriaRepository.findByNomeContainingIgnoreCase(
+                    apenasInativos
+                            ? categoriaRepository.findByNomeContainingIgnoreCaseAndDataInativoIsNotNull(
                                     nomeNormalizado, paginacaoSanitizada)
                             : categoriaRepository
                                     .findByNomeContainingIgnoreCaseAndDataInativoIsNull(
                                             nomeNormalizado, paginacaoSanitizada);
         } else {
             pagina =
-                    incluirInativos
-                            ? categoriaRepository.findAll(paginacaoSanitizada)
+                    apenasInativos
+                            ? categoriaRepository.findAllByDataInativoIsNotNull(paginacaoSanitizada)
                             : categoriaRepository.findAllByDataInativoIsNull(paginacaoSanitizada);
         }
 

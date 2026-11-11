@@ -4,6 +4,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { MatIconModule } from '@angular/material/icon';
 import { EnderecoArmazenamentoFiltros } from '../../models/endereco-armazenamento.model';
 
 @Component({
@@ -14,6 +15,7 @@ import { EnderecoArmazenamentoFiltros } from '../../models/endereco-armazenament
     MatDialogModule,
     MatFormFieldModule,
     MatInputModule,
+    MatIconModule,
     MatButtonModule,
   ],
   templateUrl: './endereco-armazenamento-filtro-dialog.component.html',
