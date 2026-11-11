@@ -12,6 +12,11 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { ActivatedRoute, Router } from '@angular/router';
 import { PessoaResumo } from '@features/pessoas/models/pessoa.model';
 import { PessoaService } from '@features/pessoas/services/pessoa.service';
+import {
+  OpcaoSelectPesquisavel,
+  SelectPesquisavelComponent,
+} from '@features/shared/components/select-pesquisavel/select-pesquisavel.component';
+import { CpfCnpjPipe } from '@features/shared/pipes/cpf-cnpj.pipe';
 import { ErroApi, ErroCampo } from '@features/shared/models/erro-api.model';
 import { DialogoConfirmacaoService } from '@features/shared/services/dialogo-confirmacao.service';
 import { NotificacaoService } from '@features/shared/services/notificacao.service';
@@ -45,6 +50,7 @@ export interface LinhaItemSaida {
     MatInputModule,
     MatSelectModule,
     MatTooltipModule,
+    SelectPesquisavelComponent,
   ],
   templateUrl: './saida-cadastro-page.component.html',
   styles: `
@@ -91,6 +97,7 @@ export class SaidaCadastroPageComponent implements OnInit {
   private readonly pessoaService = inject(PessoaService);
   private readonly confirmacao = inject(DialogoConfirmacaoService);
   private readonly notificacao = inject(NotificacaoService);
+  private readonly cpfPipe = new CpfCnpjPipe();
 
   readonly id = input<string>();
   readonly visualizacao = input(false);
@@ -104,6 +111,30 @@ export class SaidaCadastroPageComponent implements OnInit {
   protected readonly carregando = signal(false);
   protected readonly carregandoLocais = signal(false);
   protected readonly registro = signal<SaidaDetalhe | null>(null);
+
+  protected readonly opcoesItens = computed<OpcaoSelectPesquisavel<number>[]>(() =>
+    this.itens().map((item) => {
+      const sigla = obterSiglaUnidade(item.unidadeMedida);
+      const saldo = item.estoque ?? 0;
+      const subtexto = sigla ? `Saldo Total: ${saldo} ${sigla}` : `Saldo Total: ${saldo}`;
+      return {
+        valor: item.id,
+        rotulo: item.nome,
+        subtexto,
+      };
+    }),
+  );
+
+  protected readonly opcoesRecebedores = computed<OpcaoSelectPesquisavel<number>[]>(() =>
+    this.recebedores().map((recebedor) => {
+      const subtexto = recebedor.cpfCnpj ? this.cpfPipe.transform(recebedor.cpfCnpj) : undefined;
+      return {
+        valor: recebedor.id,
+        rotulo: recebedor.nome,
+        subtexto,
+      };
+    }),
+  );
 
   protected readonly modoEdicao = computed(() => !!this.id() && !this.visualizacao());
   protected readonly modoCriacao = computed(() => !this.id());
@@ -143,6 +174,25 @@ export class SaidaCadastroPageComponent implements OnInit {
     const local = this.locaisDoItem().find((candidato) => candidato.idEndereco === idLocal);
     return local ? this.saldoRestanteDoLocal(local) : 0;
   });
+
+  protected obterErroItem(): string | null {
+    const ctrl = this.itemForm.controls.idItem;
+    if ((ctrl.touched || ctrl.dirty) && ctrl.hasError('required')) {
+      return 'Selecione o item a ser retirado.';
+    }
+    return null;
+  }
+
+  protected obterErroRecebedor(): string | null {
+    const ctrl = this.form.controls.idRecebedor;
+    if ((ctrl.touched || ctrl.dirty) && ctrl.hasError('required')) {
+      return 'Selecione o beneficiário recebedor.';
+    }
+    if (ctrl.hasError('backend')) {
+      return ctrl.getError('backend');
+    }
+    return null;
+  }
 
   constructor() {
     effect(() => {
