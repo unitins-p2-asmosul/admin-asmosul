@@ -68,8 +68,8 @@ public interface RelatorioDoacoesRepository extends JpaRepository<Item, Long> {
             c.nome AS categoriaNome,
             i.unidade_medida AS unidadeMedida,
             IFNULL(e.saldo_estoque, 0) AS saldoEstoque,
-            IFNULL(mov.total_entrada, 0) AS totalEntrada,
-            IFNULL(mov.total_saida, 0) AS totalSaida
+            IFNULL(mov.total_entrada, 0) AS totalEntradas,
+            IFNULL(mov.total_saida, 0) AS totalSaidas
         FROM item i
         INNER JOIN categoria_item c ON c.id = i.id_categoria
         LEFT JOIN (
