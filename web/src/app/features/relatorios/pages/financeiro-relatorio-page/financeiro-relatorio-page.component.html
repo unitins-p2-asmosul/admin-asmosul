@@ -1,0 +1,162 @@
+<section class="pagina-pessoas pb-12">
+  <!-- Cabeçalho -->
+  <header class="pagina-pessoas__header">
+    <div class="pagina-pessoas__title-wrap">
+      <div class="flex items-center gap-3">
+        <span
+          class="pagina-pessoas__title-icon flex h-12 w-12 items-center justify-center rounded-2xl bg-[#0b3c5d] text-white"
+          aria-hidden="true"
+        >
+          <mat-icon class="!h-6 !w-6 !text-2xl leading-none">payments</mat-icon>
+        </span>
+        <h1 class="text-3xl font-extrabold tracking-tight text-[#0b3c5d]">
+          Relatório Financeiro de Doações
+        </h1>
+      </div>
+    </div>
+  </header>
+
+  <div class="mt-6 flex flex-col gap-6">
+    <!-- Filtros Globais de Período e Critérios -->
+    <article class="w-full rounded-2xl border border-[#dfe4ea] bg-white p-6 shadow-xs">
+      <form
+        [formGroup]="formFiltro"
+        (ngSubmit)="submeterFiltros()"
+        class="pagina-formulario !my-0 !w-full !max-w-none"
+      >
+        <div class="grid gap-x-5 gap-y-2 sm:grid-cols-2">
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-label>Data início</mat-label>
+            <input matInput type="date" formControlName="dataInicio" />
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-label>Data fim</mat-label>
+            <input matInput type="date" formControlName="dataFim" />
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-label>Buscar por item</mat-label>
+            <input
+              matInput
+              formControlName="termoItem"
+              (keydown.enter)="submeterFiltros()"
+              placeholder="Filtrar por nome do item..."
+            />
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-label>Buscar por categoria</mat-label>
+            <input
+              matInput
+              formControlName="termoCategoria"
+              (keydown.enter)="submeterFiltros()"
+              placeholder="Filtrar por nome da categoria..."
+            />
+          </mat-form-field>
+        </div>
+
+        <div class="flex items-center justify-center !gap-4 !pt-4 !pb-2">
+          <button mat-flat-button type="button" (click)="limparFiltros()">
+            Limpar
+          </button>
+          <button mat-flat-button type="submit" class="acao-primaria">
+            Aplicar filtros
+          </button>
+        </div>
+      </form>
+    </article>
+
+    <!-- 3 Cards Resumo de Balanço Financeiro -->
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <app-card-resumo
+        titulo="Somatório dos Valores de Saída"
+        [valor]="saidasFormatado()"
+      />
+      <app-card-resumo
+        titulo="Somatório dos Valores de Entrada"
+        [valor]="entradasFormatado()"
+      />
+      <app-card-resumo
+        titulo="Balanço Financeiro no Período"
+        [valor]="balancoFormatado()"
+      />
+    </div>
+
+    <!-- Tabela 1: Valor Gasto por Item em Saída -->
+    <article class="w-full rounded-2xl border border-[#dfe4ea] bg-white p-6 shadow-xs">
+      <div class="mb-5 flex items-center gap-2">
+        <h2 class="m-0 text-lg font-bold text-[#0b3c5d]">
+          Tabela do Valor Gasto por Item em Saída
+        </h2>
+        <span
+          class="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-[#f1f5f9] px-2 text-xs font-bold text-[#475569]"
+        >
+          {{ respostaSaidas().totalElementos }}
+        </span>
+      </div>
+
+      <div class="mb-4">
+        <app-controles-exportacao
+          [colunas]="tabelaSaidas.colunasExportaveis"
+          chaveStorage="relatorio_financeiro_saidas_colunas"
+          (aoExportar)="tabelaSaidas.exportar($event)"
+          (aoMudarColunas)="idsColunasSaidas.set($event)"
+        />
+      </div>
+
+      <app-financeiro-tabela
+        #tabelaSaidas
+        tipo="saida"
+        [dados]="respostaSaidas().dados"
+        [totalElementos]="respostaSaidas().totalElementos"
+        [tamanhoPagina]="respostaSaidas().tamanhoPagina"
+        [paginaAtual]="respostaSaidas().paginaAtual"
+        [carregando]="carregandoSaidas()"
+        [colunasVisiveis]="idsColunasSaidas()"
+        [ordenacao]="estadoAtual().sortSaidas"
+        (aoMudarPagina)="mudarPaginaSaidas($event)"
+        (aoMudarOrdem)="mudarOrdemSaidas($event)"
+        (aoExportar)="exportarSaidas($event)"
+      />
+    </article>
+
+    <!-- Tabela 2: Valor Gasto por Item em Entrada -->
+    <article class="w-full rounded-2xl border border-[#dfe4ea] bg-white p-6 shadow-xs">
+      <div class="mb-5 flex items-center gap-2">
+        <h2 class="m-0 text-lg font-bold text-[#0b3c5d]">
+          Tabela do Valor Gasto por Item em Entrada
+        </h2>
+        <span
+          class="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-[#f1f5f9] px-2 text-xs font-bold text-[#475569]"
+        >
+          {{ respostaEntradas().totalElementos }}
+        </span>
+      </div>
+
+      <div class="mb-4">
+        <app-controles-exportacao
+          [colunas]="tabelaEntradas.colunasExportaveis"
+          chaveStorage="relatorio_financeiro_entradas_colunas"
+          (aoExportar)="tabelaEntradas.exportar($event)"
+          (aoMudarColunas)="idsColunasEntradas.set($event)"
+        />
+      </div>
+
+      <app-financeiro-tabela
+        #tabelaEntradas
+        tipo="entrada"
+        [dados]="respostaEntradas().dados"
+        [totalElementos]="respostaEntradas().totalElementos"
+        [tamanhoPagina]="respostaEntradas().tamanhoPagina"
+        [paginaAtual]="respostaEntradas().paginaAtual"
+        [carregando]="carregandoEntradas()"
+        [colunasVisiveis]="idsColunasEntradas()"
+        [ordenacao]="estadoAtual().sortEntradas"
+        (aoMudarPagina)="mudarPaginaEntradas($event)"
+        (aoMudarOrdem)="mudarOrdemEntradas($event)"
+        (aoExportar)="exportarEntradas($event)"
+      />
+    </article>
+  </div>
+</section>

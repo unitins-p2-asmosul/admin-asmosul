@@ -1,0 +1,164 @@
+<section class="pagina-pessoas pb-12">
+  <!-- Cabeçalho -->
+  <header class="pagina-pessoas__header">
+    <div class="pagina-pessoas__title-wrap">
+      <div class="flex items-center gap-3">
+        <span
+          class="pagina-pessoas__title-icon flex h-12 w-12 items-center justify-center rounded-2xl bg-[#0b3c5d] text-white"
+          aria-hidden="true"
+        >
+          <mat-icon class="!h-6 !w-6 !text-2xl leading-none">outbox</mat-icon>
+        </span>
+        <h1 class="text-3xl font-extrabold tracking-tight text-[#0b3c5d]">
+          Relatório de Saídas e Entregas
+        </h1>
+      </div>
+    </div>
+  </header>
+
+  <div class="mt-6 flex flex-col gap-6">
+    <!-- Filtro Global de Período e Critérios -->
+    <article class="w-full rounded-2xl border border-[#dfe4ea] bg-white p-6 shadow-xs">
+      <form [formGroup]="formFiltro" (ngSubmit)="submeterFiltros()" class="pagina-formulario !my-0 !w-full !max-w-none">
+        <div class="grid gap-x-5 gap-y-2 sm:grid-cols-2 lg:grid-cols-3">
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-label>Data início</mat-label>
+            <input matInput type="date" formControlName="dataInicio" />
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-label>Data fim</mat-label>
+            <input matInput type="date" formControlName="dataFim" />
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-label>Recebedor / Beneficiário</mat-label>
+            <mat-select formControlName="recebedorId">
+              <mat-option [value]="null">Todos os beneficiários</mat-option>
+              @for (b of beneficiarios(); track b.id) {
+                <mat-option [value]="b.id">{{ b.nome }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-label>Origem da retirada</mat-label>
+            <mat-select formControlName="localArmazenamentoId">
+              <mat-option [value]="null">Todas as origens</mat-option>
+              @for (loc of locais(); track loc.id) {
+                <mat-option [value]="loc.id">{{ loc.nome }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-label>Categoria do item</mat-label>
+            <mat-select formControlName="categoriaItemId">
+              <mat-option [value]="null">Todas as categorias</mat-option>
+              @for (cat of categorias(); track cat.id) {
+                <mat-option [value]="cat.id">{{ cat.nome }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-label>Item / Termo de busca</mat-label>
+            <input
+              matInput
+              formControlName="termoBusca"
+              (keydown.enter)="submeterFiltros()"
+              placeholder="Buscar por item, descrição..."
+            />
+          </mat-form-field>
+        </div>
+
+        <div class="flex items-center justify-center !gap-4 !pt-4 !pb-2">
+          <button mat-flat-button type="button" (click)="limparFiltros()">
+            Limpar
+          </button>
+          <button mat-flat-button type="submit" class="acao-primaria">
+            Aplicar filtros
+          </button>
+        </div>
+      </form>
+    </article>
+
+    <!-- Cards de Resumo -->
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <app-card-resumo
+        titulo="Total de Itens Entregues"
+        [valor]="resumo().totalItensEntregues"
+      />
+      <app-card-resumo
+        titulo="Valor Estimado Entregue"
+        [valor]="valorEstimadoFormatado()"
+      />
+    </div>
+
+    <!-- Gráficos de Barras Temporais -->
+    <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+      <app-grafico-barras
+        titulo="Saídas por Mês"
+        [dados]="resumo().saidasPorMes"
+        [exibirSeletorAno]="true"
+        [anoSelecionado]="parametrosAtuais().ano ?? 2026"
+        (aoMudarAno)="mudarAnoGrafico($event)"
+      />
+      <app-grafico-barras
+        titulo="Saídas por Ano"
+        [dados]="resumo().saidasPorAno"
+      />
+    </div>
+
+    <!-- Rankings de Beneficiários -->
+    <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+      <app-ranking-cards
+        titulo="Quem Mais Recebe Doações"
+        [itens]="rankingMaisRecebem()"
+        sufixo="itens"
+      />
+      <app-ranking-cards
+        titulo="Quem Menos Recebe Doações"
+        [itens]="rankingMenosRecebem()"
+        sufixo="itens"
+      />
+    </div>
+
+    <!-- Tabela de Saídas Discriminadas -->
+    <article class="w-full rounded-2xl border border-[#dfe4ea] bg-white p-6 shadow-xs">
+      <div class="mb-5 flex items-center gap-2">
+        <h2 class="m-0 text-lg font-bold text-[#0b3c5d]">
+          Listagem Discriminada de Saídas
+        </h2>
+        <span
+          class="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-[#f1f5f9] px-2 text-xs font-bold text-[#475569]"
+        >
+          {{ respostaTabela().totalElementos }}
+        </span>
+      </div>
+
+      <div class="mb-4">
+        <app-controles-exportacao
+          [colunas]="tabela.colunasExportaveis"
+          chaveStorage="relatorio_saidas_colunas"
+          (aoExportar)="tabela.exportar($event)"
+          (aoMudarColunas)="idsColunasVisiveis.set($event)"
+        />
+      </div>
+
+      <app-saidas-tabelas
+        #tabela
+        [dados]="respostaTabela().dados"
+        [totalElementos]="respostaTabela().totalElementos"
+        [tamanhoPagina]="respostaTabela().tamanhoPagina"
+        [paginaAtual]="respostaTabela().paginaAtual"
+        [carregando]="carregandoTabela()"
+        [colunasVisiveis]="idsColunasVisiveis()"
+        [ordenacao]="parametrosAtuais().sort ?? 'dataHora,desc'"
+        (aoMudarPagina)="mudarPagina($event)"
+        (aoMudarOrdem)="mudarOrdem($event)"
+        (aoExportar)="exportar($event)"
+      />
+    </article>
+  </div>
+</section>

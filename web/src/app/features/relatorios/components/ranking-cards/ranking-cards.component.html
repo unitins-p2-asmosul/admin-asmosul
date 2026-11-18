@@ -12,9 +12,14 @@
           >
             {{ item.posicao }}
           </span>
-          <span class="truncate font-semibold text-[#344054]" [title]="item.nome">
-            {{ item.nome }}
-          </span>
+          <div class="flex flex-col min-w-0">
+            <span class="truncate font-semibold text-[#344054]" [title]="item.nome">
+              {{ item.nome }}
+            </span>
+            @if (item.subtitulo) {
+              <span class="truncate text-xs text-[#8298a9]">{{ item.subtitulo }}</span>
+            }
+          </div>
         </div>
 
         <div class="flex flex-shrink-0 items-center gap-1">

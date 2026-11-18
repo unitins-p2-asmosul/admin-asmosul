@@ -1,37 +1,39 @@
-<div [formGroup]="form" class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-  <div>
-    <label for="termoBusca" class="mb-1.5 block text-xs font-bold text-[#344054]">
-      Filtrar por Pessoa (Nome ou CPF)
-    </label>
-    <mat-form-field appearance="outline" class="w-full">
-      <mat-icon matPrefix class="mr-2 text-[#9ca3af]">search</mat-icon>
-      <input
-        id="termoBusca"
-        matInput
-        formControlName="termoBusca"
-        placeholder="Buscar pessoa..."
-        (keydown.enter)="aplicar()"
-        (blur)="aplicar()"
-      />
-    </mat-form-field>
+<form [formGroup]="form" (ngSubmit)="aplicar()" class="pagina-formulario !my-0 !w-full !max-w-none">
+  <div class="grid gap-x-5 gap-y-2 sm:grid-cols-2">
+    <div>
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>Pessoa (Nome ou CPF)</mat-label>
+        <input
+          matInput
+          formControlName="termoBusca"
+          (keydown.enter)="aplicar()"
+          placeholder="Buscar por nome ou CPF"
+        />
+      </mat-form-field>
+    </div>
+
+    <div>
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>Comorbidades</mat-label>
+        <mat-select
+          formControlName="comorbidadeIds"
+          multiple
+          placeholder="Selecione as comorbidades"
+        >
+          @for (item of comorbidadesOpcoes(); track item.id) {
+            <mat-option [value]="item.id">{{ item.nome }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+    </div>
   </div>
 
-  <div>
-    <label for="comorbidadeIds" class="mb-1.5 block text-xs font-bold text-[#344054]">
-      Filtrar por Comorbidade
-    </label>
-    <mat-form-field appearance="outline" class="w-full">
-      <mat-select
-        id="comorbidadeIds"
-        formControlName="comorbidadeIds"
-        multiple
-        placeholder="Selecionar comorbidade(s)..."
-        (selectionChange)="aoSelecionarComorbidades()"
-      >
-        @for (item of comorbidadesOpcoes(); track item.id) {
-          <mat-option [value]="item.id">{{ item.nome }}</mat-option>
-        }
-      </mat-select>
-    </mat-form-field>
+  <div class="flex items-center justify-center !gap-4 !pt-4 !pb-2">
+    <button mat-flat-button type="button" (click)="limpar()">
+      Limpar
+    </button>
+    <button mat-flat-button type="submit" class="acao-primaria">
+      Aplicar filtros
+    </button>
   </div>
-</div>
+</form>

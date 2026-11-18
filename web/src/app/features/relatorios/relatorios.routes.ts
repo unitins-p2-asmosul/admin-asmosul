@@ -57,6 +57,27 @@ export const RELATORIOS_ROUTES: Routes = [
           import('./pages/categoria-itens-relatorio-page/categoria-itens-relatorio-page.component').then(
             (modulo) => modulo.CategoriaItensRelatorioPageComponent
           )
+      },
+      {
+        path: 'saidas',
+        loadComponent: () =>
+          import('./pages/saidas-relatorio-page/saidas-relatorio-page.component').then(
+            (modulo) => modulo.SaidasRelatorioPageComponent
+          )
+      },
+      {
+        path: 'entradas',
+        loadComponent: () =>
+          import('./pages/entradas-relatorio-page/entradas-relatorio-page.component').then(
+            (modulo) => modulo.EntradasRelatorioPageComponent
+          )
+      },
+      {
+        path: 'financeiro',
+        loadComponent: () =>
+          import('./pages/financeiro-relatorio-page/financeiro-relatorio-page.component').then(
+            (modulo) => modulo.FinanceiroRelatorioPageComponent
+          )
       }
     ]
   }

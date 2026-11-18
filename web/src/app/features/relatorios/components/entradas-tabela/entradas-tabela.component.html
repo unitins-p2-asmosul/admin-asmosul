@@ -1,0 +1,113 @@
+<div class="pessoa-tabela-shell">
+  <div class="pessoa-tabela-scroll">
+    <table
+      mat-table
+      [dataSource]="dados()"
+      matSort
+      [matSortActive]="campoOrdenado"
+      [matSortDirection]="direcaoOrdenada"
+      matSortDisableClear
+      (matSortChange)="aoMudarOrdem.emit($event)"
+      class="pessoa-table"
+    >
+      <ng-container matColumnDef="dataHora">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header="dataHora">Data/Hora</th>
+        <td mat-cell *matCellDef="let item" class="pessoa-table__texto">
+          {{ item.dataHora | date: 'dd/MM/yyyy HH:mm' }}
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="doadorNome">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header="doadorNome">Doador</th>
+        <td mat-cell *matCellDef="let item" class="pessoa-table__texto font-semibold text-[#0b3c5d]">
+          {{ item.doadorNome }}
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="cpfCnpj">
+        <th mat-header-cell *matHeaderCellDef>CPF/CNPJ</th>
+        <td mat-cell *matCellDef="let item" class="pessoa-table__texto">
+          {{ item.cpfCnpj | cpfCnpj }}
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="itemNome">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header="itemNome">Item</th>
+        <td mat-cell *matCellDef="let item" class="pessoa-table__texto font-medium">
+          {{ item.itemNome }}
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="categoriaNome">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header="categoriaNome">Categoria</th>
+        <td mat-cell *matCellDef="let item" class="pessoa-table__texto">
+          {{ item.categoriaNome }}
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="localArmazenamento">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header="localArmazenamento">Local de Destino</th>
+        <td mat-cell *matCellDef="let item" class="pessoa-table__texto">
+          {{ item.localArmazenamento }}
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="quantidade">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header="quantidade">Qtd.</th>
+        <td mat-cell *matCellDef="let item" class="pessoa-table__texto font-bold text-emerald-600">
+          +{{ item.quantidade }}
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="valorEstimado">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header="valorEstimado">Valor Est.</th>
+        <td mat-cell *matCellDef="let item" class="pessoa-table__texto font-extrabold text-[#0b3c5d]">
+          {{ item.valorEstimado | currency: 'BRL':'symbol':'1.2-2' }}
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="colunasExibidas"></tr>
+      <tr mat-row *matRowDef="let row; columns: colunasExibidas"></tr>
+
+      <tr class="mat-row" *matNoDataRow>
+        <td class="mat-cell p-6 text-center text-slate-500" [attr.colspan]="colunasExibidas.length">
+          @if (carregando()) { Carregando entradas... } @else { Nenhuma entrada registrada no período. }
+        </td>
+      </tr>
+    </table>
+  </div>
+
+  <nav class="pessoa-tabela__paginacao" aria-label="Paginação de entradas">
+    <button
+      type="button"
+      class="pessoa-tabela__pagina-seta"
+      [disabled]="paginaAtual() === 0"
+      aria-label="Página anterior"
+      (click)="mudarPagina(paginaAtual() - 1)"
+    >
+      &lt;
+    </button>
+
+    @for (pagina of paginas; track pagina) {
+      <button
+        type="button"
+        class="pessoa-tabela__pagina"
+        [class.pessoa-tabela__pagina--ativa]="pagina === paginaAtual()"
+        [attr.aria-current]="pagina === paginaAtual() ? 'page' : null"
+        (click)="mudarPagina(pagina)"
+      >
+        {{ pagina + 1 }}
+      </button>
+    }
+
+    <button
+      type="button"
+      class="pessoa-tabela__pagina-seta"
+      [disabled]="paginaAtual() >= totalPaginas - 1"
+      aria-label="Próxima página"
+      (click)="mudarPagina(paginaAtual() + 1)"
+    >
+      &gt;
+    </button>
+  </nav>
+</div>

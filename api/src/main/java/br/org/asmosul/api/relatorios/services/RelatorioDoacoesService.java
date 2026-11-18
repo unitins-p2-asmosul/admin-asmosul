@@ -149,15 +149,18 @@ public class RelatorioDoacoesService {
 
     @Transactional(readOnly = true)
     public RelatorioDoacoesDTO.ResumoBalancoFinanceiro obterBalancoFinanceiro(
-            RelatorioDoacoesDTO.FiltroFinanceiro filtro) {
+        RelatorioDoacoesDTO.FiltroFinanceiro filtro) {
         RelatorioDoacoesDTO.FiltroFinanceiro f = filtroFinanceiro(filtro);
         BalancoFinanceiroProjection totais = repository.buscarBalancoFinanceiro(
-                inicioDoDia(f.dataInicio()), fimDoDia(f.dataFim()));
+            inicioDoDia(f.dataInicio()),
+            fimDoDia(f.dataFim()),
+            texto(f.termoItem()),
+            texto(f.termoCategoria()));
         BigDecimal saidas = emReais(totais != null ? totais.getTotalSaidas() : null);
         BigDecimal entradas = emReais(totais != null ? totais.getTotalEntradas() : null);
         BigDecimal balanco = entradas.subtract(saidas);
         return new RelatorioDoacoesDTO.ResumoBalancoFinanceiro(
-                saidas, entradas, balanco, balanco.signum() >= 0 ? "Superávit" : "Déficit");
+            saidas, entradas, balanco, balanco.signum() >= 0 ? "Superávit" : "Déficit");
     }
 
     @Transactional(readOnly = true)
@@ -189,22 +192,52 @@ public class RelatorioDoacoesService {
         RelatorioDoacoesDTO.FiltroEntradas f = filtroEntradas(filtro);
         LocalDateTime inicio = inicioDoDia(f.dataInicio());
         LocalDateTime fim = fimDoDia(f.dataFim());
+        String termo = texto(f.termoBusca());
+
         TotalEstoqueGeralProjection totais = repository.buscarTotaisEntradas(
-                inicio, fim, f.doadorId(), f.localArmazenamentoId(), f.categoriaItemId(), texto(f.termoBusca()));
+            inicio, fim, f.doadorId(), f.localArmazenamentoId(), f.categoriaItemId(), termo);
+
         List<RelatorioDoacoesDTO.ItemRankingDoador> topDoadores = new ArrayList<>();
-        List<RankingDoadorProjection> ranking = repository.buscarTopQuemMaisDoa(inicio, fim);
+        List<RankingDoadorProjection> ranking = repository.buscarTopQuemMaisDoa(
+            inicio, fim, f.doadorId(), f.localArmazenamentoId(), f.categoriaItemId(), termo);
         for (int i = 0; i < ranking.size(); i++) {
             RankingDoadorProjection p = ranking.get(i);
             topDoadores.add(new RelatorioDoacoesDTO.ItemRankingDoador(
-                    i + 1, p.getIdDoador(), p.getNomeDoador(),
-                    zero(p.getTotalDoacoesRealizadas()), zero(p.getTotalItensDoados())));
+                i + 1, p.getIdDoador(), p.getNomeDoador(),
+                zero(p.getTotalDoacoesRealizadas()), zero(p.getTotalItensDoados())));
         }
+
         return new RelatorioDoacoesDTO.ResumoEntradas(
-                totais != null ? zero(totais.getSaldoFisicoGeral()) : 0L,
-                emReais(totais != null ? totais.getValorTotalEstimado() : null),
-                mapearMeses(repository.buscarEntradasPorMes(anoOuAtual(f.ano()))),
-                mapearGrafico(repository.buscarEntradasPorAno()),
-                topDoadores);
+            totais != null ? zero(totais.getSaldoFisicoGeral()) : 0L,
+            emReais(totais != null ? totais.getValorTotalEstimado() : null),
+            mapearMeses(repository.buscarEntradasPorMes(
+                anoOuAtual(f.ano()), inicio, fim, f.doadorId(), f.localArmazenamentoId(), f.categoriaItemId(), termo)),
+            mapearGrafico(repository.buscarEntradasPorAno(
+                inicio, fim, f.doadorId(), f.localArmazenamentoId(), f.categoriaItemId(), termo)),
+            topDoadores);
+    }
+
+    @Transactional(readOnly = true)
+    public RelatorioDoacoesDTO.ResumoSaidas obterResumoSaidas(RelatorioDoacoesDTO.FiltroSaidas filtro) {
+        RelatorioDoacoesDTO.FiltroSaidas f = filtroSaidas(filtro);
+        LocalDateTime inicio = inicioDoDia(f.dataInicio());
+        LocalDateTime fim = fimDoDia(f.dataFim());
+        String termo = texto(f.termoBusca());
+
+        TotalEstoqueGeralProjection totais = repository.buscarTotaisSaidas(
+            inicio, fim, f.recebedorId(), f.localArmazenamentoId(), f.categoriaItemId(), termo);
+
+        return new RelatorioDoacoesDTO.ResumoSaidas(
+            totais != null ? zero(totais.getSaldoFisicoGeral()) : 0L,
+            emReais(totais != null ? totais.getValorTotalEstimado() : null),
+            mapearMeses(repository.buscarSaidasPorMes(
+                anoOuAtual(f.ano()), inicio, fim, f.recebedorId(), f.localArmazenamentoId(), f.categoriaItemId(), termo)),
+            mapearGrafico(repository.buscarSaidasPorAno(
+                inicio, fim, f.recebedorId(), f.localArmazenamentoId(), f.categoriaItemId(), termo)),
+            mapearRankingRecebedores(repository.buscarTopQuemMaisRecebe(
+                inicio, fim, f.recebedorId(), f.localArmazenamentoId(), f.categoriaItemId(), termo)),
+            mapearRankingRecebedores(repository.buscarTopQuemMenosRecebe(
+                inicio, fim, f.recebedorId(), f.localArmazenamentoId(), f.categoriaItemId())));
     }
 
     @Transactional(readOnly = true)
@@ -225,22 +258,6 @@ public class RelatorioDoacoesService {
                         emReais(p.getPrecoUnitario()), emReais(p.getValorEstimado()),
                         p.getEnderecoArmazenamentoNome(), p.getDoadorNome(), p.getCpfCnpj(),
                         p.getDataHora(), p.getDescricao())));
-    }
-
-    @Transactional(readOnly = true)
-    public RelatorioDoacoesDTO.ResumoSaidas obterResumoSaidas(RelatorioDoacoesDTO.FiltroSaidas filtro) {
-        RelatorioDoacoesDTO.FiltroSaidas f = filtroSaidas(filtro);
-        LocalDateTime inicio = inicioDoDia(f.dataInicio());
-        LocalDateTime fim = fimDoDia(f.dataFim());
-        TotalEstoqueGeralProjection totais = repository.buscarTotaisSaidas(
-                inicio, fim, f.recebedorId(), f.localArmazenamentoId(), f.categoriaItemId(), texto(f.termoBusca()));
-        return new RelatorioDoacoesDTO.ResumoSaidas(
-                totais != null ? zero(totais.getSaldoFisicoGeral()) : 0L,
-                emReais(totais != null ? totais.getValorTotalEstimado() : null),
-                mapearMeses(repository.buscarSaidasPorMes(anoOuAtual(f.ano()))),
-                mapearGrafico(repository.buscarSaidasPorAno()),
-                mapearRankingRecebedores(repository.buscarTopQuemMaisRecebe(inicio, fim)),
-                mapearRankingRecebedores(repository.buscarTopQuemMenosRecebe(inicio, fim)));
     }
 
     @Transactional(readOnly = true)
