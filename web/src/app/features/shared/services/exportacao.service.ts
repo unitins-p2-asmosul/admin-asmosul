@@ -158,8 +158,14 @@ export class ExportacaoService {
     if (!this.validarColunas(colunas)) return;
 
     try {
-      const exceljs = await import('exceljs');
-      const planilha = new exceljs.Workbook().addWorksheet('Dados');
+      const moduloExcel = await import('exceljs');
+      const Workbook =
+        moduloExcel.Workbook ??
+        (moduloExcel as unknown as { default: typeof moduloExcel }).default.Workbook;
+
+      const workbook = new Workbook();
+      const planilha = workbook.addWorksheet('Dados');
+
       planilha.addRow([`Data de exportação: ${new Date().toLocaleString('pt-BR')}`]);
       if (colunas.length > 1) planilha.mergeCells(1, 1, 1, colunas.length);
       planilha.getRow(1).font = { bold: true, color: { argb: COR_CABECALHO } };
@@ -202,7 +208,7 @@ export class ExportacaoService {
         width: Math.min(40, Math.max(16, coluna.titulo.length + 4)),
       }));
 
-      const conteudo = await planilha.workbook.xlsx.writeBuffer();
+      const conteudo = await workbook.xlsx.writeBuffer();
       this.baixar(new Blob([new Uint8Array(conteudo)], { type: MIME_XLSX }), nomeArquivo, 'xlsx');
     } catch (erro) {
       console.error('Não foi possível gerar o arquivo XLSX.', erro);
