@@ -219,7 +219,7 @@ public class EntradaService {
                         .orElseGet(() -> new Estoque(item, armazenamento, 0));
 
         int quantidadeAtual = estoque.getQuantidade() != null ? estoque.getQuantidade() : 0;
-        estoque.setQuantidade(quantidadeAtual + quantidadeEntrada);
+        //estoque.setQuantidade(quantidadeAtual + quantidadeEntrada);
         estoqueRepository.save(estoque);
         log.info(
                 "Estoque aumentado: item='{}', aumento={}, saldo={}",
