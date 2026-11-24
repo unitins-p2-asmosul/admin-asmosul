@@ -6,6 +6,7 @@ import jakarta.persistence.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.Set;
 import org.hibernate.annotations.BatchSize;
 
@@ -117,7 +118,7 @@ public class Pessoa extends EntidadeInativavel {
             boolean ehBeneficiario,
             boolean ehDoador) {
         this.nome = nome;
-        this.cpfCnpj = cpfCnpj;
+        this.cpfCnpj = cpfCnpj != null ? cpfCnpj.toUpperCase(Locale.ROOT) : null;
         this.tipoPessoa = (tipoPessoa != null) ? tipoPessoa : TipoPessoa.FISICA;
         this.dataNascimento = dataNascimento;
         this.sexo = sexo;
@@ -160,7 +161,7 @@ public class Pessoa extends EntidadeInativavel {
             boolean ehBeneficiario,
             boolean ehDoador) {
         this.nome = nome;
-        this.cpfCnpj = cpfCnpj;
+        this.cpfCnpj = cpfCnpj != null ? cpfCnpj.toUpperCase(Locale.ROOT) : null;
         this.dataNascimento = dataNascimento;
         this.sexo = sexo;
         this.telefone = telefone;
@@ -229,7 +230,7 @@ public class Pessoa extends EntidadeInativavel {
     }
 
     public void setCpfCnpj(String cpfCnpj) {
-        this.cpfCnpj = cpfCnpj;
+        this.cpfCnpj = cpfCnpj != null ? cpfCnpj.toUpperCase(Locale.ROOT) : null;
     }
 
     public TipoPessoa getTipoPessoa() {

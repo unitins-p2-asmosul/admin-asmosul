@@ -102,7 +102,7 @@
               formControlName="cpfCnpj"
               (input)="aplicarMascaraDocumento()"
               [placeholder]="ehPessoaJuridica() ? '00.000.000/0000-00' : '000.000.000-00'"
-              inputmode="numeric"
+              [attr.inputmode]="ehPessoaJuridica() ? 'text' : 'numeric'"
               [maxlength]="ehPessoaJuridica() ? 18 : 14"
             />
             @if (form.controls.cpfCnpj.hasError('required')) {

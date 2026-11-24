@@ -110,6 +110,26 @@ describe('EntradaCadastroPageComponent', () => {
     expect(component['itemForm'].controls.idItem.value).toBeNull();
   });
 
+  it('deve agrupar e somar quantidades ao adicionar o mesmo item no mesmo endereço', () => {
+    component['itemForm'].patchValue({
+      idItem: 1,
+      quantidade: 2,
+      idArmazenamento: 10,
+    });
+    component['incluirItem']();
+
+    component['itemForm'].patchValue({
+      idItem: 1,
+      quantidade: 3,
+      idArmazenamento: 10,
+    });
+    component['incluirItem']();
+    fixture.detectChanges();
+
+    expect(component['itensIncluidos']().length).toBe(1);
+    expect(component['itensIncluidos']()[0].quantidade).toBe(5);
+  });
+
   it('deve salvar entrada quando formulário for válido', () => {
     component['itensIncluidos'].set([
       {

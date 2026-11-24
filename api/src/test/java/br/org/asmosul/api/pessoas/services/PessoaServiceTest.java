@@ -207,6 +207,51 @@ class PessoaServiceTest {
         }
 
         @Test
+        @DisplayName("Deve cadastrar Pessoa Jurídica com CNPJ alfanumérico normalizando para caixa alta")
+        void cadastrarPessoa_comPessoaJuridicaCnpjAlfanumerico_salvaEmCaixaAlta() {
+            var req =
+                    new PessoaDTO.Requisicao(
+                            "Empresa Alfanumérica",
+                            "12abc345000199",
+                            TipoPessoa.JURIDICA,
+                            null,
+                            null,
+                            "63988887777",
+                            "alfa@empresa.com",
+                            null,
+                            null,
+                            null,
+                            null,
+                            List.of(1L),
+                            null,
+                            null,
+                            null,
+                            null,
+                            null,
+                            null,
+                            null,
+                            0,
+                            false,
+                            true);
+
+            when(pessoaRepository.existsByCpfCnpj("12ABC345000199")).thenReturn(false);
+            when(pessoaRepository.existsByEmail("alfa@empresa.com")).thenReturn(false);
+            when(categoriaRepository.findAllById(List.of(1L))).thenReturn(List.of(categoriaPadrao));
+            when(pessoaRepository.save(any(Pessoa.class)))
+                    .thenAnswer(
+                            inv -> {
+                                Pessoa p = inv.getArgument(0);
+                                p.setId(21L);
+                                return p;
+                            });
+
+            PessoaDTO.Detalhe detalhe = pessoaService.cadastrar(req);
+
+            assertThat(detalhe.cpfCnpj()).isEqualTo("12ABC345000199");
+            verify(pessoaRepository).existsByCpfCnpj("12ABC345000199");
+        }
+
+        @Test
         @DisplayName("Deve lançar ConflitoDadosException quando CPF/CNPJ já existir (RN03)")
         void cadastrarPessoa_comCpfCnpjDuplicado_lancaConflitoDadosException() {
             var req = criarRequisicaoPfValida();

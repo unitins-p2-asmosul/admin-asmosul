@@ -27,6 +27,9 @@ html, body {
 }
 
 .app-header {
+  position: sticky;
+  top: 0;
+  z-index: 40;
   display: flex;
   align-items: center;
   min-height: 68px;

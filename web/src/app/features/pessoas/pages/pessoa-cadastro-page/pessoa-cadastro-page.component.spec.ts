@@ -348,8 +348,11 @@ describe('Funções de Validação', () => {
     expect(cpfValido(new FormControl(''))).toBeNull();
   });
 
-  it('cnpjValido deve validar corretamente CNPJ', () => {
+  it('cnpjValido deve validar corretamente CNPJ numérico e alfanumérico', () => {
     expect(cnpjValido(new FormControl('12345678000195'))).toBeNull();
+    expect(cnpjValido(new FormControl('12.ABC.345/0001-99'))).toBeNull();
+    expect(cnpjValido(new FormControl('12abc345000199'))).toBeNull();
+    expect(cnpjValido(new FormControl('12.ABC.345/0001-AB'))).toEqual({ cnpjInvalido: true });
     expect(cnpjValido(new FormControl('11111111111111'))).toEqual({ cnpjInvalido: true });
     expect(cnpjValido(new FormControl('12345'))).toEqual({ cnpjIncompleto: true });
     expect(cnpjValido(new FormControl(''))).toBeNull();

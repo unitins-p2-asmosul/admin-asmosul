@@ -9,6 +9,7 @@ import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import org.springframework.data.jpa.domain.Specification;
 
 public final class PessoaSpecification {
@@ -39,7 +40,8 @@ public final class PessoaSpecification {
             if (filtro.cpfCnpj() != null && !filtro.cpfCnpj().isBlank()) {
                 predicates.add(
                         criteriaBuilder.like(
-                                root.get("cpfCnpj"), "%" + filtro.cpfCnpj().trim() + "%"));
+                                criteriaBuilder.upper(root.get("cpfCnpj")),
+                                "%" + filtro.cpfCnpj().trim().toUpperCase(Locale.ROOT) + "%"));
             }
 
             if (filtro.tipoPessoa() != null) {

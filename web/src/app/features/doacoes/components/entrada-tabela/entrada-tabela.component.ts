@@ -5,7 +5,8 @@ import { PageEvent } from '@angular/material/paginator';
 import { MatSortModule, Sort } from '@angular/material/sort';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { EntradaResumo, formatarDataHoraEntrada } from '../../models/entrada.model';
+import { EntradaResumo, formatarDataHoraEntrada, ItemEntradaResumo } from '../../models/entrada.model';
+import { obterSiglaUnidade } from '../../models/item.model';
 import {
   ColunaExportacao,
   SolicitacaoExportacao,
@@ -91,9 +92,24 @@ export class EntradaTabelaComponent {
     const itens = entrada.itens ?? [];
     if (itens.length === 0) return '-';
 
-    return itens
+    const agrupados = new Map<number, ItemEntradaResumo>();
+    for (const item of itens) {
+      const existente = agrupados.get(item.idItem);
+      if (existente) {
+        agrupados.set(item.idItem, {
+          ...existente,
+          quantidade: existente.quantidade + item.quantidade,
+        });
+      } else {
+        agrupados.set(item.idItem, { ...item });
+      }
+    }
+
+    return Array.from(agrupados.values())
       .map((item) => {
-        const sigla = this.siglasUnidade()[item.idItem];
+        const sigla = item.unidadeMedida
+          ? obterSiglaUnidade(item.unidadeMedida)
+          : this.siglasUnidade()[item.idItem];
         const quantidade = sigla ? `${item.quantidade} ${sigla}` : `${item.quantidade}`;
         return `${quantidade} de ${item.nomeItem}`;
       })

@@ -204,17 +204,29 @@ export class EntradaCadastroPageComponent implements OnInit {
     const endereco = this.enderecos().find((candidato) => candidato.id === valores.idArmazenamento);
     if (!item || !endereco) return;
 
-    this.itensIncluidos.update((atuais) => [
-      ...atuais,
-      {
-        idItem: item.id,
-        nomeItem: item.nome,
-        sigla: obterSiglaUnidade(item.unidadeMedida),
-        quantidade: Number(valores.quantidade),
-        idArmazenamento: endereco.id,
-        nomeArmazenamento: endereco.nome,
-      },
-    ]);
+    const quantidade = Number(valores.quantidade);
+    this.itensIncluidos.update((atuais) => {
+      const existente = atuais.find(
+        (linha) => linha.idItem === item.id && linha.idArmazenamento === endereco.id,
+      );
+      if (existente) {
+        return atuais.map((linha) =>
+          linha === existente ? { ...linha, quantidade: linha.quantidade + quantidade } : linha,
+        );
+      }
+
+      return [
+        ...atuais,
+        {
+          idItem: item.id,
+          nomeItem: item.nome,
+          sigla: obterSiglaUnidade(item.unidadeMedida),
+          quantidade,
+          idArmazenamento: endereco.id,
+          nomeArmazenamento: endereco.nome,
+        },
+      ];
+    });
 
     this.itemForm.reset({ idItem: null, quantidade: null, idArmazenamento: null });
   }
@@ -229,7 +241,7 @@ export class EntradaCadastroPageComponent implements OnInit {
 
   protected formatarQuantidadeDetalhe(item: ItemEntradaDetalhe): string {
     const encontrado = this.itens().find((candidato) => candidato.id === item.idItem);
-    const sigla = encontrado ? obterSiglaUnidade(encontrado.unidadeMedida) : '';
+    const sigla = obterSiglaUnidade(item.unidadeMedida ?? encontrado?.unidadeMedida);
     return sigla ? `${item.quantidade} ${sigla}` : `${item.quantidade}`;
   }
 

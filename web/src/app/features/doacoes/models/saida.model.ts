@@ -1,4 +1,5 @@
 import { ParametrosConsulta } from '@features/shared/models/parametros-consulta.model';
+import { UnidadeMedidaCodigo, UnidadeMedidaItem } from './unidade-medida.model';
 
 export interface ItemSaidaRequisicao {
   idItem: number;
@@ -13,6 +14,7 @@ export interface ItemSaidaDetalhe {
   idArmazenamento: number;
   nomeArmazenamento: string;
   quantidade: number;
+  unidadeMedida?: UnidadeMedidaItem | UnidadeMedidaCodigo | string;
 }
 
 export interface SaidaRequisicao {

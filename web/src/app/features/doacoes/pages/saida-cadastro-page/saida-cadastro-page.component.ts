@@ -390,7 +390,7 @@ export class SaidaCadastroPageComponent implements OnInit {
 
   protected formatarQuantidadeDetalhe(item: ItemSaidaDetalhe): string {
     const encontrado = this.itens().find((candidato) => candidato.id === item.idItem);
-    const sigla = encontrado ? obterSiglaUnidade(encontrado.unidadeMedida) : '';
+    const sigla = obterSiglaUnidade(item.unidadeMedida ?? encontrado?.unidadeMedida);
     return sigla ? `${item.quantidade} ${sigla}` : `${item.quantidade}`;
   }
 

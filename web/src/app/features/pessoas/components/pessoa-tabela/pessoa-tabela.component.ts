@@ -193,7 +193,7 @@ export class PessoaTabelaComponent {
   }
 
   protected ehPessoaJuridica(item: PessoaResumo): boolean {
-    const documento = (item.cpfCnpj ?? '').replace(/\D/g, '');
+    const documento = (item.cpfCnpj ?? '').replace(/[^A-Za-z0-9]/g, '');
 
     return item.tipoPessoa?.codigo === TipoPessoaCodigo.JURIDICA
       || documento.length === 14;

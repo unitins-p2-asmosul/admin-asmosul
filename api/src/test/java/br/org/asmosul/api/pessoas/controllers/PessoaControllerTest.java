@@ -205,6 +205,35 @@ class PessoaControllerTest extends BaseAPITest {
     }
 
     @Test
+    @DisplayName("Deve cadastrar Pessoa Jurídica com CNPJ alfanumérico e converter para caixa alta")
+    void cadastrar_comPessoaJuridicaCnpjAlfanumerico_retornaStatus201ECpfCnpjEmCaixaAlta() throws Exception {
+        var jsonPayload =
+            """
+            {
+                "nome": "Empresa Alfanumérica LTDA",
+                "cpfCnpj": "12abc345000199",
+                "tipoPessoa": "JURIDICA",
+                "telefone": "63988887777",
+                "email": "contato@alfa.com",
+                "categorias": [%d],
+                "ehBeneficiario": false,
+                "ehDoador": true
+            }
+            """
+                .formatted(categoriaPadrao.getId());
+
+        mockMvc.perform(
+                post("/pessoas")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(jsonPayload))
+            .andExpect(status().isCreated())
+            .andExpect(jsonPath("$.id").isNumber())
+            .andExpect(jsonPath("$.nome").value("Empresa Alfanumérica LTDA"))
+            .andExpect(jsonPath("$.cpfCnpj").value("12ABC345000199"))
+            .andExpect(jsonPath("$.tipoPessoa.codigo").value("JURIDICA"));
+    }
+
+    @Test
     @DisplayName("Deve retornar status 400 quando o nome estiver em branco")
     void cadastrar_comNomeEmBranco_retornaStatus400() throws Exception {
         var jsonPayload =
