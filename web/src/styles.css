@@ -27,8 +27,12 @@ html, body {
 }
 
 .app-header {
+  position: sticky;
+  top: 0;
+  z-index: 40;
   display: flex;
   align-items: center;
+  height: 68px;
   min-height: 68px;
   padding: 0 36px;
   border-bottom: 1px solid #e5e7eb;

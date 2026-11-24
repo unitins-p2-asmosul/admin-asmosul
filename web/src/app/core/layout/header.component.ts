@@ -11,6 +11,9 @@ import { AuthService } from "@core/auth/services/auth.service";
   standalone: true,
   imports: [MatMenuModule, MatIconModule, RouterLink],
   templateUrl: './header.component.html',
+  host: {
+    class: 'sticky top-0 z-40 block',
+  },
 })
 export class HeaderComponent {
   readonly aoAlternarMenu = output<void>();

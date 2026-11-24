@@ -2,6 +2,7 @@ package br.org.asmosul.api.doacoes.services;
 
 import br.org.asmosul.api.comum.dtos.RespostaPaginada;
 import br.org.asmosul.api.comum.exceptions.EntidadeNaoEncontradaException;
+import br.org.asmosul.api.comum.exceptions.ValidationException;
 import br.org.asmosul.api.comum.utils.PaginacaoUtils;
 import br.org.asmosul.api.doacoes.dtos.EntradaDTO;
 import br.org.asmosul.api.doacoes.models.EnderecoArmazenamento;
@@ -20,6 +21,7 @@ import br.org.asmosul.api.pessoas.repositories.PessoaRepository;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -63,11 +65,13 @@ public class EntradaService {
     @Transactional
     public EntradaDTO.Detalhe cadastrar(EntradaDTO.Requisicao requisicao) {
         Pessoa doador = buscarDoadorAtivo(requisicao.idDoador());
+        List<EntradaDTO.ItemEntradaRequisicao> itensConsolidados =
+                consolidarItens(requisicao.itens());
 
         Entrada entrada = entradaRepository.save(requisicao.paraEntidade(doador));
         List<EntradaEstoque> itensSalvos = new ArrayList<>();
 
-        for (EntradaDTO.ItemEntradaRequisicao itemRequisicao : requisicao.itens()) {
+        for (EntradaDTO.ItemEntradaRequisicao itemRequisicao : itensConsolidados) {
             Item item = buscarItemAtivo(itemRequisicao.idItem());
             EnderecoArmazenamento armazenamento =
                     buscarEnderecoAtivo(itemRequisicao.idArmazenamento());
@@ -227,6 +231,36 @@ public class EntradaService {
                 quantidadeEntrada,
                 estoque.getQuantidade());
     }
+
+    private List<EntradaDTO.ItemEntradaRequisicao> consolidarItens(
+            List<EntradaDTO.ItemEntradaRequisicao> itens) {
+        Map<ChaveItemArmazenamento, EntradaDTO.ItemEntradaRequisicao> consolidados =
+                new LinkedHashMap<>();
+        for (EntradaDTO.ItemEntradaRequisicao item : itens) {
+            ChaveItemArmazenamento chave =
+                    new ChaveItemArmazenamento(item.idItem(), item.idArmazenamento());
+            EntradaDTO.ItemEntradaRequisicao existente = consolidados.get(chave);
+            if (existente == null) {
+                consolidados.put(chave, item);
+                continue;
+            }
+
+            try {
+                consolidados.put(
+                        chave,
+                        new EntradaDTO.ItemEntradaRequisicao(
+                                item.idItem(),
+                                item.idArmazenamento(),
+                                Math.addExact(existente.quantidade(), item.quantidade())));
+            } catch (ArithmeticException erro) {
+                throw ValidationException.of(
+                        "itens", "A quantidade total de um item excede o limite permitido.");
+            }
+        }
+        return List.copyOf(consolidados.values());
+    }
+
+    private record ChaveItemArmazenamento(Long idItem, Long idArmazenamento) {}
 
     private void estornarEstoque(EntradaEstoque entradaEstoque) {
         estoqueRepository

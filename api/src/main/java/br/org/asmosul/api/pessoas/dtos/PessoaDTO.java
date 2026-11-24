@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.*;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Locale;
 
 public final class PessoaDTO {
 
@@ -18,9 +19,9 @@ public final class PessoaDTO {
                     String nome,
             @NotBlank(message = "O CPF/CNPJ é obrigatório")
                     @Pattern(
-                            regexp = "\\d{11}|\\d{14}",
+                            regexp = "\\d{11}|[A-Za-z0-9]{12}\\d{2}",
                             message =
-                                    "O CPF/CNPJ deve conter 11 (CPF) ou 14 (CNPJ) dígitos numéricos")
+                                    "O CPF/CNPJ deve conter 11 dígitos numéricos (CPF) ou 14 caracteres alfanuméricos (CNPJ)")
                     String cpfCnpj,
             TipoPessoa tipoPessoa,
             @JsonFormat(pattern = "dd-MM-yyyy") LocalDate dataNascimento,
@@ -55,7 +56,7 @@ public final class PessoaDTO {
         public Pessoa paraEntidade() {
             return new Pessoa(
                     this.nome,
-                    this.cpfCnpj,
+                    this.cpfCnpj != null ? this.cpfCnpj.toUpperCase(Locale.ROOT) : null,
                     this.tipoPessoa != null ? this.tipoPessoa : TipoPessoa.FISICA,
                     this.dataNascimento,
                     this.sexo,
@@ -84,9 +85,9 @@ public final class PessoaDTO {
                     String nome,
             @NotBlank(message = "O CPF/CNPJ é obrigatório")
                     @Pattern(
-                            regexp = "\\d{11}|\\d{14}",
+                            regexp = "\\d{11}|[A-Za-z0-9]{12}\\d{2}",
                             message =
-                                    "O CPF/CNPJ deve conter 11 (CPF) ou 14 (CNPJ) dígitos numéricos")
+                                    "O CPF/CNPJ deve conter 11 dígitos numéricos (CPF) ou 14 caracteres alfanuméricos (CNPJ)")
                     String cpfCnpj,
             TipoPessoa tipoPessoa,
             @JsonFormat(pattern = "dd-MM-yyyy") LocalDate dataNascimento,

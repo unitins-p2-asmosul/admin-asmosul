@@ -201,17 +201,30 @@ export class MovimentacaoCadastroPageComponent {
       this.notificacao.alerta('A quantidade excede o saldo disponível neste local de origem.');
       return;
     }
-    this.itensIncluidos.update((itens) => [
-      ...itens,
-      {
-        idItem,
-        idArmazenamentoAntigo,
-        quantidade,
-        nomeItem: item.nome,
-        nomeArmazenamentoAntigo: origem.nomeEndereco || origem.nomeLocalArmazenamento || 'Local',
-        unidadeMedida: this.unidadeMedidaSelecionada,
-      },
-    ]);
+    this.itensIncluidos.update((itens) => {
+      const existente = itens.find(
+        (linha) =>
+          linha.idItem === idItem && linha.idArmazenamentoAntigo === idArmazenamentoAntigo,
+      );
+      if (existente) {
+        return itens.map((linha) =>
+          linha === existente ? { ...linha, quantidade: linha.quantidade + quantidade } : linha,
+        );
+      }
+
+      return [
+        ...itens,
+        {
+          idItem,
+          idArmazenamentoAntigo,
+          quantidade,
+          nomeItem: item.nome,
+          nomeArmazenamentoAntigo:
+            origem.nomeEndereco || origem.nomeLocalArmazenamento || 'Local',
+          unidadeMedida: this.unidadeMedidaSelecionada,
+        },
+      ];
+    });
     this.form.controls.quantidade.reset(null);
   }
 

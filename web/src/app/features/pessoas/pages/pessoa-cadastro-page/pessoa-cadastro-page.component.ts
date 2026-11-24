@@ -248,11 +248,15 @@ export class PessoaCadastroPageComponent {
   protected aplicarMascaraDocumento(): void {
     const isPj = this.ehPessoaJuridica();
     const maxDigitos = isPj ? 14 : 11;
-    const digitos = somenteDigitos(this.form.controls.cpfCnpj.value).slice(0, maxDigitos);
+    const digitos = (
+      isPj
+        ? somenteAlfanumericos(this.form.controls.cpfCnpj.value)
+        : somenteDigitos(this.form.controls.cpfCnpj.value)
+    ).slice(0, maxDigitos);
     let formatado = digitos;
 
     if (isPj) {
-      // 00.000.000/0000-00
+      // AA.AAA.AAA/AAAA-DD
       if (digitos.length > 12) {
         formatado = `${digitos.slice(0, 2)}.${digitos.slice(2, 5)}.${digitos.slice(5, 8)}/${digitos.slice(8, 12)}-${digitos.slice(12)}`;
       } else if (digitos.length > 8) {
@@ -428,7 +432,9 @@ export class PessoaCadastroPageComponent {
 
     const requisicao: PessoaRequisicao = {
       nome: valores.nome.trim(),
-      cpfCnpj: somenteDigitos(valores.cpfCnpj),
+      cpfCnpj: ehJuridica
+        ? somenteAlfanumericos(valores.cpfCnpj)
+        : somenteDigitos(valores.cpfCnpj),
       tipoPessoa: ehJuridica ? TipoPessoaCodigo.JURIDICA : TipoPessoaCodigo.FISICA,
       telefone: somenteDigitos(valores.telefone),
       email: valores.email.trim() || undefined,
@@ -495,6 +501,12 @@ export function somenteDigitos(valor: string | null | undefined): string {
   return String(valor ?? '').replace(/\D/g, '');
 }
 
+export function somenteAlfanumericos(valor: string | null | undefined): string {
+  return String(valor ?? '')
+    .toUpperCase()
+    .replace(/[^A-Z0-9]/g, '');
+}
+
 
 function formatarDataParaCampo(valor?: string): string {
   if (!valor) return '';
@@ -558,35 +570,39 @@ export function cpfValido(control: AbstractControl): ValidationErrors | null {
 }
 
 export function cnpjValido(control: AbstractControl): ValidationErrors | null {
-  const digitos = somenteDigitos(control.value);
+  const cnpj = somenteAlfanumericos(control.value);
 
-  if (!digitos) {
+  if (!cnpj) {
     return null;
   }
 
-  if (digitos.length !== 14) {
+  if (cnpj.length !== 14) {
     return { cnpjIncompleto: true };
   }
 
-  if (/^(\d)\1{13}$/.test(digitos)) {
+  if (/^([A-Z0-9])\1{13}$/.test(cnpj) || !/^[A-Z0-9]{12}\d{2}$/.test(cnpj)) {
     return { cnpjInvalido: true };
   }
 
-  const calcularDigito = (tamanho: number): number => {
-    let soma = 0;
-    let pos = tamanho - 7;
-    for (let i = tamanho; i >= 1; i--) {
-      soma += Number(digitos.charAt(tamanho - i)) * pos--;
-      if (pos < 2) pos = 9;
-    }
-    const resto = soma % 11;
-    return resto < 2 ? 0 : 11 - resto;
-  };
+  if (/^\d{14}$/.test(cnpj)) {
+    const calcularDigito = (tamanho: number): number => {
+      let soma = 0;
+      let pos = tamanho - 7;
+      for (let i = tamanho; i >= 1; i--) {
+        soma += Number(cnpj.charAt(tamanho - i)) * pos--;
+        if (pos < 2) pos = 9;
+      }
+      const resto = soma % 11;
+      return resto < 2 ? 0 : 11 - resto;
+    };
 
-  const primeiroValido = calcularDigito(12) === Number(digitos.charAt(12));
-  const segundoValido = calcularDigito(13) === Number(digitos.charAt(13));
+    const primeiroValido = calcularDigito(12) === Number(cnpj.charAt(12));
+    const segundoValido = calcularDigito(13) === Number(cnpj.charAt(13));
 
-  return primeiroValido && segundoValido ? null : { cnpjInvalido: true };
+    return primeiroValido && segundoValido ? null : { cnpjInvalido: true };
+  }
+
+  return null;
 }
 
 export function dataNascimentoValida(control: AbstractControl): ValidationErrors | null {

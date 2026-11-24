@@ -15,6 +15,7 @@ import br.org.asmosul.api.pessoas.repositories.PessoaRepository;
 import br.org.asmosul.api.pessoas.repositories.PessoaSpecification;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -60,9 +61,10 @@ public class PessoaService {
     public PessoaDTO.Detalhe cadastrar(PessoaDTO.Requisicao requisicao) {
         TipoPessoa tipo =
                 requisicao.tipoPessoa() != null ? requisicao.tipoPessoa() : TipoPessoa.FISICA;
+        String cpfCnpjSanitizado = sanitizarCpfCnpj(requisicao.cpfCnpj());
         validarRegrasNegocio(
                 tipo,
-                requisicao.cpfCnpj(),
+                cpfCnpjSanitizado,
                 requisicao.email(),
                 requisicao.dataNascimento(),
                 requisicao.sexo(),
@@ -80,9 +82,10 @@ public class PessoaService {
                 requisicao.ehDoador(),
                 null, requisicao.profissao());
 
-        validarUnicidade(requisicao.cpfCnpj(), requisicao.email(), null);
+        validarUnicidade(cpfCnpjSanitizado, requisicao.email(), null);
 
         Pessoa pessoa = requisicao.paraEntidade();
+        pessoa.setCpfCnpj(cpfCnpjSanitizado);
 
         atribuirComorbidadesECategorias(pessoa, requisicao.comorbidades(), requisicao.categorias());
 
@@ -142,9 +145,10 @@ public class PessoaService {
         }
 
         TipoPessoa tipo = pessoa.getTipoPessoa();
+        String cpfCnpjSanitizado = sanitizarCpfCnpj(requisicao.cpfCnpj());
         validarRegrasNegocio(
                 tipo,
-                requisicao.cpfCnpj(),
+                cpfCnpjSanitizado,
                 requisicao.email(),
                 requisicao.dataNascimento(),
                 requisicao.sexo(),
@@ -162,11 +166,11 @@ public class PessoaService {
                 requisicao.ehDoador(),
                 id, requisicao.profissao());
 
-        validarUnicidade(requisicao.cpfCnpj(), requisicao.email(), id);
+        validarUnicidade(cpfCnpjSanitizado, requisicao.email(), id);
 
         pessoa.atualizarDados(
                 requisicao.nome(),
-                requisicao.cpfCnpj(),
+                cpfCnpjSanitizado,
                 requisicao.dataNascimento(),
                 requisicao.sexo(),
                 requisicao.telefone(),
@@ -257,9 +261,10 @@ public class PessoaService {
             }
 
             // RN06 - Dados Obrigatórios de Pessoa Jurídica
-            if (cpfCnpj == null || cpfCnpj.length() != 14) {
+            if (cpfCnpj == null || !cpfCnpj.matches("[A-Z0-9]{12}\\d{2}")) {
                 throw ValidationException.of(
-                        "cpfCnpj", "CNPJ deve conter exatamente 14 dígitos numéricos");
+                        "cpfCnpj",
+                        "CNPJ deve conter exatamente 14 dígitos ou caracteres alfanuméricos");
             }
 
             // PJ não pode possuir atributos específicos de PF
@@ -300,7 +305,7 @@ public class PessoaService {
 
         } else {
             // RN07 - Dados Obrigatórios de Pessoa Física
-            if (cpfCnpj == null || cpfCnpj.length() != 11) {
+            if (cpfCnpj == null || !cpfCnpj.matches("\\d{11}")) {
                 throw ValidationException.of(
                         "cpfCnpj", "CPF deve conter exatamente 11 dígitos numéricos");
             }
@@ -313,6 +318,13 @@ public class PessoaService {
             // nome e telefone são validados no DTO
 
         }
+    }
+
+    private String sanitizarCpfCnpj(String cpfCnpj) {
+        if (cpfCnpj == null) {
+            return null;
+        }
+        return cpfCnpj.replaceAll("[^A-Za-z0-9]", "").toUpperCase(Locale.ROOT);
     }
 
     private void validarUnicidade(String cpfCnpj, String email, Long idAtual) {

@@ -18,6 +18,7 @@ import br.org.asmosul.api.doacoes.repositories.MovimentacaoRepository;
 import br.org.asmosul.api.doacoes.repositories.specifications.MovimentacaoSpecification;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -72,7 +73,10 @@ public class MovimentacaoService {
                                                 "Endereço de armazenamento de destino não encontrado com o ID informado: "
                                                         + requisicao.idNovoArmazenamento()));
 
-        for (MovimentacaoDTO.ItemMovimentacaoRequisicao itemReq : requisicao.itens()) {
+        List<MovimentacaoDTO.ItemMovimentacaoRequisicao> itensConsolidados =
+                consolidarItens(requisicao.itens());
+
+        for (MovimentacaoDTO.ItemMovimentacaoRequisicao itemReq : itensConsolidados) {
             if (itemReq.idArmazenamentoAntigo().equals(requisicao.idNovoArmazenamento())) {
                 throw ValidationException.of(
                         "itens",
@@ -85,7 +89,7 @@ public class MovimentacaoService {
         Movimentacao movimentacao = requisicao.paraEntidade(novoArmazenamento);
         movimentacao = movimentacaoRepository.save(movimentacao);
 
-        for (MovimentacaoDTO.ItemMovimentacaoRequisicao itemReq : requisicao.itens()) {
+        for (MovimentacaoDTO.ItemMovimentacaoRequisicao itemReq : itensConsolidados) {
             Item item =
                     itemRepository
                             .findById(itemReq.idItem())
@@ -222,4 +226,34 @@ public class MovimentacaoService {
                                 .findByItemIdAndArmazenamentoId(item.getId(), armazenamento.getId())
                                 .orElseGet(() -> new Estoque(item, armazenamento, 0)));
     }
+
+    private List<MovimentacaoDTO.ItemMovimentacaoRequisicao> consolidarItens(
+            List<MovimentacaoDTO.ItemMovimentacaoRequisicao> itens) {
+        Map<ChaveItemArmazenamento, MovimentacaoDTO.ItemMovimentacaoRequisicao> consolidados =
+                new LinkedHashMap<>();
+        for (MovimentacaoDTO.ItemMovimentacaoRequisicao item : itens) {
+            ChaveItemArmazenamento chave =
+                    new ChaveItemArmazenamento(item.idItem(), item.idArmazenamentoAntigo());
+            MovimentacaoDTO.ItemMovimentacaoRequisicao existente = consolidados.get(chave);
+            if (existente == null) {
+                consolidados.put(chave, item);
+                continue;
+            }
+
+            try {
+                consolidados.put(
+                        chave,
+                        new MovimentacaoDTO.ItemMovimentacaoRequisicao(
+                                item.idItem(),
+                                item.idArmazenamentoAntigo(),
+                                Math.addExact(existente.quantidade(), item.quantidade())));
+            } catch (ArithmeticException erro) {
+                throw ValidationException.of(
+                        "itens", "A quantidade total de um item excede o limite permitido.");
+            }
+        }
+        return List.copyOf(consolidados.values());
+    }
+
+    private record ChaveItemArmazenamento(Long idItem, Long idArmazenamentoAntigo) {}
 }
