@@ -21,11 +21,14 @@
       (aoFechar)="fecharMenuMobile()"
     />
 
-    <main class="min-w-0 flex-1 bg-[#edf1f5] p-0">
-      <router-outlet />
-    </main>
+    <div class="flex flex-1 flex-col min-w-0">
+      <main class="flex-1">
+        <router-outlet />
+      </main>
+
+      <app-footer />
+    </div>
 
   </div>
 
-  <app-footer />
 </div>

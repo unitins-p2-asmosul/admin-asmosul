@@ -87,7 +87,7 @@ export class EntradaCadastroPageComponent implements OnInit {
     this.itens().map((item) => ({
       valor: item.id,
       rotulo: item.nome,
-      subtexto: item.categoria ? `Categoria: ${item.categoria}` : undefined,
+      subtexto: item.categoria ? `Categoria: ${item.categoria.nome}` : undefined,
     })),
   );
 
